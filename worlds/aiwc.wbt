@@ -4,6 +4,8 @@ WorldInfo {
   basicTimeStep 5
   FPS 20
   optimalThreadCount 8
+  defaultDamping Damping {
+  }
   lineScale 0.01
   contactProperties [
     DEF floor-robot_body ContactProperties {
@@ -13,12 +15,19 @@ WorldInfo {
         0
       ]
       bounce 0
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF floor-wheel ContactProperties {
       material1 "floor"
       material2 "wheel"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF floor-ball ContactProperties {
       material1 "floor"
@@ -26,53 +35,80 @@ WorldInfo {
       bounce 0
       bounceVelocity 1e-05
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF wall-body ContactProperties {
       material1 "wall"
       material2 "body"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF wall-wheel ContactProperties {
       material1 "wall"
       material2 "wheel"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF body-body ContactProperties {
       material1 "body"
       material2 "body"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF body-wheel ContactProperties {
       material1 "body"
       material2 "wheel"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF body-ball ContactProperties {
       material1 "body"
       material2 "ball"
       bounce 0.25
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF wheel-wheel ContactProperties {
       material1 "wheel"
       material2 "wheel"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
     DEF wheel-ball ContactProperties {
       material1 "wheel"
       material2 "ball"
       bounce 0
       softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
     }
   ]
 }
@@ -127,7 +163,7 @@ SoccerField5v5 {
   floorContactMaterial "floor"
   wallContactMaterial "wall"
 }
-Stadium {
+DEF DEF_STADIUM Stadium {
   castShadows FALSE
   goalPost [
     DEF DEF_GOALPOST Group {

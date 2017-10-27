@@ -124,7 +124,7 @@ public:
       throw std::runtime_error("No ball in world");
     }
     for(int t = 0; t < 2; ++t) {
-      for(int id = 0; id < 5; ++id) {
+      for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
         if(is_null(pn_robots_[t][id] = getFromDef(robot_name(t==T_RED, id)))) {
           throw std::runtime_error("No robot in world");
         }
@@ -179,7 +179,7 @@ public:
 
     for(const auto& is_red : {true, false}) {
       const auto s = is_red ? 1 : -1;
-      for(std::size_t id = 0; id < 5; ++id) {
+      for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
         reset_node(getFromDef(robot_name(is_red, id)),
                    c::ROBOT_INIT_POSTURE[id][0] * s,
                    c::ROBOT_SIZE / 2,
@@ -260,7 +260,7 @@ private: // private member functions
     remove_node(constants::DEF_BALL);
 
     for(const auto& is_red : {true, false}) {
-      for(std::size_t id = 0; id < 5; ++id) {
+      for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
         remove_node(robot_name(is_red, id));
       }
     }
@@ -282,7 +282,7 @@ private: // private member functions
       std::stringstream ss;
       for(const auto& is_red : {true, false}) {
         const auto s = is_red ? 1 : -1;
-        for(std::size_t id = 0; id < 5; ++id) {
+        for(std::size_t id = 0; id < NUMBER_OF_ROBOTS; ++id) {
           const auto x  = ROBOT_INIT_POSTURE[id][0] * s;
           const auto y  = ROBOT_SIZE / 2;
           const auto z  = ROBOT_INIT_POSTURE[id][1] * s;
@@ -364,7 +364,7 @@ private: // private member variables
   std::array<webots::Camera*, 2> pc_cams_;
 
   webots::Node* pn_ball_;
-  std::array<std::array<webots::Node*, 5>, 2> pn_robots_;
+  std::array<std::array<webots::Node*, constants::NUMBER_OF_ROBOTS>, 2> pn_robots_;
 };
 
 #endif // H_SUPERVISOR_HPP

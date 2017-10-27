@@ -118,7 +118,7 @@ private:
     msgpack::object info; // premade aiwc.info return value
 
     image_buffer imbuf;
-    std::array<std::array<double, 2>, 5> wheel_speed;
+    std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS> wheel_speed;
   };
 
   std::mutex player_team_infos_mutex_;
@@ -126,7 +126,7 @@ private:
 
   double time_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
-  std::array<std::array<bool, 5>, 2> activeness_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
 
   std::promise<void> bootup_promise_;
   std::promise<void> ready_promise_;

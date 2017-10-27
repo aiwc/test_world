@@ -198,15 +198,15 @@ int game::run()
     terminate_vm();
   }
   else { // Not webots revert
-    // now players have c:: seconds to be ready
-    const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+    // now players have c::WAIT_KILL seconds to finish
+    const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(c::WAIT_KILL);
 
     std::cout << "Waiting players to finish" << std::endl;
 
     for(auto& kv : player_team_infos_) {
       auto& ti = kv.second;
 
-      // boost 1.65 and lower has a bug in child::wait_until(). use child::wait_for().
+      // boost 1.65 or lower has a bug in child::wait_until(). use child::wait_for().
       // ti.c.wait_until(until);
       ti.c.wait_for(until - std::chrono::steady_clock::now());
       if(ti.c.running()) {
@@ -215,7 +215,7 @@ int game::run()
     }
   }
 
-  // stops publishing and wait until publish thread stops
+  // stop publishing and wait until publish thread stops
   events_stop_ = true;
   events_cv_.notify_one();
   publish_thread_.join();
@@ -252,7 +252,7 @@ void game::connect_to_server()
 
   transport_->connect().get();
   session_->start().get();
-  session_->join(constants::REALM).get(); // Do we need the session ID?
+  session_->join(constants::REALM).get();
 
   // register calles
   session_->provide("aiwc.bootup",    [&](autobahn::wamp_invocation i) { return on_bootup(std::move(i)); }).get();
