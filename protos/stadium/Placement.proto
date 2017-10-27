@@ -1,0 +1,315 @@
+# VRML_SIM V8.6.2 utf8
+# tags: hidden
+# Placement
+PROTO Placement [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFVec3f    scale 1 1 1
+  # fields specific to the chair displacement
+  field SFNode   chairAppearance Red { }
+  field SFBool   castShadows TRUE
+  field SFInt32  numberOfRows 3
+  field SFFloat  placeProbability 0.5
+]
+{
+  %{
+    local nr = fields.numberOfRows.value
+    local kp = fields.placeProbability.value
+    local tx = 0.13
+    local ty = 0.03
+    local tz = 0.08
+
+    math.randomseed(os.time())
+
+    # '#a' doesn't work in procedural proto since # is used for comments. let's just count.
+    local array_length = function(a)
+    local ret = 0
+    for _,_ in pairs(a) do
+    ret = ret + 1
+    end
+    return ret
+    end
+
+    # color name MUST have matching protos/colors/*.proto
+    local shirt = {"DarkGray", "Gray", "LightGray", "White"}
+    local pants = shirt
+    local shoes = {"Black"}
+
+    local shirt_n = array_length(shirt)
+    local pants_n = array_length(pants)
+    local shoes_n = array_length(shoes)
+
+    local place_spectator = function()
+    if kp > math.random() then
+    return "Spectator_" .. math.random(1,7) .. " {"
+    .. "bodyAppearance Skin_"  .. math.random(1, 3) .. " { }"
+    .. "shirtAppearance " .. shirt[math.random(1, shirt_n)] .. " { }"
+    .. "pantsAppearance " .. pants[math.random(1, pants_n)] .. " { }"
+    .. "shoesAppearance " .. shoes[math.random(1, shoes_n)] .. " { }"
+    .. "castShadows IS castShadows"
+    .. "}"
+    else
+    return ""
+    end
+    end
+  }%
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    scale IS scale
+    children [
+      DEF EAST_CENTER Transform {
+        translation 0 0 0
+        rotation 0 1 0 0
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (9 + i*2) do }%
+          Transform {
+            translation %{=1.60+(i*tx)}% %{=0.03+(i*ty)}% %{=-0.35+(z*tz)-(i*0.08)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF EAST_RIGHT Transform {
+        translation 0 0 0
+        rotation 0 1 0 0
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (6 + i) do }%
+          Transform {
+            translation %{=1.60+(i*tx)}% %{=0.03+(i*ty)}% %{=0.7+(z*tz)+(i*0.05)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF EAST_LEFT Transform {
+        translation 0 0 0
+        rotation 0 1 0 0
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (6 + i) do }%
+          Transform {
+            translation %{=1.60+(i*tx)}% %{=0.03+(i*ty)}% %{=-1.18+(z*tz)-(i*0.13)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF WEST_CENTER Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=math.pi}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (9 + i*2) do }%
+          Transform {
+            translation %{=1.60+(i*tx)}% %{=0.03+(i*ty)}% %{=-0.35+(z*tz)-(i*0.08)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF WEST_RIGHT Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=math.pi}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (6 + i) do }%
+          Transform {
+            translation %{=1.60+(i*tx)}% %{=0.03+(i*ty)}% %{=0.7+(z*tz)+(i*0.05)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF WEST_LEFT Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=math.pi}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (6 + i) do }%
+          Transform {
+            translation %{=1.60+(i*tx)}% %{=0.03+(i*ty)}% %{=-1.18+(z*tz)-(i*0.13)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF NORTH_CENTER Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=math.pi / 2}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (11 + i*2) do }%
+          Transform {
+            translation %{=1.25+(i*tx)}% %{=0.03+(i*ty)}% %{=-0.44+(z*tz)-(i*0.08)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF NORTH_RIGHT Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=math.pi / 2}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (8 + i) do }%
+          Transform {
+            translation %{=1.25+(i*tx)}% %{=0.03+(i*ty)}% %{=0.82+(z*tz)+(i*0.05)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF NORTH_LEFT Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=math.pi / 2}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (8 + i) do }%
+          Transform {
+            translation %{=1.25+(i*tx)}% %{=0.03+(i*ty)}% %{=-1.45+(z*tz)-(i*0.13)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF SOUTH_CENTER Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=3*math.pi / 2}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (11 + i*2) do }%
+          Transform {
+            translation %{=1.25+(i*tx)}% %{=0.03+(i*ty)}% %{=-0.44+(z*tz)-(i*0.08)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF SOUTH_RIGHT Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=3*math.pi / 2}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (8 + i) do }%
+          Transform {
+            translation %{=1.25+(i*tx)}% %{=0.03+(i*ty)}% %{=0.82+(z*tz)+(i*0.05)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+      DEF SOUTH_LEFT Transform {
+        translation 0 0 0
+        rotation 0 1 0 %{=3*math.pi / 2}%
+        children [
+          %{ for i = 0, (nr - 1) do }%
+          %{ for z = 0, (8 + i) do }%
+          Transform {
+            translation %{=1.25+(i*tx)}% %{=0.03+(i*ty)}% %{=-1.45+(z*tz)-(i*0.13)}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              Chair {
+                appearance IS chairAppearance
+                castShadows IS castShadows
+              }
+              %{=place_spectator()}%
+            ]
+          }
+          %{ end }%
+          %{ end }%
+        ]
+      }
+    ]
+  }
+}

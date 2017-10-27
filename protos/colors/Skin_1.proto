@@ -1,0 +1,10 @@
+#VRML_SIM V8.6.2 utf8
+PROTO Skin_1 [
+]
+{
+  Appearance {
+    material Material {
+      diffuseColor 0.61 0.44 0.36
+    }
+  }
+}

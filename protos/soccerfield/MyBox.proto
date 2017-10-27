@@ -1,0 +1,116 @@
+#VRML_SIM V8.6.2 utf8
+# A custom box that has 6 different materials for each side
+# TODO: Texture orientation should be consistent with Box
+
+PROTO MyBox [
+  # fields inherited from Shape and Group: Default values are set according to the corresponding default values of Shape and Group
+  # children
+  # appearance
+  # geometry
+  field SFBool castShadows TRUE
+  field SFBool isPickable TRUE
+
+  # fields specific to MyBox
+  field SFVec3f size 0.1 0.1 0.1 # (0,inf)
+  field SFNode topAppearance NULL
+  field SFNode bottomAppearance NULL
+  field SFNode frontAppearance NULL
+  field SFNode backAppearance NULL
+  field SFNode leftAppearance NULL
+  field SFNode rightAppearance NULL
+]
+{
+  %{
+    local x = fields.size.value.x
+    local y = fields.size.value.y
+    local z = fields.size.value.z
+  }%
+  Group {
+    children [
+      DEF TOP Transform {
+        translation 0 %{=y / 2}% 0
+        rotation 0 1 0 0
+        children [
+          Shape {
+            appearance IS topAppearance
+            geometry Plane {
+              size %{=x}% %{=z}%
+            }
+            castShadows IS castShadows
+            isPickable IS isPickable
+          }
+        ]
+      }
+      DEF BOTTOM Transform {
+        translation 0 %{=-y / 2}% 0
+        rotation 1 0 0 %{=math.pi}%
+        children [
+          Shape {
+            appearance IS bottomAppearance
+            geometry Plane {
+              size %{=x}% %{=z}%
+            }
+            castShadows IS castShadows
+            isPickable IS isPickable
+          }
+        ]
+      }
+      DEF FRONT Transform {
+        translation %{=x / 2}% 0 0
+        rotation 0 0 1 %{=-math.pi / 2}%
+        children [
+          Shape {
+            appearance IS frontAppearance
+            geometry Plane {
+              size %{=y}% %{=z}%
+            }
+            castShadows IS castShadows
+            isPickable IS isPickable
+          }
+        ]
+      }
+      DEF BACK Transform {
+        translation %{=-x / 2}% 0 0
+        rotation 0 0 1 %{=math.pi / 2}%
+        children [
+          Shape {
+            appearance IS backAppearance
+            geometry Plane {
+              size %{=y}% %{=z}%
+            }
+            castShadows IS castShadows
+            isPickable IS isPickable
+          }
+        ]
+      }
+      DEF LEFT Transform {
+        translation 0 0 %{=-z / 2}%
+        rotation 1 0 0 %{=-math.pi / 2}%
+        children [
+          Shape {
+            appearance IS leftAppearance
+            geometry Plane {
+              size %{=x}% %{=y}%
+            }
+            castShadows IS castShadows
+            isPickable IS isPickable
+          }
+        ]
+      }
+      DEF RIGHT Transform {
+        translation 0 0 %{=z / 2}%
+        rotation 1 0 0 %{=math.pi / 2}%
+        children [
+          Shape {
+            appearance IS rightAppearance
+            geometry Plane {
+              size %{=x}% %{=y}%
+            }
+            castShadows IS castShadows
+            isPickable IS isPickable
+          }
+        ]
+      }
+    ]
+  }
+}

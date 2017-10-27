@@ -1,0 +1,57 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO Stadium [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFVec3f    scale 1 1 1
+
+  field SFNode standAppearance LightGray { }
+  field SFNode groundAppearance DarkGray { }
+  field SFNode chairAppearance Red { }
+  field SFBool castShadows TRUE
+  field SFFloat spectatorProbability 0.6
+  field MFString bannerUrl [ "textures/kaist.png" ]
+  field MFNode goalPost [
+    DEF DEF_GOALPOST Group { # Exposed intentionally for visibility control
+      children [
+        Goalpost {
+          translation -1.21 0 0
+          castShadows IS castShadows
+        }
+        Goalpost {
+          translation 1.21 0 0
+          rotation 0 1 0 3.141592635
+          castShadows IS castShadows
+        }
+      ]
+    }
+  ]
+]
+{
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    scale IS scale
+    children [
+      Stand {
+        appearance IS standAppearance
+        castShadows IS castShadows
+        groundAppearance IS groundAppearance
+      }
+      Placement {
+        chairAppearance IS chairAppearance
+        castShadows IS castShadows
+        placeProbability IS spectatorProbability
+      }
+      Banners {
+        castShadows IS castShadows
+        url IS bannerUrl
+      }
+      Group {
+        children IS goalPost
+      }
+    ]
+  }
+}
+
+

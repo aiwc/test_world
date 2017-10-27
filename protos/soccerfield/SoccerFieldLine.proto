@@ -1,0 +1,209 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO SoccerFieldLine [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFVec3f    scale 1 1 1
+
+  # fields specific to SoccerField
+  field SFFloat  length 2.2
+  field SFFloat  width 1.8
+  field SFFloat  centerDotRadius 0.01
+  field SFFloat  centerCircleRadius 0.25
+  field SFFloat  centerCircleSubdivision 12
+  field SFFloat  penaltyAreaDepth 0.35
+  field SFFloat  penaltyAreaWidth 0.8
+  field SFFloat  goalAreaDepth 0.15
+  field SFFloat  goalAreaWidth 0.5
+
+  field SFNode   lineAppearance White { }
+  field SFFloat  lineThickness 0.01
+  field SFFloat  lineHeight 0.001
+]
+{
+  %{
+    local l  = fields.length.value
+    local w  = fields.width.value
+
+    local ccd = fields.centerDotRadius.value
+    local ccr = fields.centerCircleRadius.value
+    local ccs = fields.centerCircleSubdivision.value
+    local pad = fields.penaltyAreaDepth.value
+    local paw = fields.penaltyAreaWidth.value
+    local gad = fields.goalAreaDepth.value
+    local gaw = fields.goalAreaWidth.value
+
+    local lt = fields.lineThickness.value
+    local lh = fields.lineHeight.value
+  }%
+  Transform {
+    translation IS translation
+    rotation IS rotation
+    scale IS scale
+    children [
+      DEF CENTERLINE Shape {
+        appearance IS lineAppearance
+        geometry Box {
+          size %{=lt}% %{=lh}% %{=w}%
+        }
+      }
+
+      DEF CENTERDOT Shape {
+        appearance IS lineAppearance
+        geometry Cylinder {
+          height %{=lh}%
+          radius %{=ccd}%
+        }
+      }
+
+      DEF CENTERCIRCLE Shape {
+        appearance IS lineAppearance
+        geometry IndexedFaceSet {
+          coord Coordinate {
+            point [
+              %{
+                for i = 0, (ccs - 1) do
+                local th = i * 2 * math.pi / ccs
+
+                local ix = (ccr - lt / 2) * math.cos(th)
+                local iy = (ccr - lt / 2) * math.sin(th)
+                local ox = (ccr + lt / 2) * math.cos(th)
+                local oy = (ccr + lt / 2) * math.sin(th)
+              }%
+              %{=ix}% %{=-lh/2}% %{=iy}% # 0 : il
+              %{=ix}% %{=lh/2}% %{=iy}% # 1 : iu
+              %{=ox}% %{=-lh/2}% %{=oy}% # 2 : ol
+              %{=ox}% %{=lh/2}% %{=oy}% # 3 : ou
+              %{ end }%
+            ]
+          }
+          coordIndex [
+            %{
+              local il = function (i) return (i % ccs) * 4 + 0 end
+              local iu = function (i) return (i % ccs) * 4 + 1 end
+              local ol = function (i) return (i % ccs) * 4 + 2 end
+              local ou = function (i) return (i % ccs) * 4 + 3 end
+
+              for i = 0, (ccs - 1) do
+            }%
+
+            %{=ol(i)}% %{=il(i)}% %{=il(i+1)}% %{=ol(i+1)}% -1 # floor
+            %{=ou(i)}% %{=iu(i)}% %{=iu(i+1)}% %{=ou(i+1)}% -1 # top
+            %{=iu(i)}% %{=il(i)}% %{=il(i+1)}% %{=iu(i+1)}% -1 # inner
+            %{=ol(i)}% %{=ou(i)}% %{=ou(i+1)}% %{=ol(i+1)}% -1 # outer
+            %{ end }%
+          ]
+        }
+      }
+
+      DEF LEFTPENALTYAREA Group {
+        children [
+          DEF VERTICALLINE Transform {
+            translation %{=pad - l / 2}% 0 0
+            children [
+              Shape {
+                appearance IS lineAppearance
+                geometry Box {
+                  size %{=lt}% %{=lh}% %{=paw}%
+                }
+              }
+            ]
+          }
+          DEF HORIZONTALUPPERLINE Transform {
+            translation %{=pad / 2 - l / 2}% 0 %{=-paw / 2}%
+            children [
+              Shape {
+                appearance IS lineAppearance
+                geometry Box {
+                  size %{=pad}% %{=lh}% %{=lt}%
+                }
+              }
+            ]
+          }
+          DEF HORIZONTALLOWERLINE Transform {
+            translation %{=pad / 2 - l / 2}% 0 %{=paw / 2}%
+            children [
+              Shape {
+                appearance IS lineAppearance
+                geometry Box {
+                  size %{=pad}% %{=lh}% %{=lt}%
+                }
+              }
+            ]
+          }
+        ]
+      }
+
+      DEF RIGHTPENALTYAREA Transform {
+        rotation 0 1 0 %{=math.pi}%
+        children [
+          USE LEFTPENALTYAREA
+        ]
+      }
+
+      DEF LEFTGOALAREA Group {
+        children [
+          DEF VERTICALLINE Transform {
+            translation %{=gad - l / 2}% 0 0
+            children [
+              Shape {
+                appearance IS lineAppearance
+                geometry Box {
+                  size %{=lt}% %{=lh}% %{=gaw}%
+                }
+              }
+            ]
+          }
+          DEF HORIZONTALUPPERLINE Transform {
+            translation %{=gad / 2 - l / 2}% 0 %{=-gaw / 2}%
+            children [
+              Shape {
+                appearance IS lineAppearance
+                geometry Box {
+                  size %{=gad}% %{=lh}% %{=lt}%
+                }
+              }
+            ]
+          }
+          DEF HORIZONTALLOWERLINE Transform {
+            translation %{=gad / 2 - l / 2}% 0 %{=gaw / 2}%
+            children [
+              Shape {
+                appearance IS lineAppearance
+                geometry Box {
+                  size %{=gad}% %{=lh}% %{=lt}%
+                }
+              }
+            ]
+          }
+        ]
+      }
+
+      DEF RIGHTGOALAREA Transform {
+        rotation 0 1 0 %{=math.pi}%
+        children [
+          USE LEFTGOALAREA
+        ]
+      }
+
+      # DEF LEFTGOALLINE Transform {
+      #   translation %{=-(l + lt) / 2}% 0 0
+      #   children [
+      #     Shape {
+      #       appearance IS lineAppearance
+      #       geometry Box {
+      #         size %{=lt}% %{=lh}% %{=paw}%
+      #       }
+      #     }
+      #   ]
+      # }
+
+      # DEF RIGHTGOALLINE Transform {
+      #   rotation 0 1 0 %{=math.pi}%
+      #   children [
+      #     USE LEFTGOALLINE
+      #   ]
+      # }
+    ]
+  }
+}

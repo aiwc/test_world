@@ -1,0 +1,151 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO SoccerRobotIDPatch [
+  # fields inherited from Shape
+
+  # fields specific to Patch
+  field SFFloat length 0.075
+  field SFFloat width 0.075
+  field SFInt32 id 0 # should be >= 0
+  field SFBool isTeamTagRed TRUE
+  field SFInt32 dataResolution 3 # should be > 0
+  field SFInt32 tagResolution 6 # should be >= 6
+  field SFInt32 tagWidth 1 # should be <= (tagResolution - 3) / 2
+]
+{
+  %{
+    -- local variables
+    local length = fields.length.value
+    local width = fields.width.value
+    local id = fields.id.value
+    local isTeamTagRed = fields.isTeamTagRed.value
+    local dataResolution = fields.dataResolution.value
+    local tagResolution = fields.tagResolution.value
+    local tagWidth = fields.tagWidth.value
+
+    -- local functions
+    local function gcd( m, n )
+      while n ~= 0 do
+        local q = m
+        m = n
+        n = q % n
+      end
+      return m
+    end
+
+    local function lcm( m, n )
+      return ( m ~= 0 and n ~= 0 ) and m * n / gcd( m, n ) or 0
+    end
+
+    -- invariants
+    if id < 0 then
+      print("id must be nonnegative. Setting id to 0.\n")
+      id = 0
+    end
+
+    if dataResolution <= 0 then
+      print("dataResolution must be positive. Setting dataResolution to 1.\n")
+      dataResolution = 1
+    end
+
+    if tagResolution < 6 then
+      print("tagResolution must be greater than 5. Setting tagResolution to 6.\n")
+      tagResolution = 6
+    end
+
+    if tagWidth > math.floor((tagResolution - 3) / 2) then
+      print("tagWidth must be less than or equal to floor((tagResolution - 3) / 2). Setting tagWidth to "..math.floor((tagResolution - 3) / 2)..".\n")
+      tagWidth = math.floor((tagResolution - 3) / 2);
+    end
+
+    -- local variables
+    local resolution = lcm(dataResolution, tagResolution)
+    local gridLength = length / resolution
+    local gridWidth = width / resolution
+
+    -- create empty grid
+    grid = {}
+    for i = 0, resolution - 1 do
+      grid[i] = {}
+      for j = 0, resolution - 1 do
+        grid[i][j] = {r=0, g=0, b=0}
+      end
+    end
+
+    local function fillGrid(stride, x, y, channel, value)
+      for i = 0, stride - 1 do
+        for j = 0, stride - 1 do
+          grid[x * stride + i][y * stride + j][channel] = ((value ~= 0) and 1 or 0)
+        end
+      end
+    end
+
+    local function setData(x, y, value)
+      fillGrid(resolution / dataResolution, x, y, "g", value)
+    end
+
+    local function setTag(x, y, value)
+      fillGrid(resolution / tagResolution, x, y, isTeamTagRed and "r" or "b", value)
+    end
+
+    -- fill team tag
+    ---- vertical
+    for idx = 1, tagResolution - 2 do
+    for idy = 1, tagWidth  do
+    setTag(idx, idy, 1)
+    end
+    end
+    ---- horizontal
+    for idy = 1, tagResolution - 2 do
+    for idx = 1, tagWidth do
+    setTag(idx, idy, 1)
+    end
+    for idx = tagResolution - 1 - tagWidth, tagResolution -2 do
+    setTag(idx, idy, 1)
+    end
+    end
+
+    -- fill data
+    local data = id
+    local idx = dataResolution - 1
+    local idy = dataResolution - 1
+    while data ~= 0 do
+      setData(idx, idy, data % 2)
+      data, idx = math.floor(data / 2), idx - 1
+      if idx < 0 then
+        idx, idy = dataResolution - 1, idy - 1
+      end
+    end
+  }%
+  Solid {
+    children [
+      %{
+        for idx = 0, resolution - 1 do
+        for idy = 0, resolution - 1 do
+      }%
+      Transform {
+        %{
+          local x = (-length + gridLength) / 2 + idx * gridLength
+          local y = (-width + gridWidth) / 2 + idy * gridWidth
+        }%
+        translation %{=-y}% 0 %{=x}%
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor %{=grid[idx][idy].r}% %{=grid[idx][idy].g}% %{=grid[idx][idy].b}%
+              }
+            }
+            geometry Plane {
+              size %{=gridLength}% %{=gridWidth}%
+            }
+          }
+        ]
+      }
+      %{
+        end
+        end
+      }%
+    ]
+  }
+}

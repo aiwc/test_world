@@ -1,0 +1,94 @@
+#VRML_SIM V8.6.2 utf8
+# tags: hidden
+# Multiple AD banner.
+# Created by sjlee
+
+PROTO Banners [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFBool     castShadows TRUE
+  field SFFloat    roundWidth 2.95
+  field SFFloat    roundHeight 2.25
+  field SFFloat    bannerHeight 0.1
+  field SFInt32    widthBannerNum 6
+  field SFInt32    heightBannerNum 5
+  field SFFloat    frameThickness 0.01
+  field SFBool     bannerBehind FALSE
+  field MFString   url []
+]
+{
+  %{
+    local rw  = fields.roundWidth.value
+    local rh  = fields.roundHeight.value
+    local h  = fields.bannerHeight.value
+    local th = fields.frameThickness.value
+    local url = fields.url.value
+    local wn = fields.widthBannerNum.value
+    local hn = fields.heightBannerNum.value
+
+    local n_urls = 0
+    for _,_ in pairs(url) do
+      n_urls = n_urls + 1
+    end
+  }%
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    children [
+      %{ for i = 0, (wn - 1) do }%
+        %{ rwx = -rw/2 + i * rw/wn }%
+        %{u = url[i % n_urls + 1]}%
+        Banner {
+          translation %{=rwx + rw/(2*wn)-th/2}% 0 %{=rh/2}%
+          rotation 0 1 0 %{=math.pi/2}%
+          length %{=rw/wn}%
+          height IS h
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerBehind IS bannerBehind
+        }
+      %{end}%
+      %{ for i = 0, (hn - 1) do }%
+        %{ rhx = rh/2 - i * rh/hn }%
+        %{u = url[i % n_urls + 1]}%
+        Banner {
+          translation %{=rw/2}% 0 %{=rhx - rh/(2*hn)+th/2}%
+          rotation 0 1 0 %{=math.pi}%
+          length %{=rh/hn}%
+          height IS h
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerBehind IS bannerBehind
+        }
+      %{end}%
+      %{ for i = 0, (wn - 1) do }%
+        %{ rwx = -rw/2 + i * rw/wn }%
+        %{u = url[i % n_urls + 1]}%
+        Banner {
+          translation %{=-rwx - rw/(2*wn)+th/2}% 0 %{=-rh/2}%
+          rotation 0 1 0 %{=math.pi*3/2}%
+          length %{=rw/wn}%
+          height IS h
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerBehind IS bannerBehind
+        }
+      %{end}%
+      %{ for i = 0, (hn - 1) do }%
+        %{ rhx = rh/2 - i * rh/hn }%
+        %{u = url[i % n_urls + 1]}%
+        Banner {
+          translation %{=-rw/2}% 0 %{=-rhx + rh/(2*hn)-th/2}%
+          rotation 0 1 0 %{=math.pi*2}%
+          length %{=rh/hn}%
+          height IS h
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerBehind IS bannerBehind
+        }
+      %{end}%
+    ]
+  }
+}
+
+

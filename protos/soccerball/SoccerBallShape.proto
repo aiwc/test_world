@@ -1,0 +1,27 @@
+#VRML_SIM V8.6.2 utf8
+# A black and white soccer ball with customizable radius and subdivision
+# Imported and modified by inbae.jeong@gmail.com
+
+PROTO SoccerBallShape [
+  field SFFloat radius 0.02135
+  field SFInt32 subdivision 3
+]
+{
+  Solid {
+    children [
+      Shape {
+        appearance Appearance {
+          texture ImageTexture {
+            url [
+              "textures/football.jpg"
+            ]
+          }
+        }
+        geometry Sphere {
+          radius IS radius
+          subdivision IS subdivision
+        }
+      }
+    ]
+  }
+}
