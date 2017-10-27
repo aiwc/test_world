@@ -277,12 +277,12 @@ void game::bootup_vm()
     boost::filesystem::path p_exe = ti.executable;
 
     ti.c = bp::child(bp::exe = ti.executable,
-                            bp::args = {c::SERVER_IP,
-                                std::to_string(c::RS_PORT),
-                                c::REALM,
-                                key,
-                                ti.datapath},
-                            bp::start_dir = p_exe.parent_path());
+                     bp::args = {c::SERVER_IP,
+                         std::to_string(c::RS_PORT),
+                         c::REALM,
+                         key,
+                         boost::filesystem::absolute(ti.datapath).string()},
+                     bp::start_dir = p_exe.parent_path());
   }
 }
 
@@ -385,12 +385,6 @@ std::size_t game::count_robots_in_penalty_area(bool is_red) const
 
 void game::publish_current_frame(std::size_t reset_reason)
 {
-  // using robot = std::tuple<double, double, double, bool>;
-  // using robots = std::array<robot, 5>;
-
-  // std::array<std::array<robots, 2>, 2> coords;
-  // std::array<std::array<double, 2>, 2> ball;
-
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
   std::array<std::array<std::tuple<double, double, double, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
@@ -443,39 +437,43 @@ void game::publish_current_frame(std::size_t reset_reason)
       auto subimages = ti.imbuf.update_image(sv_.get_image(ti.is_red));
       constexpr std::size_t n_max_subimages = c::MSG_MAX_SIZE / c::ESTIMATED_SUBIMAGE_SIZE;
 
-      while(!subimages.empty()) {
-        if(subimages.size() > n_max_subimages) {
-          // move n_max_subimages from subimages to subs_in_msg
-          std::vector<subimage> subs_in_msg;
-          subs_in_msg.reserve(n_max_subimages);
-          std::copy(std::make_move_iterator(subimages.begin()),
-                    std::make_move_iterator(std::next(subimages.begin(), n_max_subimages)),
-                    std::back_inserter(subs_in_msg));
-          subimages.erase(subimages.begin(), std::next(subimages.begin(), n_max_subimages));
+      if(subimages.size() <= n_max_subimages) {
+        msg.emplace_back("subimages", msgpack::object(subimages, z));
+      }
+      else {
+        while(!subimages.empty()) {
+          if(subimages.size() > n_max_subimages) {
+            // move n_max_subimages from subimages to subs_in_msg
+            std::vector<subimage> subs_in_msg;
+            subs_in_msg.reserve(n_max_subimages);
+            std::copy(std::make_move_iterator(subimages.begin()),
+                      std::make_move_iterator(std::next(subimages.begin(), n_max_subimages)),
+                      std::back_inserter(subs_in_msg));
+            subimages.erase(subimages.begin(), std::next(subimages.begin(), n_max_subimages));
 
-          msg.emplace_back("subimages", msgpack::object(subs_in_msg, z));
+            msg.emplace_back("subimages", msgpack::object(subs_in_msg, z));
 
-          events.emplace_back(topic,
-                              msgpack::object(std::make_tuple(msg), z),
-                              std::move(z));
-          msg.clear();
-          z = msgpack::zone{};
-        }
-        else { // last msg
-          msg.emplace_back("subimages", msgpack::object(subimages, z));
-          subimages.clear();
-
-          msg.emplace_back("EOF",          msgpack::object(true, z));
-          msg.emplace_back("coordinates",
-                           msgpack::object(std::make_tuple(robots[T_RED],
-                                                           robots[T_BLUE],
-                                                           ball), z));
-
-          events.emplace_back(topic,
-                              msgpack::object(std::make_tuple(msg), z),
-                              std::move(z));
+            events.emplace_back(topic,
+                                msgpack::object(std::make_tuple(msg), z),
+                                std::move(z));
+            msg.clear();
+            z = msgpack::zone{};
+          }
+          else { // last msg
+            msg.emplace_back("subimages", msgpack::object(subimages, z));
+            subimages.clear();
+          }
         }
       }
+      msg.emplace_back("EOF",          msgpack::object(true, z));
+      msg.emplace_back("coordinates",
+                       msgpack::object(std::make_tuple(robots[T_RED],
+                                                       robots[T_BLUE],
+                                                       ball), z));
+
+      events.emplace_back(topic,
+                          msgpack::object(std::make_tuple(msg), z),
+                          std::move(z));
     }
   }
 
