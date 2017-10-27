@@ -94,7 +94,7 @@ private:
   {
     team_info(std::string name, double rating, std::string exe, std::string datapath, bool is_red, std::size_t num_foul_record)
       : name(std::move(name)), rating(rating)
-      , executible(std::move(exe)), datapath(std::move(datapath))
+      , executable(std::move(exe)), datapath(std::move(datapath))
       , is_red(is_red)
       , is_bootup{false}, is_ready{false}
       , foul_count(num_foul_record)
@@ -104,7 +104,7 @@ private:
 
     std::string name;
     double rating;
-    std::string executible;
+    std::string executable;
     std::string datapath;
     boost::process::child c;
 

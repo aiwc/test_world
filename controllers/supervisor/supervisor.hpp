@@ -146,7 +146,7 @@ public:
   //   }
   // }
 
-  //         name         rating  executible   data directory path
+  //         name         rating  executable   data directory path
   std::tuple<std::string, double, std::string, std::string> get_team_info(bool is_red) const
   {
     const auto prefix = std::string("team") + (is_red ? "A" : "B");
@@ -320,12 +320,12 @@ private: // private member functions
       pn_orangeshape->setVisibility(pn_cams_[N_VIEWPOINT], false);
     }
 
-    // Goalpost is visible only to viewpoint, optional
+    // Stadium is visible only to viewpoint, optional
     {
-      auto* pn_goalpost = getFromDef(DEF_GOALPOST);
-      if(pn_goalpost) {
-        pn_goalpost->setVisibility(pn_cams_[N_CAMA], false);
-        pn_goalpost->setVisibility(pn_cams_[N_CAMB], false);
+      auto* pn_stadium = getFromDef(DEF_STADIUM);
+      if(pn_stadium) {
+        pn_stadium->setVisibility(pn_cams_[N_CAMA], false);
+        pn_stadium->setVisibility(pn_cams_[N_CAMB], false);
       }
     }
 

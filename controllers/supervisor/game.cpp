@@ -274,9 +274,9 @@ void game::bootup_vm()
     session_->call("aiwc.bootup", std::make_tuple(key));
 
     // launch process
-    boost::filesystem::path p_exe = ti.executible;
+    boost::filesystem::path p_exe = ti.executable;
 
-    ti.c = bp::child(bp::exe = ti.executible,
+    ti.c = bp::child(bp::exe = ti.executable,
                             bp::args = {c::SERVER_IP,
                                 std::to_string(c::RS_PORT),
                                 c::REALM,
