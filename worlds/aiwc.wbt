@@ -1,0 +1,147 @@
+#VRML_SIM V8.6 utf8
+WorldInfo {
+  ERP 0.01
+  basicTimeStep 5
+  FPS 20
+  optimalThreadCount 8
+  lineScale 0.01
+  contactProperties [
+    DEF floor-robot_body ContactProperties {
+      material1 "floor"
+      material2 "body"
+      coulombFriction [
+        0
+      ]
+      bounce 0
+    }
+    DEF floor-wheel ContactProperties {
+      material1 "floor"
+      material2 "wheel"
+      bounce 0
+      softCFM 1e-05
+    }
+    DEF floor-ball ContactProperties {
+      material1 "floor"
+      material2 "ball"
+      bounce 0
+      bounceVelocity 1e-05
+      softCFM 1e-05
+    }
+    DEF wall-body ContactProperties {
+      material1 "wall"
+      material2 "body"
+      bounce 0
+      softCFM 1e-05
+    }
+    DEF wall-wheel ContactProperties {
+      material1 "wall"
+      material2 "wheel"
+      bounce 0
+      softCFM 1e-05
+    }
+    DEF wall-ball ContactProperties {
+      material1 "wall"
+      material2 "ball"
+      softCFM 1e-05
+    }
+    DEF body-body ContactProperties {
+      material1 "body"
+      material2 "body"
+      bounce 0
+      softCFM 1e-05
+    }
+    DEF body-wheel ContactProperties {
+      material1 "body"
+      material2 "wheel"
+      bounce 0
+      softCFM 1e-05
+    }
+    DEF body-ball ContactProperties {
+      material1 "body"
+      material2 "ball"
+      bounce 0.25
+      softCFM 1e-05
+    }
+    DEF wheel-wheel ContactProperties {
+      material1 "wheel"
+      material2 "wheel"
+      bounce 0
+      softCFM 1e-05
+    }
+    DEF wheel-ball ContactProperties {
+      material1 "wheel"
+      material2 "ball"
+      bounce 0
+      softCFM 1e-05
+    }
+  ]
+}
+DEF DEF_AUDVIEW Viewpoint {
+  orientation -1 2.4176132e-15 7.2818904e-16 0.72
+  position -0.50401495 4.7643558 5.5726632
+}
+Background {
+  skyColor [
+    0.7 0.8 1
+  ]
+}
+DirectionalLight {
+  ambientIntensity 1
+  direction 0 -1 0
+}
+TestReferee {
+  translation 0 8 0
+  children [
+    Transform {
+      rotation 1 0 0 4.712389
+      children [
+        DEF DEF_CAMA Camera {
+          name "cam_a"
+          fieldOfView 0.325
+          width 640
+          height 480
+        }
+        DEF DEF_CAMB Camera {
+          rotation 0 0 1 3.1415926
+          name "cam_b"
+          fieldOfView 0.325
+          width 640
+          height 480
+        }
+      ]
+    }
+  ]
+  controller "supervisor"
+  teamAExecutable "../../examples/random_walk/random_walk"
+  teamADataPath "../../examples/team_a_data"
+  teamBExecutable "../../examples/random_walk/random_walk"
+  teamBDataPath "../../examples/team_b_data"
+}
+SoccerField5v5 {
+  height 0.15
+  floorLength 2.7
+  wallHeight 0.075
+  grassSlot DEF DEF_GRASS SoccerFieldGrass {
+    length 2.7
+  }
+  floorContactMaterial "floor"
+  wallContactMaterial "wall"
+}
+Stadium {
+  castShadows FALSE
+  goalPost [
+    DEF DEF_GOALPOST Group {
+      children [
+        Goalpost {
+          translation -1.21 0 0
+          castShadows IS castShadows
+        }
+        Goalpost {
+          translation 1.21 0 0
+          rotation 0 1 0 3.1415926
+          castShadows IS castShadows
+        }
+      ]
+    }
+  ]
+}
