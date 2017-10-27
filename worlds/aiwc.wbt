@@ -112,13 +112,13 @@ TestReferee {
     }
   ]
   controller "supervisor"
-  teamAExecutable "../../examples/random_walk/random_walk"
+  teamAExecutable "../../examples/skeleton-cpp/skeleton"
   teamADataPath "../../examples/team_a_data"
   teamBExecutable "../../examples/random_walk/random_walk"
   teamBDataPath "../../examples/team_b_data"
 }
 SoccerField5v5 {
-  height 0.15
+  height 0.1
   floorLength 2.7
   wallHeight 0.075
   grassSlot DEF DEF_GRASS SoccerFieldGrass {

@@ -48,7 +48,7 @@ namespace constants {
 
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr double MAX_FORCE = 0.5;
+  constexpr double MAX_FORCE = 0.1;
   constexpr double SLIP_NOISE = 0.05;
   constexpr double MAX_LINEAR_VELOCITY = 1.2;
   constexpr double BODY_MASS = 0.45;
@@ -86,7 +86,7 @@ namespace constants {
   constexpr std::size_t WAIT_STABLE = 1; // s
   constexpr std::size_t WAIT_GOAL   = 3; // s
   constexpr std::size_t GAME_TIME   = 300; // s
-  constexpr std::size_t PERIOD_MS   = 1000; // ms
+  constexpr std::size_t PERIOD_MS   = 50; // ms
   constexpr std::size_t FOUL_DURATION = 5; // s
   constexpr double      FOUL_THRESHOLD = 4.; // number of robots in penalty area
 
