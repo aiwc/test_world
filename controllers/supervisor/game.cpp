@@ -15,58 +15,10 @@ namespace /* anonymous */ {
     T_BLUE = 1,
   };
 
-  struct log_t
-  {
-    struct temp
-    {
-      temp(log_t& t)
-        : t(t),
-          lck(t.m)
-      { }
-
-      temp(temp&&) = default;
-      temp& operator=(temp&&) = default;
-
-      template <class T>
-      temp& operator<<(T&& t)
-      {
-        std::cout << std::forward<T>(t);
-        return *this;
-      }
-
-      temp& operator<<(std::ostream& (*t)(std::ostream&))
-      {
-        std::cout << t;
-        return *this;
-      }
-
-      log_t& t;
-      std::unique_lock<std::mutex> lck;
-    };
-
-    template <class T>
-    temp operator<<(T&& t)
-    {
-      return std::move(temp(*this) << std::forward<T>(t));
-    }
-
-    temp operator<<(const char* str)
-    {
-      return std::move(temp(*this) << str);
-    }
-
-    temp operator<<(std::ostream& (*t)(std::ostream&))
-    {
-      return std::move(temp(*this) << t);
-    }
-
-    std::mutex m;
-  } mylog;
-
   std::string random_string(std::size_t len)
   {
     constexpr const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    constexpr std::size_t alphanum_size = sizeof(alphanum) - 1; // terminating null
+    constexpr std::size_t alphanum_size = sizeof(alphanum) - 1; // -1 to exclude terminating null
 
     std::random_device rd{};
     std::default_random_engine re{rd()};
@@ -135,19 +87,7 @@ int game::run()
           const auto& args  = std::get<1>(front);
 
           // we have to wait until completely published to keep zone alive
-          try {
           session_->publish(topic, args).get();
-          }
-          catch(const std::exception& e) {
-            std::cout << "publish_thread session->publish std::exception: " << e.what() << std::endl;
-            std::cout << "topic: " << topic << std::endl;
-            // std::cout << "args: " << args << std::endl;
-            std::abort();
-          }
-          catch(...) {
-            std::cout << "publish_thread session->publish exception" << std::endl;
-            std::abort();
-          }
           local_events.pop_front();
         }
 
@@ -275,14 +215,15 @@ int game::run()
     }
   }
 
+  // stops publishing and wait until publish thread stops
+  events_stop_ = true;
+  events_cv_.notify_one();
+  publish_thread_.join();
+
   session_->leave().get();
   session_->stop().get();
   transport_->detach();
 
-  events_stop_ = true;
-  events_cv_.notify_one();
-
-  publish_thread_.join();
 
   io_.post([&]() {
       work_.reset();
