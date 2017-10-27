@@ -1,0 +1,45 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO TestReferee [
+  # fields inherited from Supervisor
+  field SFVec3f    translation         0 0 0
+  field SFRotation rotation            0 1 0 0
+  field SFVec3f    scale               1 1 1
+  field MFNode     children            [ ]
+  field SFString   name                "referee"
+  field SFString   model               ""
+  field SFString   description         ""
+  field SFString   data                ""
+  field SFString   controller          ""
+  field SFString   controllerArgs      ""
+  field SFBool     synchronization     TRUE
+
+  # fields specific to TestReferee
+  field SFString   teamAName           "teamA"
+  field SFFloat    teamARating         0
+  field SFString   teamAExecutable     ""
+  field SFString   teamADataPath       ""
+  field SFString   teamBName           "teamB"
+  field SFFloat    teamBRating         0
+  field SFString   teamBExecutable     ""
+  field SFString   teamBDataPath       ""
+]
+{
+  %{
+    # prevent error messages saying that parameters have no matching IS field
+  }%
+
+  Supervisor {
+    translation     IS translation
+    rotation        IS rotation
+    scale           IS scale
+    children        IS children
+    name            IS name
+    model           IS model
+    description     IS description
+    data            IS data
+    controller      IS controller
+    controllerArgs  IS controllerArgs
+    synchronization IS synchronization
+  }
+}

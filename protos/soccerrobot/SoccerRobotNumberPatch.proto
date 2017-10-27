@@ -1,0 +1,60 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO SoccerRobotNumberPatch [
+  # fields inherited from Shape
+
+  # fields specific to Patch
+  field SFFloat length 0.075
+  field SFFloat width 0.075
+  field SFInt32 id 0 # should be >= 0
+  field SFBool isTeamTagRed TRUE
+]
+{
+  %{
+    -- local variables
+    local length = fields.length.value
+    local width = fields.width.value
+    local id = fields.id.value
+    local isTeamTagRed = fields.isTeamTagRed.value
+
+    -- invariants
+    if id < 0 then
+      print("id must be nonnegative. Setting id to 0.\n")
+      id = 0
+    end
+  }%
+  Solid {
+    children [
+      DEF TEAMCOLOR Shape {
+        appearance Appearance {
+          texture ImageTexture {
+            %{
+              local color
+              if isTeamTagRed then color = 'red' else color = 'blue' end
+            }%
+            url [ "textures/%{=color}%.png" ]
+          }
+        }
+        geometry Plane {
+          size %{=length}% %{=width}%
+        }
+      }
+      DEF TEAMNUMBER Transform {
+        translation 0 0.0001 0
+        rotation 0 1 0 %{=-math.pi/2}%
+        children [
+          Shape {
+            appearance Appearance {
+              texture ImageTexture {
+                url [ "textures/%{=fields.id.value}%.png" ]
+              }
+            }
+            geometry Plane {
+              size %{=length}% %{=width}%
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

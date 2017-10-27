@@ -1,0 +1,327 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO SoccerRobot [
+  # fields inherited from DifferentialWheels
+  field SFVec3f    translation         0 0 0
+  field SFRotation rotation            0 1 0 0
+  field SFVec3f    scale               1 1 1
+  # children
+  field SFString   name                "soccer robot"
+  field SFString   model               ""
+  field SFString   description         ""
+  field SFString   data                ""
+  # contactMaterial
+  field MFNode     immersionProperties [ ]
+  # boundingObject
+  # physics
+  field SFBool     locked              FALSE
+  field SFFloat    translationStep     0.01        # m
+  field SFFloat    rotationStep        0.261799387 # pi/12 rad
+  field SFFloat    radarCrossSection   0.0
+  field SFString   controller          "void"
+  field SFString   controllerArgs      ""
+  field SFBool     synchronization     TRUE
+  field MFFloat    battery             [ ]
+  field SFFloat    cpuConsumption      10          # [0,inf)
+  # selfCollision
+  field SFBool     showWindow          FALSE
+  field SFString   window              ""
+  field SFString   remoteControl       ""
+  field SFFloat    motorConsumption    0           # [0,inf)
+  # SFFloat    axleLength          0.1         # (0,inf)
+  # SFFloat    wheelRadius         0.01        # (0,inf)
+  field SFFloat    maxSpeed            10          # (0,inf)
+  field SFFloat    maxAcceleration     10
+  field SFFloat    speedUnit           1
+  field SFFloat    slipNoise           0.1         # [0,inf)
+  field SFFloat    encoderNoise        -1
+  field SFFloat    encoderResolution   -1
+  field SFFloat    maxForce            0.3         # (0,inf)
+
+  # fields specific to SoccerRobot
+  field SFFloat  length 0.075
+  field SFFloat  width  0.075
+  field SFFloat  height 0.075
+
+  field SFBool   kinematic FALSE # If TRUE, Physics' are ignored
+  field SFFloat  axleLength     0.07
+  field SFFloat  wheelRadius    0.03
+  field SFFloat  wheelThickness 0.004
+  field SFFloat  wheelTireThickness 0.001
+
+  field SFFloat  distanceToFloor 0.001
+  field SFFloat  distanceToPatch 0.001
+  field SFFloat  distanceToWheel 0.001
+  field SFBool   side TRUE # If TRUE, the body has a side cover if needed
+  field SFNode   bodyAppearance Black { }
+  field SFNode   tireAppearance Gray { }
+  field SFNode   wheelAppearance Black { }
+  field SFNode bodyPhysics Physics {
+    density -1
+    mass 0.45
+  }
+  field SFNode wheelPhysics Physics {
+    density -1
+    mass 0.05
+  }
+
+  field SFString bodyContactMaterial "default"
+  field SFString wheelContactMaterial "default"
+
+  field MFNode patches [
+    DEF DEF_NUMBERPATCH SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 }
+    DEF DEF_IDPATCHR SoccerRobotIDPatch { isTeamTagRed TRUE id 0}
+    DEF DEF_IDPATCHB SoccerRobotIDPatch { isTeamTagRed FALSE id 0}
+  ]
+]
+{
+  %{
+    local l  = fields.length.value
+    local w  = fields.width.value
+    local h  = fields.height.value
+    local al = fields.axleLength.value
+    local wr = fields.wheelRadius.value
+    local wt = fields.wheelThickness.value
+    local wtt = fields.wheelTireThickness.value
+    local df = fields.distanceToFloor.value
+    local dp = fields.distanceToPatch.value
+    local dw = fields.distanceToWheel.value
+
+    local kinematic = fields.kinematic.value
+    if (not kinematic) and (not fields.bodyPhysics.value) and (not fields.wheelPhysics.value) then
+      print("kinematics mode is enabled")
+      kinematic = true
+    end
+  }%
+  DifferentialWheels {
+    translation         IS translation
+    rotation            IS rotation
+    scale               IS scale
+    children [
+      DEF PATCHES Transform {
+        translation 0 %{=h / 2}% 0
+        rotation 0 1 0 %{=math.pi / 2}%
+        children IS patches
+      }
+      DEF BODYSHAPE Transform {
+        rotation 0 1 0 %{=math.pi / 2}%
+        children [
+          # MidBody
+          # upper
+          %{
+            local h_upperbody = h - 2 * wr - dw - dp
+            if h_upperbody > 0 then
+          }%
+          Transform {
+            translation 0 %{=(2*wr + dw - dp) / 2}% 0
+            children [
+              Shape {
+                appearance IS bodyAppearance
+                geometry Box {
+                  size %{=2 * wr + 2 * dw}% %{=h_upperbody}% %{=w}%
+                }
+              }
+            ]
+          }
+          %{ end }%
+          # lower
+          %{
+            local lbh = 2 * wr + dw - df
+            local lbw = al - wt - 2 * dw
+            if lbh > 0 and lbw > 0 then
+          }%
+          Transform {
+            translation 0 %{=(-h + 2 * wr + dw + df) / 2}% 0
+            children [
+              Shape {
+                appearance IS bodyAppearance
+                geometry Box {
+                  size %{=2 * wr + 2 * dw}% %{=lbh}% %{=lbw}%
+                }
+              }
+            ]
+          }
+          %{ end }%
+
+          # FrontBody and BackBody
+          %{
+            local fbl = (l - 2 * wr - 2 * dw) / 2
+            local fbh = h - df - dp
+            if fbl > 0 and fbh > 0 then
+          }%
+          # front
+          Transform {
+            translation %{=(l + 2 * wr + 2 * dw) / 4}% %{=df / 2 - dp / 2}% 0
+            children [
+              Shape {
+                appearance IS bodyAppearance
+                geometry Box {
+                  size %{=fbl}% %{=fbh}% %{=w}%
+                }
+              }
+            ]
+          }
+          # back
+          Transform {
+            translation %{=-(l + 2 * wr + 2 * dw) / 4}% %{=df / 2 - dp / 2}% 0
+            children [
+              Shape {
+                appearance IS bodyAppearance
+                geometry Box {
+                  size %{=fbl}% %{=fbh}% %{=w}%
+                }
+              }
+            ]
+          }
+          %{ end }%
+
+          # SideBody
+          %{
+            local sbh = 2 * wr + dw - df
+            local sbw = (w - al - wt - 2 * dw) / 2
+            if fields.side.value and sbh > 0 and sbw > 0 then
+          }%
+          # left
+          Transform {
+            translation 0 %{=(-h + 2 * wr + dw + df) / 2}% %{=-(w + al + wt + 2 * dw) / 4}%
+            children [
+              Shape {
+                appearance IS bodyAppearance
+                geometry Box {
+                  size %{=2 * wr + 2 * dw}% %{=sbh}% %{=sbw}%
+                }
+              }
+            ]
+          }
+          # right
+          Transform {
+            translation 0 %{=(-h + 2 * wr + dw + df) / 2}% %{=(w + al + wt + 2 * dw) / 4}%
+            children [
+              Shape {
+                appearance IS bodyAppearance
+                geometry Box {
+                  size %{=2 * wr + 2 * dw}% %{=sbh}% %{=sbw}%
+                }
+              }
+            ]
+          }
+          %{ end }%
+        ]
+      }
+      DEF LEFTWHEEL Solid {
+        translation %{=-al / 2}% %{=(-h + 2 * wr) / 2}% 0
+        rotation 1 0 0 %{=math.pi / 2}%
+        children [
+          DEF LEFT_WHEEL_SHAPE Transform {
+            rotation 0 0 1 %{=math.pi / 2}%
+            children [
+              Shape {
+                appearance IS tireAppearance
+                geometry Cylinder {
+                  height %{=wt - 0.0001}%
+                  radius IS wheelRadius
+                  subdivision 24
+                }
+              }
+              %{ if wr - wtt > 0 then }%
+              Shape {
+                appearance IS wheelAppearance
+                geometry Cylinder {
+                  height IS wheelThickness
+                  radius %{=wr - wtt}%
+                  subdivision 24
+                }
+              }
+              %{ end }%
+            ]
+          }
+        ]
+        name "left wheel"
+        contactMaterial IS wheelContactMaterial
+        physics IS wheelPhysics
+        boundingObject Transform {
+          rotation 0 0 1 %{=math.pi / 2}%
+          children [
+            Cylinder {
+              height IS wheelThickness
+              radius IS wheelRadius
+              subdivision 24
+            }
+          ]
+        }
+      }
+
+      # right wheel
+      Solid {
+        translation %{=al / 2}% %{=(-h + 2 * wr) / 2}% 0
+        rotation 1 0 0 %{=math.pi / 2}%
+        children [
+          Transform {
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              USE LEFT_WHEEL_SHAPE
+            ]
+          }
+        ]
+        name "right wheel"
+        contactMaterial IS wheelContactMaterial
+        physics IS wheelPhysics
+        boundingObject Transform {
+          rotation 0 0 1 %{=math.pi / 2}%
+          children [
+            Cylinder {
+              height IS wheelThickness
+              radius IS wheelRadius
+              subdivision 24
+            }
+          ]
+        }
+      }
+    ]
+    name                IS name
+    model               IS model
+    description         IS description
+    data                IS data
+    contactMaterial     IS bodyContactMaterial
+    immersionProperties IS immersionProperties
+    boundingObject Transform {
+      translation 0 %{=df / 2}% 0
+      children [
+        Box {
+          size %{=l}% %{=h - df}% %{=w}%
+        }
+      ]
+    }
+
+    physics
+    %{ if not kinematic then }%
+    IS bodyPhysics
+    %{ else }%
+    NULL
+    %{ end }%
+
+    locked              IS locked
+    translationStep     IS translationStep
+    rotationStep        IS rotationStep
+    radarCrossSection   IS radarCrossSection
+    controller          IS controller
+    controllerArgs      IS controllerArgs
+    synchronization     IS synchronization
+    battery             IS battery
+    cpuConsumption      IS cpuConsumption
+    selfCollision       FALSE
+    showWindow          IS showWindow
+    window              IS window
+    remoteControl       IS remoteControl
+    motorConsumption    IS motorConsumption
+    axleLength          IS axleLength
+    wheelRadius         IS wheelRadius
+    maxSpeed            IS maxSpeed
+    maxAcceleration     IS maxAcceleration
+    speedUnit           IS speedUnit
+    slipNoise           IS slipNoise
+    encoderNoise        IS encoderNoise
+    encoderResolution   IS encoderResolution
+    maxForce            IS maxForce
+  }
+}

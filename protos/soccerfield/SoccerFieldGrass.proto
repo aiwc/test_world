@@ -1,0 +1,55 @@
+#VRML_SIM V8.6.2 utf8
+
+PROTO SoccerFieldGrass [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFVec3f    scale 1 1 1
+
+  # fields specific to SoccerField
+  field SFInt32  numberOfPlane 24
+  field SFFloat  length 3
+  field SFFloat  width 2
+]
+{
+  %{
+    local np = fields.numberOfPlane.value
+    local l  = fields.length.value
+    local w  = fields.width.value
+
+    local pl = l / np
+  }%
+  Slot {
+    type "soccer_field_grass"
+    endPoint Transform {
+      translation IS translation
+      rotation IS rotation
+      scale IS scale
+      children [
+        %{ for i = 0, (np - 1) do }%
+
+        Transform {
+          translation %{=(-l / 2) + i * pl + pl / 2}% 0 0
+          children [
+            Shape {
+              %{
+                local color
+                if i % 2 == 0 then
+                color = 'LightGreen'
+                else
+                color = 'DarkGreen'
+                end
+              }%
+              appearance %{=color}% { }
+              geometry Plane {
+                size %{=pl}% %{=w}%
+              }
+            }
+          ]
+        }
+
+        %{ end }%
+      ]
+    }
+  }
+}
+

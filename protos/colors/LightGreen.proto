@@ -1,0 +1,10 @@
+#VRML_SIM V8.6.2 utf8
+PROTO LightGreen [
+]
+{
+  Appearance {
+    material Material {
+      diffuseColor 0.435 0.592 0.145
+    }
+  }
+}

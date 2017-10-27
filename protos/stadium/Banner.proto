@@ -1,0 +1,130 @@
+#VRML_SIM V8.6.2 utf8
+# AD banner.
+# Created by sjlee
+
+PROTO Banner [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFFloat    length 0.5
+  field SFFloat    height 0.1
+  field SFVec3f    scale 1 1 1
+  field SFNode     frameAppearance LightGray { }
+  field SFBool     castShadows TRUE
+  field SFFloat    frameThickness 0.01
+  field SFBool     bannerBehind FALSE
+  field SFString   url ""
+]
+{
+  %{
+    local l  = fields.length.value
+    local h  = fields.height.value
+    local th = fields.frameThickness.value
+    local url = fields.url.value
+    local bb = fields.bannerBehind.value
+  }%
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    scale IS scale
+    children [
+      DEF PANEL Group {
+        children [
+          Transform {
+            rotation 1 0 0 1.57
+            translation %{=th/3}% %{=h/2}% %{=th/2}%
+            children [
+              Transform {
+                rotation 0 0 1 -1.57
+                children [
+                  Shape {
+                    appearance Appearance {
+                      texture ImageTexture {
+                        url [
+                          "%{=url}%"
+                        ]
+                      }
+                    }
+                    geometry Plane {
+                      size %{=l-th}% %{=h-2*th}%
+                    }
+                    castShadows IS castShadows
+                  }  
+                ]
+              }  
+            ]
+          }
+          Transform {
+            rotation 1 0 0 1.57
+            translation %{=-th/3}% %{=h/2}% %{=th/2}%
+            children [
+              Transform {
+                rotation 0 0 1 1.57
+                children [
+                  Shape {
+                    %{if bb then}%
+                      appearance Appearance {
+                        texture ImageTexture {
+                          url [
+                            "%{=url}%"
+                          ]
+                        }
+                      }
+                    %{else}%
+                      appearance IS frameAppearance
+                    %{end}%
+                    geometry Plane {
+                      size %{=l-th}% %{=h-2*th}%
+                    }
+                    castShadows IS castShadows
+                  }  
+                ]
+              }  
+            ]
+          }        
+        ]
+      }
+      DEF FRAME Group {
+        children [
+          Transform {
+            translation 0 %{=th/2}% %{=th/2}%
+            children [
+              Shape {
+                appearance IS frameAppearance
+                geometry Box {
+	          size %{=th}% %{=th}% %{=l-th}%
+	        }
+                castShadows IS castShadows
+	      }
+	    ]
+          }  
+          Transform {
+	    translation 0 %{=h-th/2}% %{=th/2}% 
+	    children [
+	      Shape {
+                appearance IS frameAppearance
+	        geometry Box {
+	          size %{=th}% %{=th}% %{=l-th}%
+	        }
+                castShadows IS castShadows
+	      }
+	    ]
+          }   
+          Transform {
+	    translation 0 %{=h/2}% %{=l/2+th/2}%
+	    children [
+	      Shape {
+                appearance IS frameAppearance
+	        geometry Box {
+	          size %{=th}% %{=h}% %{=th}% 
+	        }
+                castShadows IS castShadows
+	      }
+	    ]
+          }  
+        ]
+      }
+    ]
+  }
+}
+
+
