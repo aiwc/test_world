@@ -1,0 +1,21 @@
+#VRML_SIM V8.6.2 utf8
+# An ornage ball with customizable radius.
+# Created by inbae.jeong@gmail.com
+
+PROTO SoccerBallOrangeShape [
+  field SFFloat radius 0.02135
+  field SFInt32 subdivision 3
+]
+{
+  Solid {
+    children [
+      Shape {
+        appearance Orange { }
+        geometry Sphere {
+          radius IS radius
+          subdivision IS subdivision
+        }
+      }
+    ]
+  }
+}

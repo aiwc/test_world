@@ -1,0 +1,45 @@
+#VRML_SIM V8.5.3 utf8
+
+PROTO SoccerField5v5 [
+  field SFFloat  height 0.4 # height of virtual ceiling
+  field SFFloat  floorLength 3
+  field SFFloat  floorWidth 2
+  field SFFloat  wallHeight 0.05
+  field SFFloat  wallThickness 0.025
+  field SFNode   floorAppearance Black { }
+  field SFNode   wallAppearance Gray { }
+  field SFFloat  lineThickness 0.01
+  field SFNode   grassSlot SoccerFieldGrass { }
+  field SFString floorContactMaterial "default"
+  field SFString wallContactMaterial  "default"
+]
+{
+  SoccerField {
+    length 2.2
+    width 1.8
+    height IS height
+    cornerLength 0.07
+    floorLength IS floorLength
+    floorWidth IS floorWidth
+    goalWidth 0.4
+    goalDepth 0.15
+    wallHeight IS wallHeight
+    wallThickness IS wallThickness
+    floorAppearance IS floorAppearance
+    wallAppearance IS wallAppearance
+
+    centerDotRadius 0.01
+    centerCircleRadius 0.25
+    centerCircleSubdivision 24
+    penaltyAreaDepth 0.35
+    penaltyAreaWidth 0.8
+
+    lineAppearance White { }
+    lineThickness IS lineThickness
+    lineHeight 0.003
+
+    grassSlot IS grassSlot
+    floorContactMaterial IS floorContactMaterial
+    wallContactMaterial IS wallContactMaterial
+  }
+}

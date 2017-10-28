@@ -1,0 +1,3 @@
+worlds/*.wbproj
+controllers/*/build
+*.cache
