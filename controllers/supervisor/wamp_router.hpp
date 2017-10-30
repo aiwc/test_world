@@ -50,6 +50,8 @@ public:
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
     auto uds_listener = std::make_shared<bonefish::uds_listener>(io_service_, uds_path);
     rs_server_->attach_listener(std::static_pointer_cast<bonefish::rawsocket_listener>(uds_listener));
+#else
+    (void)uds_path;
 #endif
 
     ws_server_ = std::make_shared<bonefish::websocket_server>(io_service_, routers_, serializers_);

@@ -1,6 +1,7 @@
 #include "game.hpp"
 
 #include <boost/format.hpp>
+#include <boost/random/random_device.hpp>
 
 #include <random>
 #include <string>
@@ -20,7 +21,7 @@ namespace /* anonymous */ {
     constexpr const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     constexpr std::size_t alphanum_size = sizeof(alphanum) - 1; // -1 to exclude terminating null
 
-    std::random_device rd{};
+    boost::random_device rd{};
     std::default_random_engine re{rd()};
     std::uniform_int_distribution<std::size_t> uid(0, alphanum_size - 1);
 
