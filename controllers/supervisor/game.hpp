@@ -2,6 +2,8 @@
 #define H_GAME_HPP
 #pragma once
 
+#include <boost/asio.hpp> // need to be the first header to avoid winsock error in windows
+
 #include "supervisor.hpp"
 #include "image_buffer.hpp"
 
