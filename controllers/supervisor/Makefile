@@ -34,5 +34,5 @@ LIBRARIES += -lws2_32 -lwsock32
 BOOST_POSTFIX = -mt
 endif
 
-LIBRARIES += -lboost_system$(BOOST_POSTFIX) -lboost_thread$(BOOST_POSTFIX) -lboost_filesystem$(BOOST_POSTFIX)
+LIBRARIES += -lboost_system$(BOOST_POSTFIX) -lboost_thread$(BOOST_POSTFIX) -lboost_filesystem$(BOOST_POSTFIX) -lboost_random$(BOOST_POSTFIX)
 LFLAGS += -L ../../extlibs/bonefish/lib/$(OSTYPE)
