@@ -16,7 +16,8 @@
 
 **Directory Description**
 
-1. controllers: Contains programs for managing AI Soccer simulation system. **Programs in this directory are managed by us and need not be modified**
+1. controllers: Contains programs for managing AI Soccer simulation system.
 
-1-1. soccer_robot: Program that changes robot wheel movements based on received data.
-1-2. supervisor: Referee program that manages AI Soccer game.
+**Programs in this directory are managed by us and need not be modified**
+soccer_robot: Program that changes robot wheel movements based on received data.
+supervisor: Referee program that manages AI Soccer game.
