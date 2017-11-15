@@ -16,13 +16,13 @@
 
 **Directory Description**
 
-1. controllers: Contains programs for managing AI Soccer simulation system. **(Programs in this directory are managed by us and need not be modified)**
+**controllers**: Contains programs for managing AI Soccer simulation system. **(Programs in this directory are managed by us and need not be modified)**
 
 soccer_robot: Program that changes robot wheel movements based on received data.
 
 supervisor: Referee program that manages AI Soccer game.
 
-2. examples: Contains sample programs participants can refer to. **(Participants should implement AI Soccer program similar to samples in this directory)**
+**examples**: Contains sample programs participants can refer to. **(Participants should implement AI Soccer program similar to samples in this directory)**
 
 common: Contains a basic interface for information handling and communication with the simulator.
 
@@ -34,12 +34,13 @@ skeleton-cpp: Program that orders its team's robots to move forward at maximum a
 
 team_a_data & team_b_data: Directory where participants' program may store some files if needed.
 
-3. extlibs: Contains external libraries used in AI Soccer simulator. **(Files in this directory are managed by us and need not be modified)**
+**extlibs**: Contains external libraries used in AI Soccer simulator. **(Files in this directory are managed by us and need not be modified)**
 
-4. protos: Contains AI Soccer object models (robot, ball, stadium, etc.) **(Files in this directory are managed by us and need not be modified)**
+**protos**: Contains AI Soccer object models (robot, ball, stadium, etc.) **(Files in this directory are managed by us and need not be modified)**
 
-5. worlds: Contains AI Soccer simulation world file **(Files in this directory can be run using Webots Robot Simulator)**
+**worlds**: Contains AI Soccer simulation world file **(Files in this directory can be run using Webots Robot Simulator)**
 
 aiwc_linux.wbt: Webots world file for linux
+
 aiwc_windows.wbt: Webots world file for windows
 
