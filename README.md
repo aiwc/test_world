@@ -18,21 +18,21 @@
 
 **controllers**: Contains programs for managing AI Soccer simulation system. **(Programs in this directory are managed by us and need not be modified)**
 
-soccer_robot: Program that changes robot wheel movements based on received data.
+- soccer_robot: Program that changes robot wheel movements based on received data.
 
-supervisor: Referee program that manages AI Soccer game.
+- supervisor: Referee program that manages AI Soccer game.
 
 **examples**: Contains sample programs participants can refer to. **(Participants should implement AI Soccer program similar to samples in this directory)**
 
-common: Contains a basic interface for information handling and communication with the simulator.
+- common: Contains a basic interface for information handling and communication with the simulator.
 
-extlibs: Contains external libraries used in sample programs
+- extlibs: Contains external libraries used in sample programs
 
-random_walk: Program that orders its team's robots to move randomly.
+- random_walk: Program that orders its team's robots to move randomly.
 
-skeleton-cpp: Program that orders its team's robots to move forward at maximum available velocity.
+- skeleton-cpp: Program that orders its team's robots to move forward at maximum available velocity.
 
-team_a_data & team_b_data: Directory where participants' program may store some files if needed.
+- team_a_data & team_b_data: Directory where participants' program may store some files if needed.
 
 **extlibs**: Contains external libraries used in AI Soccer simulator. **(Files in this directory are managed by us and need not be modified)**
 
@@ -40,7 +40,7 @@ team_a_data & team_b_data: Directory where participants' program may store some 
 
 **worlds**: Contains AI Soccer simulation world file **(Files in this directory can be run using Webots Robot Simulator)**
 
-aiwc_linux.wbt: Webots world file for linux
+- aiwc_linux.wbt: Webots world file for linux
 
-aiwc_windows.wbt: Webots world file for windows
+- aiwc_windows.wbt: Webots world file for windows
 
