@@ -50,7 +50,7 @@ namespace constants {
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
   constexpr double MAX_FORCE = 0.1;
   constexpr double SLIP_NOISE = 0.05;
-  constexpr double MAX_LINEAR_VELOCITY = 1.2;
+  constexpr double MAX_LINEAR_VELOCITY = 1.7;
   constexpr double BODY_MASS = 0.45;
   constexpr double WHEEL_MASS = 0.05;
 
