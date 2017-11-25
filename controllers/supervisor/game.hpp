@@ -33,6 +33,18 @@ struct webots_revert_exception
 
 class game
 {
+  enum state_t {
+    STATE_WAITING_BOOTUP = 0,
+    STATE_WAITING_READY = 1,
+    STATE_STARTED = 2,
+  };
+
+  enum role_t {
+    ROLE_PLAYER = 0,
+    ROLE_COMMENTATOR = 1,
+    ROLE_REPORTER = 2,
+  };
+
 public:
   game(supervisor& sv);
 
@@ -41,8 +53,7 @@ public:
   game(game&&) = default;
   game& operator=(game&&) = default;
 
-  // return -1 when webots tries to revert
-  int run();
+  void run(); // throws webots_revert_exceptions 
 
 private:
   void connect_to_server();
@@ -52,14 +63,15 @@ private:
 
   void update_label();
 
-  // throw webots_revert_exception when webots reverts
-  void step(std::size_t ms);
+  // game state control functions
+  void step(std::size_t ms); // throw webots_revert_exception when webots reverts
+  void pause();
+  void reset();
+  void resume();
+  void stop_robots();
 
-  // reset_position and wait for stabilizing_time_ms
-  void reset_position();
-
-  // send wheel speed to the simulator
-  void set_speed(bool stop_all = false);
+  // simulator-related functions
+  void send_speed(); // send wheel speed to the simulator
 
   std::size_t count_robots_in_penalty_area(bool is_red) const;
 
@@ -72,6 +84,8 @@ private:
   void on_ready(autobahn::wamp_invocation invocation);
   void on_info(autobahn::wamp_invocation invocation);
   void on_set_speed(autobahn::wamp_invocation invocation);
+  void on_commentate(autobahn::wamp_invocation invocation);
+  void on_report(autobahn::wamp_invocation invocation);
 
 private:
   supervisor& sv_;
@@ -94,41 +108,58 @@ private:
 
   struct team_info
   {
-    team_info(std::string name, double rating, std::string exe, std::string datapath, bool is_red, std::size_t num_foul_record)
+    team_info(std::string name, double rating, std::string exe, std::string datapath,
+              const role_t& role, bool is_red)
+              // std::size_t num_foul_record)
       : name(std::move(name)), rating(rating)
       , executable(std::move(exe)), datapath(std::move(datapath))
-      , is_red(is_red)
+      , role(role), is_red(is_red)
       , is_bootup{false}, is_ready{false}
-      , foul_count(num_foul_record)
       , imbuf(constants::RESOLUTION_X, constants::RESOLUTION_Y,
               constants::SUBIMAGE_NX, constants::SUBIMAGE_NY)
     { }
 
-    std::string name;
-    double rating;
-    std::string executable;
-    std::string datapath;
+    const std::string name;
+    const double rating;
+    const std::string executable;
+    const std::string datapath;
+    const role_t role;
+    const bool is_red;
+
     boost::process::child c;
 
-    bool is_red;
     bool is_bootup;
     bool is_ready;
 
-    boost::circular_buffer<std::size_t> foul_count;
-
-    msgpack::zone z_info;
-    msgpack::object info; // premade aiwc.info return value
-
+    std::mutex m; // for shared members
     image_buffer imbuf;
-    std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS> wheel_speed;
   };
 
-  std::mutex player_team_infos_mutex_;
   std::map<std::string, team_info> player_team_infos_;
 
-  double time_ = 0;
+  msgpack::zone z_info_;
+  msgpack::object info_[2]; // for red team's view and blue team's view
+
+  std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
+
+  const std::size_t game_time_ms_;
+  std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
+  std::atomic<bool> paused_{true};
+
+  std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
+
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_counter_;
+  std::size_t deadlock_time_ = 0;
+
+  using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
+
+  wheel_speed_t io_thread_wheel_speed_ = {};          // only used in io_thread
+  aiwc::spsc_buffer<wheel_speed_t> wheel_speed_ = {}; // producer: io thread, consumer: game thread
+
+  std::mutex m_comments_;
+  boost::circular_buffer<std::string> comments_{constants::NUM_COMMENTS};
 
   std::promise<void> bootup_promise_;
   std::promise<void> ready_promise_;

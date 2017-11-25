@@ -17,16 +17,13 @@ int main()
     });
 
   supervisor sv;
-
-  for(;;) {
-    game g(sv);
-    if(g.run() == -1) {
-      break;
-    }
-  }
+  game g(sv);
+  g.run();
 
   wr.shutdown();
   wamp_router_th.join();
+
+  sv.simulationRevert();
 
   return 0;
 }

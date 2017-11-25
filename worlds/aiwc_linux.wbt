@@ -114,7 +114,7 @@ WorldInfo {
 }
 DEF DEF_AUDVIEW Viewpoint {
   orientation -1 2.4176132e-15 7.2818904e-16 0.72
-  position -0.50401495 4.7643558 5.5726632
+  position -0.072123853 4.3703004 4.9813297
 }
 Background {
   skyColor [
@@ -148,13 +148,15 @@ TestReferee {
     }
   ]
   controller "supervisor"
-  teamAExecutable "../../examples/skeleton-cpp/skeleton"
+  teamAExecutable "../../examples/rulebased_algorithm/rulebased_algorithm"
   teamADataPath "../../examples/team_a_data"
-  teamBExecutable "../../examples/random_walk/random_walk"
+  teamBExecutable "../../examples/rulebased_algorithm/rulebased_algorithm"
   teamBDataPath "../../examples/team_b_data"
+  commentatorExecutable "../../examples/commentator-skeleton-cpp/commentator-skeleton"
+  commentatorDataPath "../../examples/commentator_data"
 }
 SoccerField5v5 {
-  height 0.1
+  height 0.12
   floorLength 2.7
   wallHeight 0.075
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
