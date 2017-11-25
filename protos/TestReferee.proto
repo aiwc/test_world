@@ -15,14 +15,25 @@ PROTO TestReferee [
   field SFBool     synchronization     TRUE
 
   # fields specific to TestReferee
+  field SFFloat    gameTime            300
+
   field SFString   teamAName           "teamA"
   field SFFloat    teamARating         0
   field SFString   teamAExecutable     ""
   field SFString   teamADataPath       ""
+
   field SFString   teamBName           "teamB"
   field SFFloat    teamBRating         0
   field SFString   teamBExecutable     ""
   field SFString   teamBDataPath       ""
+
+  field SFString   commentatorName       "commentator"
+  field SFString   commentatorExecutable ""
+  field SFString   commentatorDataPath   ""
+
+  field SFString   reporterName          "reporter"
+  field SFString   reporterExecutable    ""
+  field SFString   reporterDataPath      ""
 ]
 {
   %{

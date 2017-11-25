@@ -6,6 +6,8 @@
 #include <random>
 #include <string>
 
+#include <fstream>
+
 namespace c = constants;
 namespace bp = boost::process;
 
@@ -58,15 +60,19 @@ namespace msgpack {
 
 game::game(supervisor& sv)
   : sv_(sv)
-{ }
+  , game_time_ms_(sv_.get_game_time_ms())
+{
+  for(auto& fc : foul_counter_) {
+    fc.set_capacity(c::FOUL_DURATION_MS / c::PERIOD_MS);
+  }
+}
 
-int game::run()
+void game::run()
 {
   if(work_) {
     throw std::runtime_error("Game already started");
   }
 
-  int ret = 0;
   events_stop_ = false;
 
   // launch io thread
@@ -114,40 +120,79 @@ int game::run()
     const std::string& name_op   = std::get<0>(tup_op);
     const double&      rating_op = std::get<1>(tup_op);
 
-    const auto ret = player_team_infos_.emplace(random_string(c::KEY_LENGTH),
-                                                team_info(name, rating, exe, data,
-                                                          team == T_RED,
-                                                          1000 * c::FOUL_DURATION / c::PERIOD_MS
-                                                          ));
+    const auto ret = player_team_infos_.emplace(std::piecewise_construct,
+                                                std::make_tuple(random_string(c::KEY_LENGTH)),
+                                                std::make_tuple(name, rating, exe, data,
+                                                                ROLE_PLAYER, team == T_RED)
+                                                );
 
     assert(ret.second);
-    auto& ti = ret.first->second;
 
     // create information for aiwc.get_info() in advance
     using map = msgpack::type::assoc_vector<std::string, msgpack::object>;
     map info;
-    info.emplace_back("field",        msgpack::object(std::make_tuple(c::FIELD_LENGTH, c::FIELD_WIDTH), ti.z_info));
-    info.emplace_back("goal",         msgpack::object(std::make_tuple(c::GOAL_DEPTH, c::GOAL_WIDTH), ti.z_info));
+    info.emplace_back("field",        msgpack::object(std::make_tuple(c::FIELD_LENGTH, c::FIELD_WIDTH), z_info_));
+    info.emplace_back("goal",         msgpack::object(std::make_tuple(c::GOAL_DEPTH, c::GOAL_WIDTH), z_info_));
     info.emplace_back("penalty_area", msgpack::object(std::make_tuple(c::PENALTY_AREA_DEPTH,
-                                                                      c::PENALTY_AREA_WIDTH), ti.z_info));
-    info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, ti.z_info));
-    info.emplace_back("robot_size",           msgpack::object(c::ROBOT_SIZE, ti.z_info));
-    info.emplace_back("axle_length",          msgpack::object(c::AXLE_LENGTH, ti.z_info));
-    info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, ti.z_info));
+                                                                      c::PENALTY_AREA_WIDTH), z_info_));
+    info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, z_info_));
+    info.emplace_back("robot_size",           msgpack::object(c::ROBOT_SIZE, z_info_));
+    info.emplace_back("axle_length",          msgpack::object(c::AXLE_LENGTH, z_info_));
+    info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
 
-    info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), ti.z_info));
-    info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, ti.z_info));
-    info.emplace_back("codewords",  msgpack::object(c::CODEWORDS, ti.z_info));
-    info.emplace_back("game_time",   msgpack::object(c::GAME_TIME, ti.z_info));
+    info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), z_info_));
+    info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
+    info.emplace_back("codewords",  msgpack::object(c::CODEWORDS, z_info_));
+    info.emplace_back("game_time",   msgpack::object(game_time_ms_ / 1000., z_info_));
 
     info.emplace_back("team_info",
-                      msgpack::object(std::make_tuple(map{std::make_pair("name",   msgpack::object(name, ti.z_info)),
-                              /* */                       std::make_pair("rating", msgpack::object(rating, ti.z_info))},
-                          /* */                       map{std::make_pair("name",   msgpack::object(name_op, ti.z_info)),
-                              /* */                       std::make_pair("rating", msgpack::object(rating_op, ti.z_info))}),
-                        /* */         ti.z_info));
+                      msgpack::object(std::make_tuple(map{std::make_pair("name",   msgpack::object(name, z_info_)),
+                              /* */                       std::make_pair("rating", msgpack::object(rating, z_info_))},
+                          /* */                       map{std::make_pair("name",   msgpack::object(name_op, z_info_)),
+                              /* */                       std::make_pair("rating", msgpack::object(rating_op, z_info_))}),
+                        /* */         z_info_));
 
-    ti.info = msgpack::object(info, ti.z_info);
+    info_[team] = msgpack::object(info, z_info_);
+  }
+
+  // gets commentator information
+  {
+    const auto tup = sv_.get_commentator_info();
+
+    const std::string& name   = std::get<0>(tup);
+    const std::string& exe    = std::get<1>(tup);
+    const std::string& data   = std::get<2>(tup);
+
+    if(!exe.empty()) {
+      // commentator is treated as red team with rating 0
+      const auto ret = player_team_infos_.emplace(std::piecewise_construct,
+                                                  std::make_tuple(random_string(c::KEY_LENGTH)),
+                                                  std::make_tuple(name, 0, exe, data,
+                                                                  ROLE_COMMENTATOR, true)
+                                                  );
+
+      assert(ret.second);
+    }
+  }
+
+  // gets reporter information
+  {
+    const auto tup = sv_.get_reporter_info();
+
+    const std::string& name   = std::get<0>(tup);
+    const std::string& exe    = std::get<1>(tup);
+    const std::string& data   = std::get<2>(tup);
+
+    if(!exe.empty()) {
+      // reporter is treated as red team with rating 0
+      const auto ret = player_team_infos_.emplace(std::piecewise_construct,
+                                                  std::make_tuple(random_string(c::KEY_LENGTH)),
+                                                  std::make_tuple(name, 0, exe, data,
+                                                                  ROLE_REPORTER, true)
+                                                  );
+
+      assert(ret.second);
+    }
   }
 
   // initialize promises and futures
@@ -158,19 +203,19 @@ int game::run()
 
   connect_to_server();
 
-  // bootup VMs & wait until 2 players boot up
+  // bootup VMs & wait until app players boot up
   bootup_vm();
   bootup_future.wait();
 
   // wait until 2 players are ready for c::WAIT_READY seconds
   ready_future.wait_until(std::chrono::steady_clock::now()
-                          + std::chrono::seconds(c::WAIT_READY));
+                          + std::chrono::milliseconds(c::WAIT_READY_MS));
 
   // run or finish the game
   {
-    std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
     const auto count = std::count_if(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
-                                     [](const auto& kv) { return kv.second.is_ready == true; });
+                                     [](const auto& kv) { return kv.second.role == ROLE_PLAYER
+                                                          && kv.second.is_ready == true; });
     if(count == 0) {
       // send the result(draw) to the matching server
     }
@@ -180,38 +225,30 @@ int game::run()
       assert(it != std::cend(player_team_infos_));
 
       // TODO: send winning frame to team pointed by it.
-      ret = 0;
     }
     else {
-      lck.unlock();
-
       try {
         std::cout << "Starting a new game" << std::endl;
         run_game();
+
+        // now players have c::WAIT_KILL seconds to finish
+        const auto until = std::chrono::steady_clock::now() + std::chrono::milliseconds(c::WAIT_KILL_MS);
+
+        std::cout << "Waiting players to finish" << std::endl;
+
+        for(auto& kv : player_team_infos_) {
+          auto& ti = kv.second;
+
+          // boost 1.65 or lower has a bug in child::wait_until(). use child::wait_for().
+          // ti.c.wait_until(until);
+          ti.c.wait_for(until - std::chrono::steady_clock::now());
+          if(ti.c.running()) {
+            ti.c.terminate();
+          }
+        }
       }
       catch(const webots_revert_exception& e) {
-        ret = -1;
-      }
-    }
-  }
-
-  if(ret == -1) { // if webots reverts
-    terminate_vm();
-  }
-  else { // Not webots revert
-    // now players have c::WAIT_KILL seconds to finish
-    const auto until = std::chrono::steady_clock::now() + std::chrono::seconds(c::WAIT_KILL);
-
-    std::cout << "Waiting players to finish" << std::endl;
-
-    for(auto& kv : player_team_infos_) {
-      auto& ti = kv.second;
-
-      // boost 1.65 or lower has a bug in child::wait_until(). use child::wait_for().
-      // ti.c.wait_until(until);
-      ti.c.wait_for(until - std::chrono::steady_clock::now());
-      if(ti.c.running()) {
-        ti.c.terminate();
+        terminate_vm();
       }
     }
   }
@@ -233,8 +270,6 @@ int game::run()
     });
 
   io_thread_.join();
-
-  return ret;
 }
 
 void game::connect_to_server()
@@ -256,41 +291,60 @@ void game::connect_to_server()
   session_->join(constants::REALM).get();
 
   // register calles
-  session_->provide("aiwc.bootup",    [&](autobahn::wamp_invocation i) { return on_bootup(std::move(i)); }).get();
-  session_->provide("aiwc.ready",     [&](autobahn::wamp_invocation i) { return on_ready(std::move(i)); }).get();
-  session_->provide("aiwc.get_info",  [&](autobahn::wamp_invocation i) { return on_info(std::move(i)); }).get();
-  session_->provide("aiwc.set_speed", [&](autobahn::wamp_invocation i) { return on_set_speed(std::move(i)); }).get();
+  session_->provide("aiwc.bootup",    [&](autobahn::wamp_invocation i) { return on_bootup(i); }).get();
+  session_->provide("aiwc.ready",     [&](autobahn::wamp_invocation i) { return on_ready(i); }).get();
+  session_->provide("aiwc.get_info",  [&](autobahn::wamp_invocation i) { return on_info(i); }).get();
+  session_->provide("aiwc.set_speed", [&](autobahn::wamp_invocation i) { return on_set_speed(i); }).get();
+  session_->provide("aiwc.commentate", [&](autobahn::wamp_invocation i) { return on_commentate(i); }).get();
+  session_->provide("aiwc.report",    [&](autobahn::wamp_invocation i) { return on_report(i); }).get();
 }
 
 void game::bootup_vm()
 {
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
-
   // bootup VMs. replaced to process.
-  for(auto& kv : player_team_infos_) {
-    const auto& key = kv.first;
-    auto& ti = kv.second;
 
-    // send bootup signal. VM's startup script is supposed to do this.
-    session_->call("aiwc.bootup", std::make_tuple(key));
+  // send bootup signal. VM's startup script is supposed to do this.
+  std::vector<boost::future<autobahn::wamp_call_result> > bootup_futures;
+  for(const auto& kv : player_team_infos_) {
+    bootup_futures.emplace_back(session_->call("aiwc.bootup", std::make_tuple(kv.first)));
+  }
 
-    // launch process
-    boost::filesystem::path p_exe = ti.executable;
+  // wait for all bootup
+  for(auto& f : bootup_futures) {
+    f.get();
+  }
 
-    ti.c = bp::child(bp::exe = ti.executable,
-                     bp::args = {c::SERVER_IP,
-                         std::to_string(c::RS_PORT),
-                         c::REALM,
-                         key,
-                         boost::filesystem::absolute(ti.datapath).string()},
-                     bp::start_dir = p_exe.parent_path());
+  try {
+    for(auto& kv : player_team_infos_) {
+      const auto& key = kv.first;
+      auto& ti = kv.second;
+
+      // launch process
+      boost::filesystem::path p_exe = ti.executable;
+
+      ti.c = bp::child(bp::exe = ti.executable,
+                       bp::args = {c::SERVER_IP,
+                           std::to_string(c::RS_PORT),
+                           c::REALM,
+                           key,
+                           boost::filesystem::absolute(ti.datapath).string()},
+                       bp::start_dir = p_exe.parent_path());
+    }
+  }
+  catch(const boost::process::process_error& err) {
+    for(auto& kv : player_team_infos_) {
+      auto& ti = kv.second;
+
+      if(ti.c) {
+        ti.c.terminate();
+      }
+    }
+    throw std::runtime_error("one of the given executables does not exist, or cannot run");
   }
 }
 
 void game::terminate_vm()
 {
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
-
   for(auto& kv : player_team_infos_) {
     kv.second.c.terminate();
   }
@@ -299,56 +353,111 @@ void game::terminate_vm()
 void game::update_label()
 {
   sv_.setLabel(0,
-               (boost::format("score %d:%d, time %.2f") % score_[0] % score_[1] % time_).str(),
+               (boost::format("score %d:%d, time %.2f") % score_[0] % score_[1] % (time_ms_ / 1000.)).str(),
                0.4, 0.95, // x, y
                0.10, 0x00000000, // size, color
                0, "Arial" // transparency, font
                );
-}
 
-void game::step(std::size_t ms)
-{
-  if(sv_.step(ms) == -1) {
-    throw webots_revert_exception();
+  constexpr std::size_t comments_start = 1;
+
+  std::unique_lock<std::mutex> lck(m_comments_);
+  for(std::size_t i = 0; i < comments_.size(); ++i) {
+    sv_.setLabel(comments_start + i,
+                 comments_[i],
+                 0.01, 0.02 + 0.04 * i, // x, y
+                 0.08, 0x00000000, // size, color
+                 0, "Arial" // transparency, font
+                 );
   }
 }
 
-void game::reset_position() {
+// game state control functions
+void game::step(std::size_t ms)
+{
+  // we assume that world.basicTimeStep doesn't change and the given 'ms' is multiple of the basic time step
+  const std::size_t basic_time_step = static_cast<std::size_t>(sv_.getBasicTimeStep());
+
+  const auto step_throw_if_revert = [&](std::size_t ms) {
+    if(sv_.step(ms) == -1) {
+      throw webots_revert_exception();
+    }
+  };
+
+  for(std::size_t i = 0; i < ms / basic_time_step; ++i) {
+    if(paused_.load()) {
+      stop_robots();
+    }
+    else {
+      send_speed();
+      time_ms_ += basic_time_step;
+    }
+
+    update_label();
+    step_throw_if_revert(basic_time_step);
+  }
+}
+
+void game::pause()
+{
+  paused_.store(true);
+}
+
+void game::reset()
+{
   sv_.reset_position();
 
+  // reset activeness
   for(auto& team_activeness : activeness_) {
     for(auto& robot_activeness : team_activeness) {
       robot_activeness = true;
     }
   }
 
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
-  for(auto& kv : player_team_infos_) {
-    auto& ti    = kv.second;
+  stop_robots();
 
-    // reset wheel speed to 0
-    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      ti.wheel_speed[id] = {0, 0};
-    }
-
-    // reset foul counter
-    ti.foul_count.clear();
+  // reset foul counter
+  for(auto& fc : foul_counter_) {
+    fc.clear();
   }
+
+  deadlock_time_ = time_ms_;
 }
 
-void game::set_speed(bool stop_all)
+void game::resume()
+{
+  paused_.store(false);
+}
+
+void game::stop_robots()
+{
+  std::promise<void> done;
+  auto done_fut = done.get_future();
+
+  // set wheel speed, defer it to io_thread and wait
+  io_.dispatch([&]() {
+      io_thread_wheel_speed_ = {};
+      wheel_speed_.write(io_thread_wheel_speed_);
+      done.set_value();
+    });
+  done_fut.get();
+
+  send_speed();
+}
+
+void game::send_speed()
 {
   constexpr std::array<double, 2> stop = {0, 0};
 
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
-  for(auto& kv : player_team_infos_) {
-    auto& ti    = kv.second;
+  const auto ws = wheel_speed_.read();
+
+  for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      if(stop_all || !activeness_[ti.is_red ? T_RED : T_BLUE][id]) {
-        sv_.set_linear_wheel_speed(ti.is_red, id, stop);
+      if(activeness_[team][id]) {
+        sv_.set_linear_wheel_speed(team == T_RED, id, ws[team][id]);
       }
       else {
-        sv_.set_linear_wheel_speed(ti.is_red, id, ti.wheel_speed[id]);
+        sv_.set_linear_wheel_speed(team == T_RED, id, stop);
       }
     }
   }
@@ -402,7 +511,6 @@ void game::publish_current_frame(std::size_t reset_reason)
   std::vector<std::tuple<std::string, msgpack::object, msgpack::zone> > events;
 
   {
-    std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
     for(auto& kv : player_team_infos_) {
       const auto& topic = kv.first;
       auto& ti    = kv.second;
@@ -431,7 +539,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       msgpack::zone z;
 
       // The first frame contains time, score, reset_reason
-      msg.emplace_back("time", msgpack::object(time_, z));
+      msg.emplace_back("time", msgpack::object(time_ms_ / 1000., z));
       msg.emplace_back("score", msgpack::object(score, z));
       msg.emplace_back("reset_reason", msgpack::object(reason, z));
 
@@ -488,7 +596,7 @@ void game::publish_current_frame(std::size_t reset_reason)
 
 void game::run_game()
 {
-  time_ = 0;
+  time_ms_ = 0;
   score_ = {0, 0};
 
   for(auto& team_activeness : activeness_) {
@@ -500,79 +608,99 @@ void game::run_game()
   update_label();
 
   // reset and wait 1s for stabilizing
-  reset_position();
-  set_speed(true);
-  step(c::WAIT_STABLE * 1000);
+  pause();
+  reset();
+  step(c::WAIT_STABLE_MS);
 
-  std::size_t reset_reason = c::GAME_START;
+  resume();
+  publish_current_frame(c::GAME_START);
+  update_label();
+
+  auto reset_reason = c::NONE;
 
   for(;;) {
+    step(c::PERIOD_MS);
     update_label();
 
-    // if game ends
-    if(time_ >= c::GAME_TIME) {
+    // special case: game ended. finish the game without checking game rules.
+    if(time_ms_ >= game_time_ms_) {
       publish_current_frame(c::GAME_END);
-      break;
+      pause();
+      stop_robots();
+      step(c::WAIT_END_MS);
+      return;
     }
 
-    // if a team scored
-    {
+    // publish current frame
+    publish_current_frame(reset_reason);
+    reset_reason = c::NONE;
+
+    // check rules
+    { // if a team scored
       const auto ball_x = std::get<0>(sv_.get_ball_position());
       if(std::abs(ball_x) > c::FIELD_LENGTH / 2) {
         ++score_[(ball_x > 0) ? T_RED : T_BLUE];
         update_label();
 
         // stop all and wait for c::WAIT_GOAL seconds
-        set_speed(true);
-        step(c::WAIT_GOAL * 1000);
+        pause();
+        stop_robots();
+        step(c::WAIT_GOAL_MS);
 
-        reset_position();
-        step(c::WAIT_STABLE * 1000);
+        // reset and wait until stabilized
+        reset();
+        step(c::WAIT_STABLE_MS);
+        resume();
 
         reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
       }
     }
 
+    // if the ball is not moved for c::DEADLOCK_THRESHOLD
+    if(reset_reason == c::NONE) {
+      if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
+        deadlock_time_ = time_ms_;
+      }
+      else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
+        pause();
+        stop_robots();
+        reset();
+        step(c::WAIT_STABLE_MS);
+        resume();
+
+        reset_reason = c::DEADLOCK;
+      }
+    }
+
     // if a team is blocking the goal area
     {
-      std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
-      for(auto& kv : player_team_infos_) {
-        auto& ti    = kv.second;
-        auto& foul_counter = ti.foul_count;
+      for(const auto& team : {T_RED, T_BLUE}) {
+        foul_counter_[team].push_back(count_robots_in_penalty_area(team == T_RED));
 
-        foul_counter.push_back(count_robots_in_penalty_area(ti.is_red));
-
-        const auto sum = std::accumulate(std::cbegin(foul_counter), std::cend(foul_counter), (std::size_t)0);
-        if(sum >= c::FOUL_THRESHOLD * foul_counter.capacity()) {
+        const auto sum = std::accumulate(std::cbegin(foul_counter_[team]), std::cend(foul_counter_[team]), (std::size_t)0);
+        if(sum >= c::FOUL_THRESHOLD * foul_counter_[team].capacity()) {
           std::mt19937 rng{std::random_device{}()};
           std::uniform_int_distribution<std::size_t> dist(0, 4);
 
-          auto& team_activeness = activeness_[ti.is_red ? T_RED : T_BLUE];
+          auto& team_activeness = activeness_[team];
 
           if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
                          [](const auto& is_active) { return is_active; })) {
             for(;;) {
               std::size_t id = dist(rng);
-              auto& is_active = activeness_[ti.is_red ? T_RED : T_BLUE][id];
+              auto& is_active = activeness_[team][id];
               if(is_active) {
                 is_active = false;
-                sv_.send_to_foulzone(ti.is_red, id);
+                sv_.send_to_foulzone(team == T_RED, id);
                 break;
               }
             }
           }
 
-          foul_counter.clear();
+          foul_counter_[team].clear();
         }
       }
     }
-
-    publish_current_frame(reset_reason);
-    reset_reason = c::NONE;
-
-    set_speed();
-    step(c::PERIOD_MS);
-    time_ += c::PERIOD_MS / 1000.;
   }
 }
 
@@ -581,23 +709,32 @@ void game::on_bootup(autobahn::wamp_invocation invocation)
 {
   const std::string key = invocation->argument<std::string>(0);
 
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
-
   const auto it = player_team_infos_.find(key);
   if(it == std::cend(player_team_infos_)) {
     invocation->error("wamp.error.invalid_argument");
     return;
   }
 
+  if(state_.load() != STATE_WAITING_BOOTUP) {
+    invocation->empty_result();
+    return;
+  }
+
   auto& ti = it->second;
   ti.is_bootup = true;
 
+  bootup_waiting_list_.push_back(invocation);
+
   if(std::all_of(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
                  [](const auto& kv) { return kv.second.is_bootup == true; })) {
+    std::cout << "Everyone bootup" << std::endl;
+    state_.store(STATE_WAITING_READY);
+    for(auto& inv : bootup_waiting_list_) {
+      inv->empty_result();
+    }
+    bootup_waiting_list_.clear();
     bootup_promise_.set_value();
   }
-
-  invocation->empty_result();
 }
 
 // called from io thread
@@ -605,7 +742,7 @@ void game::on_ready(autobahn::wamp_invocation invocation)
 {
   const std::string key = invocation->argument<std::string>(0);
 
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
+  assert(state_.load() != STATE_WAITING_BOOTUP);
 
   const auto it = player_team_infos_.find(key);
   if(it == std::cend(player_team_infos_)) {
@@ -615,16 +752,18 @@ void game::on_ready(autobahn::wamp_invocation invocation)
 
   auto& ti = it->second;
 
-  if(!ti.is_ready) { // the first time it's ready
+  { // reset image buffer
+    std::unique_lock<std::mutex> lck(ti.m);
+    ti.imbuf.reset();
+  }
+
+  if(state_.load() != STATE_STARTED) {
     ti.is_ready = true;
 
     if(std::all_of(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
                    [](const auto& kv) { return kv.second.is_ready == true; })) {
       ready_promise_.set_value();
     }
-  }
-  else { // maybe reconnect
-    ti.imbuf.reset();
   }
 
   invocation->empty_result();
@@ -634,7 +773,6 @@ void game::on_ready(autobahn::wamp_invocation invocation)
 void game::on_info(autobahn::wamp_invocation invocation)
 {
   const std::string caller = invocation->argument<std::string>(0);
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
 
   // if the caller is not a player, then error
   auto it = player_team_infos_.find(caller);
@@ -644,32 +782,76 @@ void game::on_info(autobahn::wamp_invocation invocation)
   }
   auto& ti = it->second;
 
-  invocation->result(std::make_tuple(ti.info));
+  invocation->result(std::make_tuple(info_[ti.is_red ? T_RED : T_BLUE]));
 }
 
+// called from io thread. it just sets the wheel speed and not transfer it to the simulator.
 void game::on_set_speed(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
-  const auto wheel_speed = invocation->argument<std::array<double, 10> >(1);
-
-  std::unique_lock<std::mutex> lck(player_team_infos_mutex_);
 
   // if the caller is not a player, then error
   auto it = player_team_infos_.find(caller);
-  if(it == std::cend(player_team_infos_)) {
+  if((it == std::cend(player_team_infos_))
+     || (it->second.role != ROLE_PLAYER)
+     ) {
     invocation->error("wamp.error.invalid_argument");
     return;
   }
-  auto& ti = it->second;
 
-  auto it_w = std::begin(wheel_speed);
+  if(!paused_.load()) { // if it's paused, ignore the call and return
+    const bool is_red = it->second.is_red;
 
-  for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-    std::array<double, 2> wheel;
-    wheel[0] = *it_w++;
-    wheel[1] = *it_w++;
-    ti.wheel_speed[id] = wheel;
+    const auto ws = invocation->argument<std::array<double, 10> >(1);
+
+    for(std::size_t i = 0; i < c::NUMBER_OF_ROBOTS; ++i) {
+      io_thread_wheel_speed_[is_red ? T_RED : T_BLUE][i][0] = ws[2*i + 0];
+      io_thread_wheel_speed_[is_red ? T_RED : T_BLUE][i][1] = ws[2*i + 1];
+    }
+
+    wheel_speed_.write(io_thread_wheel_speed_);
   }
+
+  invocation->empty_result();
+}
+
+// called from io thread.
+void game::on_commentate(autobahn::wamp_invocation invocation)
+{
+  const auto caller      = invocation->argument<std::string>(0);
+
+  // if the caller is not a player, then error
+  auto it = player_team_infos_.find(caller);
+  if((it == std::cend(player_team_infos_))
+     || (it->second.role != ROLE_COMMENTATOR)
+     ) {
+    invocation->error("wamp.error.invalid_argument");
+    return;
+  }
+
+  std::unique_lock<std::mutex> lck(m_comments_);
+  comments_.push_back(invocation->argument<std::string>(1));
+
+  invocation->empty_result();
+}
+
+// called from io thread.
+void game::on_report(autobahn::wamp_invocation invocation)
+{
+  const auto caller      = invocation->argument<std::string>(0);
+
+  // if the caller is not a player, then error
+  auto it = player_team_infos_.find(caller);
+  if((it == std::cend(player_team_infos_))
+     || (it->second.role != ROLE_REPORTER)
+     ) {
+    invocation->error("wamp.error.invalid_argument");
+    return;
+  }
+
+  const auto report = invocation->argument<std::string>(1);
+
+  // we will handle this report internally.
 
   invocation->empty_result();
 }

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "constants.hpp"
+#include "spsc_buffer.hpp"
 
 #include <webots/Camera.hpp>
 #include <webots/Supervisor.hpp>
@@ -119,32 +120,27 @@ public:
     remove_ball_and_robots();
     place_ball_and_robots();
 
-    // get Node* of ball and robots and check if it's not null
-    if(is_null(pn_ball_ = getFromDef(constants::DEF_BALL))) {
-      throw std::runtime_error("No ball in world");
-    }
-    for(int t = 0; t < 2; ++t) {
-      for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
-        if(is_null(pn_robots_[t][id] = getFromDef(robot_name(t==T_RED, id)))) {
-          throw std::runtime_error("No robot in world");
-        }
-      }
-    }
-
     // control visibility to cams
     control_visibility();
-
-    reset_position();
     enable_cameras(constants::CAM_PERIOD_MS);
   }
 
-  // void run()
-  // {
-  //   while(step(1000) != -1) {
-  //     const auto p = get_robot_posture(true, 0);
-  //     std::cout << "x: " << std::get<0>(p) << ", y: " << std::get<1>(p) << ", th: " << std::get<2>(p) << std::endl;
-  //   }
-  // }
+  std::size_t get_game_time_ms() const
+  {
+    const auto pf = getSelf()->getField("gameTime");
+
+    std::size_t gt_ms = 0;
+
+    if(pf) {
+      gt_ms = static_cast<std::size_t>(pf->getSFFloat() * 1000);
+    }
+
+    if(gt_ms == 0) {
+      gt_ms = constants::DEFAULT_GAME_TIME_MS;
+    }
+
+    return gt_ms / constants::PERIOD_MS * constants::PERIOD_MS;
+  }
 
   //         name         rating  executable   data directory path
   std::tuple<std::string, double, std::string, std::string> get_team_info(bool is_red) const
@@ -153,6 +149,26 @@ public:
 
     return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
                            getSelf()->getField(prefix + "Rating")->getSFFloat(),
+                           getSelf()->getField(prefix + "Executable")->getSFString(),
+                           getSelf()->getField(prefix + "DataPath")->getSFString()
+                           );
+  }
+
+  std::tuple<std::string, std::string, std::string> get_commentator_info() const
+  {
+    const auto prefix = std::string("commentator");
+
+    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
+                           getSelf()->getField(prefix + "Executable")->getSFString(),
+                           getSelf()->getField(prefix + "DataPath")->getSFString()
+                           );
+  }
+
+  std::tuple<std::string, std::string, std::string> get_reporter_info() const
+  {
+    const auto prefix = std::string("reporter");
+
+    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
                            getSelf()->getField(prefix + "Executable")->getSFString(),
                            getSelf()->getField(prefix + "DataPath")->getSFString()
                            );
@@ -199,6 +215,18 @@ public:
     const double y = -position[2];
 
     return {x, y};
+  }
+
+  double get_ball_velocity() const
+  {
+    webots::Node* pn_ball = getFromDef(constants::DEF_BALL);
+
+    const double* vels = pn_ball->getVelocity();
+    const double x = vels[0];
+    const double y = vels[1];
+    const double z = vels[2];
+
+    return std::sqrt(x * x + y * y + z * z);
   }
 
   //         x       y       th
@@ -250,6 +278,8 @@ public:
 private: // private member functions
   void remove_ball_and_robots()
   {
+    using namespace constants;
+
     const auto& remove_node = [&](const std::string& defname) {
       auto* const pn = getFromDef(defname);
       if(pn) {
@@ -331,8 +361,10 @@ private: // private member functions
 
     // patches
     {
-      for(const auto& pn_team : pn_robots_) {
-        for(const auto& pn_robot : pn_team) {
+      for(const auto& team : {T_RED, T_BLUE}) {
+        for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
+          const auto* pn_robot = getFromDef(robot_name(team == T_RED, id));
+
           auto* pf_patches = pn_robot->getField("patches");
 
           assert(pf_patches && (pf_patches->getCount() == 3));
@@ -362,9 +394,6 @@ private: // private member functions
 private: // private member variables
   std::array<webots::Node*, 3> pn_cams_;
   std::array<webots::Camera*, 2> pc_cams_;
-
-  webots::Node* pn_ball_;
-  std::array<std::array<webots::Node*, constants::NUMBER_OF_ROBOTS>, 2> pn_robots_;
 };
 
 #endif // H_SUPERVISOR_HPP

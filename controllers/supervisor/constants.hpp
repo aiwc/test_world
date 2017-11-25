@@ -50,7 +50,7 @@ namespace constants {
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
   constexpr double MAX_FORCE = 0.1;
   constexpr double SLIP_NOISE = 0.05;
-  constexpr double MAX_LINEAR_VELOCITY = 1.7;
+  constexpr double MAX_LINEAR_VELOCITY = 1.2;
   constexpr double BODY_MASS = 0.45;
   constexpr double WHEEL_MASS = 0.05;
 
@@ -81,14 +81,19 @@ namespace constants {
   constexpr std::size_t KEY_LENGTH = 10;
 
   // Game settings
-  constexpr std::size_t WAIT_READY = 30; // s
-  constexpr std::size_t WAIT_KILL  = 30; // s
-  constexpr std::size_t WAIT_STABLE = 1; // s
-  constexpr std::size_t WAIT_GOAL   = 3; // s
-  constexpr std::size_t GAME_TIME   = 300; // s
-  constexpr std::size_t PERIOD_MS   = 50; // ms
-  constexpr std::size_t FOUL_DURATION = 5; // s
+  constexpr std::size_t WAIT_READY_MS    = 30 * 1000; // ms
+  constexpr std::size_t WAIT_KILL_MS     = 30 * 1000; // ms
+  constexpr std::size_t WAIT_STABLE_MS   = 1  * 1000; // ms
+  constexpr std::size_t WAIT_GOAL_MS     = 3  * 1000; // ms
+  constexpr std::size_t WAIT_END_MS      = 3  * 1000; // ms
+  constexpr std::size_t DEFAULT_GAME_TIME_MS     = 300 * 1000; // ms
+  constexpr std::size_t PERIOD_MS        = 50; // ms
+  constexpr std::size_t FOUL_DURATION_MS = 5 * 1000; // ms
   constexpr double      FOUL_THRESHOLD = 4.; // number of robots in penalty area
+  constexpr double      DEADLOCK_DURATION_MS  = 5000; // ms
+  constexpr double      DEADLOCK_THRESHOLD = 0.05; // m/s
+
+  constexpr std::size_t NUM_COMMENTS = 10;
 
   constexpr std::size_t MSG_MAX_SIZE = 90000; // bytes
 
@@ -98,6 +103,7 @@ namespace constants {
     SCORE_RED_TEAM = 2,
     SCORE_BLUE_TEAM = 3,
     GAME_END = 4,
+    DEADLOCK = 5,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {
