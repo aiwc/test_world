@@ -468,14 +468,14 @@ std::size_t game::count_robots_in_penalty_area(bool is_red) const
   std::size_t ret = 0;
 
   constexpr auto is_in_goal_area = [](double x, double y) {
-    return (x < -c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH);
+    return (x < -c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
   };
 
   constexpr auto is_in_penalty_area = [](double x, double y) {
     return
     (x >= -c::FIELD_LENGTH / 2)
     && (x < -c::FIELD_LENGTH / 2 + c::PENALTY_AREA_DEPTH)
-    && (std::abs(y) < c::PENALTY_AREA_WIDTH);
+    && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2);
   };
 
   for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
