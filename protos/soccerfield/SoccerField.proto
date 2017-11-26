@@ -38,6 +38,10 @@ PROTO SoccerField [
   field SFFloat  centerCircleSubdivision 12
   field SFFloat  penaltyAreaDepth 0.35
   field SFFloat  penaltyAreaWidth 0.8
+  field SFFloat  goalAreaDepth 0.15
+  field SFFloat  goalAreaWidth 0.5
+  field SFFloat  penaltyArcProportion 0.25
+  field SFFloat  penaltyArcSubdivision 7
 
   field SFNode   lineAppearance White { }
   field SFFloat  lineThickness 0.01
@@ -97,6 +101,11 @@ PROTO SoccerField [
             centerCircleSubdivision IS centerCircleSubdivision
             penaltyAreaDepth IS penaltyAreaDepth
             penaltyAreaWidth IS penaltyAreaWidth
+            goalAreaDepth IS goalAreaDepth
+            goalAreaWidth IS goalAreaWidth
+            penaltyArcProportion IS penaltyArcProportion
+            penaltyArcSubdivision IS penaltyArcSubdivision
+
             lineAppearance IS lineAppearance
             lineThickness IS lineThickness
             lineHeight IS lineHeight

@@ -218,7 +218,7 @@ PROTO SoccerFieldLine [
               coord Coordinate {
                 point [
                   %{
-                    local hca = math.cos(1 - pap)
+                    local hca = math.acos(1 - pap)
                     for i = 0, (pas - 1) do
                     local th = -hca + i * 2 * hca / (pas - 1)
 
