@@ -33,6 +33,10 @@ PROTO SoccerField5v5 [
     centerCircleSubdivision 24
     penaltyAreaDepth 0.35
     penaltyAreaWidth 0.8
+    goalAreaDepth 0.15
+    goalAreaWidth 0.5
+    penaltyArcProportion 0.25
+    penaltyArcSubdivision 7
 
     lineAppearance White { }
     lineThickness IS lineThickness
