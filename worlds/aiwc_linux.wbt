@@ -88,7 +88,7 @@ WorldInfo {
       material2 "ball"
       bounce 0.25
       softCFM 1e-05
-      bumpSound "/home/chansol-rit/github_repositories/test_world/sounds/ball.wav"
+      bumpSound "../sounds/ball.wav"
       rollSound ""
       slideSound ""
     }
