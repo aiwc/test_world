@@ -5,6 +5,7 @@
 PROTO SoccerBallShape [
   field SFFloat radius 0.02135
   field SFInt32 subdivision 3
+  field SFString name "ball_shape"
 ]
 {
   Solid {
@@ -23,5 +24,6 @@ PROTO SoccerBallShape [
         }
       }
     ]
+    name IS name
   }
 }

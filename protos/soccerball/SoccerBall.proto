@@ -7,7 +7,7 @@ PROTO SoccerBall [
   field SFRotation rotation 0 1 0 0
   field SFVec3f    scale 1 1 1
   # children
-  field SFString name "soccer_field"
+  field SFString name "soccer_ball"
   field SFString model ""
   field SFString description ""
   field SFString contactMaterial "default"

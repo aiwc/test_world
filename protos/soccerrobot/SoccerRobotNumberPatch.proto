@@ -8,6 +8,7 @@ PROTO SoccerRobotNumberPatch [
   field SFFloat width 0.075
   field SFInt32 id 0 # should be >= 0
   field SFBool isTeamTagRed TRUE
+  field SFString name "number_patch"
 ]
 {
   %{
@@ -24,6 +25,7 @@ PROTO SoccerRobotNumberPatch [
     end
   }%
   Solid {
+    name IS name
     children [
       DEF TEAMCOLOR Shape {
         appearance Appearance {

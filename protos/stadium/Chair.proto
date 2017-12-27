@@ -6,12 +6,14 @@ PROTO Chair [
   field SFVec3f    scale 1 1 1
   field SFNode     appearance Red {}
   field SFBool     castShadows TRUE
+  field SFString   name "chair"
 ]
 {
   Solid {
     translation IS translation
     rotation IS rotation
     scale IS scale
+    name IS name
     children [
       Transform {
         translation 0 0.03 0

@@ -15,6 +15,7 @@ PROTO Banners [
   field SFFloat    frameThickness 0.01
   field SFBool     bannerBehind FALSE
   field MFString   url []
+  field SFString   name "banners"
 ]
 {
   %{
@@ -34,6 +35,7 @@ PROTO Banners [
   Solid {
     translation IS translation
     rotation IS rotation
+    name IS name
     children [
       %{ for i = 0, (wn - 1) do }%
         %{ rwx = -rw/2 + i * rw/wn }%
@@ -46,6 +48,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rwp_banner_' .. i}%"
         }
       %{end}%
       %{ for i = 0, (hn - 1) do }%
@@ -59,6 +62,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rhp_banner_' .. i}%"
         }
       %{end}%
       %{ for i = 0, (wn - 1) do }%
@@ -72,6 +76,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rwn_banner_' .. i}%"
         }
       %{end}%
       %{ for i = 0, (hn - 1) do }%
@@ -85,6 +90,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rhn_banner_' .. i}%"
         }
       %{end}%
     ]

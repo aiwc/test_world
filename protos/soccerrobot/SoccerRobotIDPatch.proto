@@ -11,6 +11,7 @@ PROTO SoccerRobotIDPatch [
   field SFInt32 dataResolution 3 # should be > 0
   field SFInt32 tagResolution 6 # should be >= 6
   field SFInt32 tagWidth 1 # should be <= (tagResolution - 3) / 2
+  field SFString name "id_patch"
 ]
 {
   %{
@@ -118,6 +119,7 @@ PROTO SoccerRobotIDPatch [
     end
   }%
   Solid {
+    name IS name
     children [
       %{
         for idx = 0, resolution - 1 do

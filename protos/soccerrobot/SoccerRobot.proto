@@ -69,9 +69,9 @@ PROTO SoccerRobot [
   field SFString wheelContactMaterial "default"
 
   field MFNode patches [
-    DEF DEF_NUMBERPATCH SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 }
-    DEF DEF_IDPATCHR SoccerRobotIDPatch { isTeamTagRed TRUE id 0}
-    DEF DEF_IDPATCHB SoccerRobotIDPatch { isTeamTagRed FALSE id 0}
+    SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 name "number_patch" }
+    SoccerRobotIDPatch { isTeamTagRed TRUE id 0 name "id_patch_red" }
+    SoccerRobotIDPatch { isTeamTagRed FALSE id 0 name "id_patch_blue" }
   ]
 ]
 {

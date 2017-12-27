@@ -13,6 +13,7 @@ PROTO Banner [
   field SFFloat    frameThickness 0.01
   field SFBool     bannerBehind FALSE
   field SFString   url ""
+  field SFString   name "banner"
 ]
 {
   %{
@@ -26,6 +27,7 @@ PROTO Banner [
     translation IS translation
     rotation IS rotation
     scale IS scale
+    name IS name
     children [
       DEF PANEL Group {
         children [
