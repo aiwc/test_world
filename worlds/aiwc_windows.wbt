@@ -1,4 +1,4 @@
-#VRML_SIM V8.6 utf8
+#VRML_SIM R2018a utf8
 WorldInfo {
   ERP 0.01
   basicTimeStep 5
@@ -15,7 +15,7 @@ WorldInfo {
         0
       ]
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -24,7 +24,7 @@ WorldInfo {
       material1 "floor"
       material2 "wheel"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -33,8 +33,8 @@ WorldInfo {
       material1 "floor"
       material2 "ball"
       bounce 0
-      bounceVelocity 1e-05
-      softCFM 1e-05
+      bounceVelocity 1e-5
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -43,7 +43,7 @@ WorldInfo {
       material1 "wall"
       material2 "body"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -52,7 +52,7 @@ WorldInfo {
       material1 "wall"
       material2 "wheel"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -60,7 +60,7 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -69,7 +69,7 @@ WorldInfo {
       material1 "body"
       material2 "body"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -78,7 +78,7 @@ WorldInfo {
       material1 "body"
       material2 "wheel"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -87,7 +87,7 @@ WorldInfo {
       material1 "body"
       material2 "ball"
       bounce 0.25
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound "../sounds/ball.wav"
       rollSound ""
       slideSound ""
@@ -96,7 +96,7 @@ WorldInfo {
       material1 "wheel"
       material2 "wheel"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -105,7 +105,7 @@ WorldInfo {
       material1 "wheel"
       material2 "ball"
       bounce 0
-      softCFM 1e-05
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -156,11 +156,7 @@ TestReferee {
   commentatorDataPath "../../examples/commentator_data"
 }
 SoccerField5v5 {
-  height 0.12
-  floorLength 2.7
-  wallHeight 0.075
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
-    length 2.7
   }
   floorContactMaterial "floor"
   wallContactMaterial "wall"
@@ -173,11 +169,13 @@ DEF DEF_STADIUM Stadium {
         Goalpost {
           translation -1.21 0 0
           castShadows IS castShadows
+          name "goalpost_left"
         }
         Goalpost {
           translation 1.21 0 0
-          rotation 0 1 0 3.1415926
+          rotation 0 1 0 3.141592635
           castShadows IS castShadows
+          name "goalpost_right"
         }
       ]
     }
