@@ -17,7 +17,7 @@ public:
     while(step(1) != -1) {
       const double max_speed = getMaxSpeed();
 
-      std::stringstream ss(getData());
+      std::stringstream ss(getCustomData());
       double left, right;
       ss >> left >> right;
 

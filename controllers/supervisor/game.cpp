@@ -435,7 +435,7 @@ void game::stop_robots()
   auto done_fut = done.get_future();
 
   // set wheel speed, defer it to io_thread and wait
-  io_.dispatch([&]() {
+  io_.post([&]() {
       io_thread_wheel_speed_ = {};
       wheel_speed_.write(io_thread_wheel_speed_);
       done.set_value();

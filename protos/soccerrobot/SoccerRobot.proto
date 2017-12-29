@@ -9,7 +9,7 @@ PROTO SoccerRobot [
   field SFString   name                "soccer robot"
   field SFString   model               ""
   field SFString   description         ""
-  field SFString   data                ""
+  field SFString   customData          ""
   # contactMaterial
   field MFNode     immersionProperties [ ]
   # boundingObject
@@ -281,7 +281,7 @@ PROTO SoccerRobot [
     name                IS name
     model               IS model
     description         IS description
-    data                IS data
+    customData          IS customData
     contactMaterial     IS bodyContactMaterial
     immersionProperties IS immersionProperties
     boundingObject Transform {

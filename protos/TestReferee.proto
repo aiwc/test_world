@@ -9,7 +9,7 @@ PROTO TestReferee [
   field SFString   name                "referee"
   field SFString   model               ""
   field SFString   description         ""
-  field SFString   data                ""
+  field SFString   customData          ""
   field SFString   controller          ""
   field SFString   controllerArgs      ""
   field SFBool     synchronization     TRUE
@@ -48,7 +48,7 @@ PROTO TestReferee [
     name            IS name
     model           IS model
     description     IS description
-    data            IS data
+    customData      IS customData
     controller      IS controller
     controllerArgs  IS controllerArgs
     synchronization IS synchronization
