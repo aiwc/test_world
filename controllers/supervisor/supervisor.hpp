@@ -79,14 +79,17 @@ namespace /* anonymous */ {
        << "    SoccerRobotNumberPatch {" // number patch
        << "      id " << id
        << "      isTeamTagRed " << (is_red_team ? "TRUE" : "FALSE")
+       << "      name \"number_patch\""
        << "    }"
        << "    SoccerRobotIDPatch {" // id patch to cam_a
        << "      id " << CODEWORDS[id]
        << "      isTeamTagRed " << (is_red_team ? "TRUE" : "FALSE")
+       << "      name \"id_patch_red\""
        << "    }"
        << "    SoccerRobotIDPatch {" // id patch to cam_b
        << "      id " << CODEWORDS[id]
        << "      isTeamTagRed " << (!is_red_team ? "TRUE" : "FALSE")
+       << "      name \"id_patch_blue\""
        << "    }"
        << "  ]"
        << "}";
