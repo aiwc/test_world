@@ -27,7 +27,7 @@ PROTO SoccerRobot [
   field SFBool     showWindow          FALSE
   field SFString   window              ""
   field SFString   remoteControl       ""
-  
+
   # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
   # SFFloat    axleLength          0.1         # (0,inf)
@@ -219,6 +219,7 @@ PROTO SoccerRobot [
             consumptionFactor IS motorConsumption
             maxVelocity IS maxSpeed
             maxTorque IS maxForce
+            sound ""
           }
         ]
         endPoint  DEF LEFTWHEEL Solid {
@@ -264,7 +265,7 @@ PROTO SoccerRobot [
           }
         }
       }
-      
+
       DEF RIGHTJOINT HingeJoint {
         jointParameters HingeJointParameters {
           axis -1 0 0
@@ -277,6 +278,7 @@ PROTO SoccerRobot [
             consumptionFactor IS motorConsumption
             maxVelocity IS maxSpeed
             maxTorque IS maxForce
+            sound ""
           }
         ]
         endPoint  Solid {
