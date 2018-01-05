@@ -74,6 +74,8 @@ namespace aiwc {
         }
       } while(!flag_.compare_exchange_weak(f, detail::flag::consume(f)));
 
+      f = flag_.load(); //reload
+
       return data_[f.snap()];
     }
 
