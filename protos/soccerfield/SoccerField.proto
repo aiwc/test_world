@@ -308,6 +308,7 @@ PROTO SoccerField [
             boundingObject Plane {
               size %{=l + 2 * gd}% %{=w}%
             }
+            name "floor"
           }
           DEF WALL Solid {
             contactMaterial IS wallContactMaterial
@@ -412,6 +413,7 @@ PROTO SoccerField [
                 }
               ]
             }
+            name "wall"
           }
         ]
       }

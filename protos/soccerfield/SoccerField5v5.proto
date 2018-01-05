@@ -1,10 +1,10 @@
 #VRML_SIM V8.5.3 utf8
 
 PROTO SoccerField5v5 [
-  field SFFloat  height 0.4 # height of virtual ceiling
-  field SFFloat  floorLength 3
+  field SFFloat  height 0.12 # height of virtual ceiling
+  field SFFloat  floorLength 2.7
   field SFFloat  floorWidth 2
-  field SFFloat  wallHeight 0.05
+  field SFFloat  wallHeight 0.075
   field SFFloat  wallThickness 0.025
   field SFNode   floorAppearance Black { }
   field SFNode   wallAppearance Gray { }

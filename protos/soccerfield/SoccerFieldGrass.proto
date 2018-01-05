@@ -7,7 +7,7 @@ PROTO SoccerFieldGrass [
 
   # fields specific to SoccerField
   field SFInt32  numberOfPlane 24
-  field SFFloat  length 3
+  field SFFloat  length 2.7
   field SFFloat  width 2
 ]
 {

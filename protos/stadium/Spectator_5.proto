@@ -11,12 +11,14 @@ PROTO Spectator_5 [
   field SFNode     pantsAppearance Blue {}
   field SFNode     shoesAppearance Black {} # Unused. same with shirtAppearance
   field SFBool     castShadows TRUE
+  field SFString   name "spectator_5"
 ]
 {
   Solid {
     translation IS translation
     rotation IS rotation
     scale IS scale
+    name IS name
     children [
       Transform {
         translation 0.04 0.083 0

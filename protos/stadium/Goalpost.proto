@@ -8,12 +8,14 @@ PROTO Goalpost [
   field SFVec3f    scale 1 1 1
   field SFNode     frameAppearance White { }
   field SFBool     castShadows TRUE
+  field SFString   name "goalpost"
 ]
 {
   Solid {
     translation IS translation
     rotation IS rotation
     scale IS scale
+    name IS name
     children [
       Transform {
         rotation 0 1 0 0

@@ -58,7 +58,7 @@ namespace /* anonymous */ {
        << "  translation " << x << " " << y << " " << z
        << "  rotation 0 1 0 " << th - PI / 2 // Differential wheel faces to -z direction
        << "  name \"" << (is_red_team ? "R" : "B") << id << "\""
-       << "  data \"0 0\""
+       << "  customData \"0 0\""
        << "  controller \"soccer_robot\""
        << "  maxSpeed " << MAX_LINEAR_VELOCITY / WHEEL_RADIUS
        << "  maxForce " << MAX_FORCE
@@ -79,14 +79,17 @@ namespace /* anonymous */ {
        << "    SoccerRobotNumberPatch {" // number patch
        << "      id " << id
        << "      isTeamTagRed " << (is_red_team ? "TRUE" : "FALSE")
+       << "      name \"number_patch\""
        << "    }"
        << "    SoccerRobotIDPatch {" // id patch to cam_a
        << "      id " << CODEWORDS[id]
        << "      isTeamTagRed " << (is_red_team ? "TRUE" : "FALSE")
+       << "      name \"id_patch_red\""
        << "    }"
        << "    SoccerRobotIDPatch {" // id patch to cam_b
        << "      id " << CODEWORDS[id]
        << "      isTeamTagRed " << (!is_red_team ? "TRUE" : "FALSE")
+       << "      name \"id_patch_blue\""
        << "    }"
        << "  ]"
        << "}";
@@ -258,7 +261,7 @@ public:
                                 c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
     pn_robot->getField("translation")->setSFVec3f(translation);
     pn_robot->getField("rotation")->setSFRotation(rotation);
-    pn_robot->getField("data")->setSFString("0 0");
+    pn_robot->getField("customData")->setSFString("0 0");
     pn_robot->resetPhysics();
   }
 
@@ -271,7 +274,7 @@ public:
     const auto left = std::max(std::min(speed[0], c::MAX_LINEAR_VELOCITY), -c::MAX_LINEAR_VELOCITY);
     const auto right = std::max(std::min(speed[1], c::MAX_LINEAR_VELOCITY), -c::MAX_LINEAR_VELOCITY);
 
-    pn_robot->getField("data")->setSFString(std::to_string(left / c::WHEEL_RADIUS) + " " +
+    pn_robot->getField("customData")->setSFString(std::to_string(left / c::WHEEL_RADIUS) + " " +
                                             std::to_string(right / c::WHEEL_RADIUS));
   }
 

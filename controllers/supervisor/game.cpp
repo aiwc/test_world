@@ -386,7 +386,9 @@ void game::step(std::size_t ms)
 
   for(std::size_t i = 0; i < ms / basic_time_step; ++i) {
     if(paused_.load()) {
-      stop_robots();
+      // TEMPORARY_PATCH: Workaround for Webots R2018a's bug
+      // Calling setSFString() twice to same field in single step makes program fail
+      //stop_robots();
     }
     else {
       send_speed();
@@ -435,7 +437,7 @@ void game::stop_robots()
   auto done_fut = done.get_future();
 
   // set wheel speed, defer it to io_thread and wait
-  io_.dispatch([&]() {
+  io_.post([&]() {
       io_thread_wheel_speed_ = {};
       wheel_speed_.write(io_thread_wheel_speed_);
       done.set_value();
@@ -663,7 +665,9 @@ void game::run_game()
       }
       else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
         pause();
-        stop_robots();
+        // TEMPORARY_PATCH: Workaround for Webots R2018a's bug
+        // Calling setSFString() twice to same field in single step makes program fail
+        // stop_robots();
         reset();
         step(c::WAIT_STABLE_MS);
         resume();

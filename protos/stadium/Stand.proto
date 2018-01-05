@@ -8,14 +8,16 @@ PROTO Stand [
   field SFRotation rotation 0 1 0 0
   field SFVec3f    scale 1 1 1
   field SFNode     appearance LightGray { }
-  field SFNode    groundAppearance DarkGray { }
+  field SFNode     groundAppearance DarkGray { }
   field SFBool     castShadows TRUE
+  field SFString   name "stand"
 ]
 {
   Solid {
     translation IS translation
     rotation IS rotation
     scale IS scale
+    name IS name
     children [
       Transform {
         translation 0 -0.1 0

@@ -1,7 +1,7 @@
 #VRML_SIM V8.6.2 utf8
 
 PROTO SoccerRobot [
-  # fields inherited from DifferentialWheels
+  # fields inherited from Robot
   field SFVec3f    translation         0 0 0
   field SFRotation rotation            0 1 0 0
   field SFVec3f    scale               1 1 1
@@ -9,7 +9,7 @@ PROTO SoccerRobot [
   field SFString   name                "soccer robot"
   field SFString   model               ""
   field SFString   description         ""
-  field SFString   data                ""
+  field SFString   customData          ""
   # contactMaterial
   field MFNode     immersionProperties [ ]
   # boundingObject
@@ -19,7 +19,7 @@ PROTO SoccerRobot [
   field SFFloat    rotationStep        0.261799387 # pi/12 rad
   field SFFloat    radarCrossSection   0.0
   field SFString   controller          "void"
-  field SFString   controllerArgs      ""
+  # field SFString   controllerArgs      ""
   field SFBool     synchronization     TRUE
   field MFFloat    battery             [ ]
   field SFFloat    cpuConsumption      10          # [0,inf)
@@ -27,15 +27,14 @@ PROTO SoccerRobot [
   field SFBool     showWindow          FALSE
   field SFString   window              ""
   field SFString   remoteControl       ""
+
+  # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
   # SFFloat    axleLength          0.1         # (0,inf)
   # SFFloat    wheelRadius         0.01        # (0,inf)
   field SFFloat    maxSpeed            10          # (0,inf)
   field SFFloat    maxAcceleration     10
-  field SFFloat    speedUnit           1
   field SFFloat    slipNoise           0.1         # [0,inf)
-  field SFFloat    encoderNoise        -1
-  field SFFloat    encoderResolution   -1
   field SFFloat    maxForce            0.3         # (0,inf)
 
   # fields specific to SoccerRobot
@@ -69,9 +68,9 @@ PROTO SoccerRobot [
   field SFString wheelContactMaterial "default"
 
   field MFNode patches [
-    DEF DEF_NUMBERPATCH SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 }
-    DEF DEF_IDPATCHR SoccerRobotIDPatch { isTeamTagRed TRUE id 0}
-    DEF DEF_IDPATCHB SoccerRobotIDPatch { isTeamTagRed FALSE id 0}
+    SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 name "number_patch" }
+    SoccerRobotIDPatch { isTeamTagRed TRUE id 0 name "id_patch_red" }
+    SoccerRobotIDPatch { isTeamTagRed FALSE id 0 name "id_patch_blue" }
   ]
 ]
 {
@@ -92,8 +91,11 @@ PROTO SoccerRobot [
       print("kinematics mode is enabled")
       kinematic = true
     end
+    
+    local mv = fields.maxSpeed.value
+    local sn = fields.slipNoise.value
   }%
-  DifferentialWheels {
+  Robot {
     translation         IS translation
     rotation            IS rotation
     scale               IS scale
@@ -208,80 +210,111 @@ PROTO SoccerRobot [
           %{ end }%
         ]
       }
-      DEF LEFTWHEEL Solid {
-        translation %{=-al / 2}% %{=(-h + 2 * wr) / 2}% 0
-        rotation 1 0 0 %{=math.pi / 2}%
-        children [
-          DEF LEFT_WHEEL_SHAPE Transform {
-            rotation 0 0 1 %{=math.pi / 2}%
-            children [
-              Shape {
-                appearance IS tireAppearance
-                geometry Cylinder {
-                  height %{=wt - 0.0001}%
-                  radius IS wheelRadius
-                  subdivision 24
-                }
-              }
-              %{ if wr - wtt > 0 then }%
-              Shape {
-                appearance IS wheelAppearance
-                geometry Cylinder {
-                  height IS wheelThickness
-                  radius %{=wr - wtt}%
-                  subdivision 24
-                }
-              }
-              %{ end }%
-            ]
+      DEF LEFTJOINT HingeJoint {
+        jointParameters HingeJointParameters {
+          axis -1 0 0
+          anchor %{=-al / 2}% %{=(-h + 2 * wr) / 2}% 0
+        }
+        device [
+          RotationalMotor {
+            name "left wheel motor"
+            acceleration IS acceleration
+            consumptionFactor IS motorConsumption
+            maxVelocity %{=mv*(1 + sn)}%
+            maxTorque IS maxForce
+            sound ""
           }
         ]
-        name "left wheel"
-        contactMaterial IS wheelContactMaterial
-        physics IS wheelPhysics
-        boundingObject Transform {
-          rotation 0 0 1 %{=math.pi / 2}%
+        endPoint  DEF LEFTWHEEL Solid {
+          translation %{=-al / 2}% %{=(-h + 2 * wr) / 2}% 0
+          rotation 1 0 0 %{=math.pi / 2}%
           children [
-            Cylinder {
-              height IS wheelThickness
-              radius IS wheelRadius
-              subdivision 24
+            DEF LEFT_WHEEL_SHAPE Transform {
+              rotation 0 0 1 %{=math.pi / 2}%
+              children [
+                Shape {
+                  appearance IS tireAppearance
+                  geometry Cylinder {
+                    height %{=wt - 0.0001}%
+                    radius IS wheelRadius
+                    subdivision 24
+                  }
+                }
+                %{ if wr - wtt > 0 then }%
+                Shape {
+                  appearance IS wheelAppearance
+                  geometry Cylinder {
+                    height IS wheelThickness
+                    radius %{=wr - wtt}%
+                    subdivision 24
+                  }
+                }
+                %{ end }%
+              ]
             }
           ]
+          name "left wheel"
+          contactMaterial IS wheelContactMaterial
+          physics IS wheelPhysics
+          boundingObject Transform {
+            rotation 0 0 1 %{=math.pi / 2}%
+            children [
+              Cylinder {
+                height IS wheelThickness
+                radius IS wheelRadius
+                subdivision 24
+              }
+            ]
+          }
         }
       }
 
-      # right wheel
-      Solid {
-        translation %{=al / 2}% %{=(-h + 2 * wr) / 2}% 0
-        rotation 1 0 0 %{=math.pi / 2}%
-        children [
-          Transform {
-            rotation 0 1 0 %{=math.pi}%
-            children [
-              USE LEFT_WHEEL_SHAPE
-            ]
+      DEF RIGHTJOINT HingeJoint {
+        jointParameters HingeJointParameters {
+          axis -1 0 0
+          anchor %{=al / 2}% %{=(-h + 2 * wr) / 2}% 0
+        }
+        device [
+          RotationalMotor {
+            name "right wheel motor"
+            acceleration IS acceleration
+            consumptionFactor IS motorConsumption
+            maxVelocity %{=mv*(1 + sn)}%
+            maxTorque IS maxForce
+            sound ""
           }
         ]
-        name "right wheel"
-        contactMaterial IS wheelContactMaterial
-        physics IS wheelPhysics
-        boundingObject Transform {
-          rotation 0 0 1 %{=math.pi / 2}%
+        endPoint  Solid {
+          translation %{=al / 2}% %{=(-h + 2 * wr) / 2}% 0
+          rotation 1 0 0 %{=math.pi / 2}%
           children [
-            Cylinder {
-              height IS wheelThickness
-              radius IS wheelRadius
-              subdivision 24
+            Transform {
+              rotation 0 1 0 %{=math.pi}%
+              children [
+                USE LEFT_WHEEL_SHAPE
+              ]
             }
           ]
+          name "right wheel"
+          contactMaterial IS wheelContactMaterial
+          physics IS wheelPhysics
+          boundingObject Transform {
+            rotation 0 0 1 %{=math.pi / 2}%
+            children [
+              Cylinder {
+                height IS wheelThickness
+                radius IS wheelRadius
+                subdivision 24
+              }
+            ]
+          }
         }
       }
     ]
     name                IS name
     model               IS model
     description         IS description
-    data                IS data
+    customData          IS customData
     contactMaterial     IS bodyContactMaterial
     immersionProperties IS immersionProperties
     boundingObject Transform {
@@ -305,7 +338,7 @@ PROTO SoccerRobot [
     rotationStep        IS rotationStep
     radarCrossSection   IS radarCrossSection
     controller          IS controller
-    controllerArgs      IS controllerArgs
+    controllerArgs      "%{=sn}%"
     synchronization     IS synchronization
     battery             IS battery
     cpuConsumption      IS cpuConsumption
@@ -313,15 +346,6 @@ PROTO SoccerRobot [
     showWindow          IS showWindow
     window              IS window
     remoteControl       IS remoteControl
-    motorConsumption    IS motorConsumption
-    axleLength          IS axleLength
-    wheelRadius         IS wheelRadius
-    maxSpeed            IS maxSpeed
-    maxAcceleration     IS maxAcceleration
-    speedUnit           IS speedUnit
-    slipNoise           IS slipNoise
-    encoderNoise        IS encoderNoise
-    encoderResolution   IS encoderResolution
-    maxForce            IS maxForce
+    #slipNoise           IS slipNoise
   }
 }
