@@ -53,7 +53,7 @@ public:
   game(game&&) = default;
   game& operator=(game&&) = default;
 
-  void run(); // throws webots_revert_exceptions 
+  void run(); // throws webots_revert_exceptions
 
 private:
   void connect_to_server();
@@ -74,7 +74,8 @@ private:
   void send_speed(); // send wheel speed to the simulator
 
   std::size_t count_robots_in_penalty_area(bool is_red) const;
-
+  std::size_t count_robots_in_goal_area(bool is_red) const;
+  
   void publish_current_frame(std::size_t reset_reason);
 
   // main runner
@@ -150,7 +151,8 @@ private:
 
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
 
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_pa_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
   std::size_t deadlock_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
