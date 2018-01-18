@@ -38,30 +38,42 @@ PROTO SoccerRobot [
   field SFFloat    maxForce            0.3         # (0,inf)
 
   # fields specific to SoccerRobot
-  field SFFloat  length 0.075
-  field SFFloat  width  0.075
   field SFFloat  height 0.075
 
   field SFBool   kinematic FALSE # If TRUE, Physics' are ignored
   field SFFloat  axleLength     0.07
   field SFFloat  wheelRadius    0.03
   field SFFloat  wheelThickness 0.004
-  field SFFloat  wheelTireThickness 0.001
+  field SFFloat  wheelTireThickness 0.0
+  
+  field SFFloat  bodyRadius     0.0575
+  field SFFloat  bodySubdivision 24
+  field SFFloat  wheelVisibleRatio 0.75
+  
+  field SFFloat  weightThickness 0.01
+  
+  field SFBool   topCover   TRUE
+  field SFBool   sideCover  TRUE
+  field SFBool   weightPlate FALSE
 
   field SFFloat  distanceToFloor 0.001
   field SFFloat  distanceToPatch 0.001
   field SFFloat  distanceToWheel 0.001
-  field SFBool   side TRUE # If TRUE, the body has a side cover if needed
   field SFNode   bodyAppearance Black { }
-  field SFNode   tireAppearance Gray { }
-  field SFNode   wheelAppearance Black { }
+  field SFNode   tireAppearance White { }
+  field SFNode   wheelAppearance White { }
   field SFNode bodyPhysics Physics {
     density -1
     mass 0.45
+    centerOfMass [0 -0.0373 0]
   }
   field SFNode wheelPhysics Physics {
     density -1
     mass 0.05
+  }
+  field SFNode weightPhysics Physics {
+    density -1
+    mass 0.0001
   }
 
   field SFString bodyContactMaterial "default"
@@ -75,13 +87,18 @@ PROTO SoccerRobot [
 ]
 {
   %{
-    local l  = fields.length.value
-    local w  = fields.width.value
     local h  = fields.height.value
     local al = fields.axleLength.value
     local wr = fields.wheelRadius.value
     local wt = fields.wheelThickness.value
     local wtt = fields.wheelTireThickness.value
+    local br = fields.bodyRadius.value
+    local bs = fields.bodySubdivision.value
+    local wvr = math.min(math.max(0, fields.wheelVisibleRatio.value), 1)
+    local wht = fields.weightThickness.value
+    local tc = fields.topCover.value
+    local sc = fields.sideCover.value
+    local wp = fields.weightPlate.value
     local df = fields.distanceToFloor.value
     local dp = fields.distanceToPatch.value
     local dw = fields.distanceToWheel.value
@@ -108,103 +125,225 @@ PROTO SoccerRobot [
       DEF BODYSHAPE Transform {
         rotation 0 1 0 %{=math.pi / 2}%
         children [
-          # MidBody
-          # upper
+          # UpperBody
           %{
-            local h_upperbody = h - 2 * wr - dw - dp
-            if h_upperbody > 0 then
+          if tc then
+            local ubh = (1 - wvr) * (2 * wr + dw - df) + h - 2 * wr - dw - dp
+            if ubh > 0 then
           }%
           Transform {
-            translation 0 %{=(2*wr + dw - dp) / 2}% 0
+            translation 0 %{=(h - ubh - 2 * dp) / 2}% 0
+            rotation 0 1 0 %{=-math.pi / 2 + math.pi / bs}%
             children [
               Shape {
                 appearance IS bodyAppearance
-                geometry Box {
-                  size %{=2 * wr + 2 * dw}% %{=h_upperbody}% %{=w}%
+                geometry Cylinder {
+                  height %{=ubh}%
+                  radius %{=br}%
+                  subdivision %{=bs}%
                 }
               }
             ]
           }
-          %{ end }%
-          # lower
+          %{ end 
+          end }%          
           %{
-            local lbh = 2 * wr + dw - df
+            local lbh = math.min(h - df - dp, wvr * (2 * wr + dw - df))
             local lbw = al - wt - 2 * dw
             if lbh > 0 and lbw > 0 then
+            local plx = wr + dw
+            local nlx = -plx
+            local ply = lbw / 2
+            local nly = -ply
+            
+            local tva = {} -- temporary vertex array
+            tva[0] = {} -- x-coordinate
+            tva[1] = {} -- y-coordinate
+            for i = 0, (bs - 1) do
+              local th = i * 2 * math.pi / bs
+        
+              tva[0][i] = br * math.cos(th + math.pi / bs)-- - math.pi /6) 
+              tva[1][i] = br * math.sin(th + math.pi / bs)-- - math.pi /6)
+            end
+            local lbs = 0
+            local va = {} -- vertex array
+            va[0] = {} -- x-coordinate
+            va[1] = {} -- y-coordinate
+            
+            -- crossing point 
+            local cp = function (x, x1, y1, x2, y2) return y1 + (x - x1) * (y2 - y1) / (x2 - x1) end
+            
+            -- calculate the vertex points of the lower body shape
+            for i = 0, (bs - 1) do
+              local prev = i - 1
+              if prev < 0 then
+                prev = bs - 1
+              end
+              
+              local next = i + 1
+              if next > bs - 1 then
+                next = 0
+              end
+              
+              -- side cover (points above y-limits AND below x-limits are reorganized)
+              if sc then
+                -- use points that do not hide wheels
+                if math.abs(tva[0][i]) > plx or math.abs(tva[1][i]) <= ply then
+                  va[0][lbs] = tva[0][i]
+                  va[1][lbs] = tva[1][i]
+                  lbs = lbs + 1
+                end
+                
+                -- reorganize points that hide wheels
+                if math.abs(tva[1][i]) > ply or math.abs(tva[1][next]) > ply then
+                  if tva[1][i] <= nly and tva[1][next] > nly then
+                    if cp(nly, tva[1][i], tva[0][i], tva[1][next], tva[0][next]) <= plx then
+                      va[0][lbs] = cp(nly, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
+                      va[1][lbs] = nly
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[1][i] <= ply and tva[1][next] > ply then
+                    if cp(ply, tva[1][i], tva[0][i], tva[1][next], tva[0][next]) <= plx then
+                      va[0][lbs] = cp(ply, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
+                      va[1][lbs] = ply
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[0][i] > plx and tva[0][next] <= plx then
+                    if cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next]) > ply then
+                      va[0][lbs] = plx
+                      va[1][lbs] = cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
+                      lbs = lbs + 1
+                      
+                      va[0][lbs] = plx
+                      va[1][lbs] = ply
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[1][i] > ply and tva[1][next] <= ply then
+                    if cp(ply, tva[1][i], tva[0][i], tva[1][next], tva[0][next]) > nlx then
+                      va[0][lbs] = cp(ply, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
+                      va[1][lbs] = ply
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[0][i] > nlx and tva[0][next] <= nlx then
+                    if cp(nlx, tva[0][i], tva[1][i], tva[0][next], tva[1][next]) > ply then
+                      va[0][lbs] = nlx
+                      va[1][lbs] = ply
+                      lbs = lbs + 1
+                      
+                      va[0][lbs] = nlx
+                      va[1][lbs] = cp(nlx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[0][i] <= nlx and tva[0][next] > nlx then
+                    if cp(nlx, tva[0][i], tva[1][i], tva[0][next], tva[1][next]) <= nly then
+                      va[0][lbs] = nlx
+                      va[1][lbs] = cp(nlx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
+                      lbs = lbs + 1
+                      
+                      va[0][lbs] = nlx
+                      va[1][lbs] = nly
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[1][i] > nly and tva[1][next] <= nly then
+                    if cp(nly, tva[1][i], tva[0][i], tva[1][next], tva[0][next]) > nlx then
+                      va[0][lbs] = cp(nly, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
+                      va[1][lbs] = nly
+                      lbs = lbs + 1
+                    end
+                  end
+                  if tva[0][i] <= plx and tva[0][next] > plx then
+                    if cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next]) <= nly then
+                      va[0][lbs] = plx
+                      va[1][lbs] = nly
+                      lbs = lbs + 1 
+                      
+                      va[0][lbs] = plx
+                      va[1][lbs] = cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
+                      lbs = lbs + 1
+                    end          
+                  end
+                end
+              -- no side cover (points above y-limits are reorganized)
+              else
+                if tva[1][i] > ply then -- vertex out of positive y limit
+                  if tva[1][prev] <= ply then -- previous vertex was within positive y limit
+                    va[0][lbs] = cp(ply, tva[1][i], tva[0][i], tva[1][prev], tva[0][prev])
+                    va[1][lbs] = ply
+                    lbs = lbs + 1
+                  end
+                  if tva[1][next] <= ply then -- next vertex will be within positive y limit
+                    va[0][lbs] = cp(ply, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
+                    va[1][lbs] = ply
+                    lbs = lbs + 1             
+                  end              
+                elseif tva[1][i] <= nly then -- vertex out of negative limit
+                  if tva[1][prev] > nly then -- previous vertex was within negative y limit
+                    va[0][lbs] = cp(nly, tva[1][i], tva[0][i], tva[1][prev], tva[0][prev])
+                    va[1][lbs] = nly
+                    lbs = lbs + 1
+                  end
+                  if tva[1][next] > nly then -- next vertex will be within negative y limit
+                    va[0][lbs] = cp(nly, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
+                    va[1][lbs] = nly
+                    lbs = lbs + 1            
+                  end              
+                else -- vertex within limit
+                  va[0][lbs] = tva[0][i]
+                  va[1][lbs] = tva[1][i]
+                  lbs = lbs + 1
+                end
+              end
+            end
           }%
+          # lowerBody
           Transform {
-            translation 0 %{=(-h + 2 * wr + dw + df) / 2}% 0
+            translation 0 %{=(-h + lbh + 2 * df) / 2}% 0
             children [
+              %{ if lbs > 2 then }%
               Shape {
                 appearance IS bodyAppearance
-                geometry Box {
-                  size %{=2 * wr + 2 * dw}% %{=lbh}% %{=lbw}%
-                }
-              }
-            ]
-          }
-          %{ end }%
+                geometry IndexedFaceSet {
+                  coord Coordinate {
+                    point [
+                      %{
+                        for i = 0, (lbs - 1) do
+                        local cx = va[0][i]
+                        local cy = va[1][i]
+                      }%
+                      
+                      %{=cx}% %{=-lbh/2}% %{=cy}% # 0 : lower
+                      %{=cx}% %{=lbh/2}% %{=cy}% # 1 : upper
+                      %{ end }%
+                    ]
+                  }
+                  coordIndex [
+                    %{
+                      local cl = function (i) return (i % lbs) * 2 + 0 end
+                      local cu = function (i) return (i % lbs) * 2 + 1 end
+        
+                      for i = 0, (lbs - 1) do
+                    }%
+                    %{=cl(i)}%
+                    %{ end }%
+                    -1
+                    %{ for i = 0, (lbs - 1) do }%
+                    %{=cu(-i)}%
+                    %{ end }%
+                    -1
 
-          # FrontBody and BackBody
-          %{
-            local fbl = (l - 2 * wr - 2 * dw) / 2
-            local fbh = h - df - dp
-            if fbl > 0 and fbh > 0 then
-          }%
-          # front
-          Transform {
-            translation %{=(l + 2 * wr + 2 * dw) / 4}% %{=df / 2 - dp / 2}% 0
-            children [
-              Shape {
-                appearance IS bodyAppearance
-                geometry Box {
-                  size %{=fbl}% %{=fbh}% %{=w}%
+                    %{ for i = 0, (lbs - 1) do }%
+                    %{=cl(i)}% %{=cu(i)}% %{=cu(i+1)}% %{=cl(i+1)}% -1 # outer
+                    %{ end }%
+                  ]
                 }
               }
-            ]
-          }
-          # back
-          Transform {
-            translation %{=-(l + 2 * wr + 2 * dw) / 4}% %{=df / 2 - dp / 2}% 0
-            children [
-              Shape {
-                appearance IS bodyAppearance
-                geometry Box {
-                  size %{=fbl}% %{=fbh}% %{=w}%
-                }
-              }
-            ]
-          }
-          %{ end }%
-
-          # SideBody
-          %{
-            local sbh = 2 * wr + dw - df
-            local sbw = (w - al - wt - 2 * dw) / 2
-            if fields.side.value and sbh > 0 and sbw > 0 then
-          }%
-          # left
-          Transform {
-            translation 0 %{=(-h + 2 * wr + dw + df) / 2}% %{=-(w + al + wt + 2 * dw) / 4}%
-            children [
-              Shape {
-                appearance IS bodyAppearance
-                geometry Box {
-                  size %{=2 * wr + 2 * dw}% %{=sbh}% %{=sbw}%
-                }
-              }
-            ]
-          }
-          # right
-          Transform {
-            translation 0 %{=(-h + 2 * wr + dw + df) / 2}% %{=(w + al + wt + 2 * dw) / 4}%
-            children [
-              Shape {
-                appearance IS bodyAppearance
-                geometry Box {
-                  size %{=2 * wr + 2 * dw}% %{=sbh}% %{=sbw}%
-                }
-              }
+              %{ end }%
             ]
           }
           %{ end }%
@@ -268,7 +407,6 @@ PROTO SoccerRobot [
           }
         }
       }
-
       DEF RIGHTJOINT HingeJoint {
         jointParameters HingeJointParameters {
           axis -1 0 0
@@ -310,6 +448,20 @@ PROTO SoccerRobot [
           }
         }
       }
+      %{ if wp and wht > 0 then }%
+      DEF WEIGHT Solid {
+        translation 0 %{=-h/2 + df + wht/2}% 0
+        rotation 0 1 0 %{=math.pi / bs}%
+        name "weight"
+        contactMaterial IS bodyContactMaterial
+        physics IS weightPhysics
+        boundingObject Cylinder {
+          height IS weightThickness
+          radius IS bodyRadius
+          subdivision %{=bs}%
+        }
+      }
+      %{ end }%
     ]
     name                IS name
     model               IS model
@@ -319,9 +471,12 @@ PROTO SoccerRobot [
     immersionProperties IS immersionProperties
     boundingObject Transform {
       translation 0 %{=df / 2}% 0
+      rotation 0 1 0 %{=math.pi / bs}%
       children [
-        Box {
-          size %{=l}% %{=h - df}% %{=w}%
+        Cylinder {
+          height %{=h - df}%
+          radius %{=br}%
+          subdivision %{=bs}%
         }
       ]
     }
@@ -346,6 +501,5 @@ PROTO SoccerRobot [
     showWindow          IS showWindow
     window              IS window
     remoteControl       IS remoteControl
-    #slipNoise           IS slipNoise
   }
 }

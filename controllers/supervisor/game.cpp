@@ -135,8 +135,12 @@ void game::run()
     info.emplace_back("goal",         msgpack::object(std::make_tuple(c::GOAL_DEPTH, c::GOAL_WIDTH), z_info_));
     info.emplace_back("penalty_area", msgpack::object(std::make_tuple(c::PENALTY_AREA_DEPTH,
                                                                       c::PENALTY_AREA_WIDTH), z_info_));
+    info.emplace_back("goal_area", msgpack::object(std::make_tuple(c::GOAL_AREA_DEPTH,
+                                                                   c::GOAL_AREA_WIDTH), z_info_));
     info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, z_info_));
-    info.emplace_back("robot_size",           msgpack::object(c::ROBOT_SIZE, z_info_));
+    info.emplace_back("robot_size",           msgpack::object(c::ROBOT_SIZE, z_info_)); //DEPRECATED: will be removed on next release
+    info.emplace_back("robot_height",           msgpack::object(c::ROBOT_HEIGHT, z_info_));
+    info.emplace_back("robot_radius",           msgpack::object(c::ROBOT_RADIUS, z_info_));
     info.emplace_back("axle_length",          msgpack::object(c::AXLE_LENGTH, z_info_));
     info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
 

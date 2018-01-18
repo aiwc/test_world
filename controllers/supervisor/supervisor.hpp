@@ -63,18 +63,9 @@ namespace /* anonymous */ {
        << "  maxSpeed " << MAX_LINEAR_VELOCITY / WHEEL_RADIUS
        << "  maxForce " << MAX_FORCE
        << "  slipNoise " << SLIP_NOISE
-       << "  bodyPhysics Physics {"
-       << "    density -1"
-       << "    mass " << BODY_MASS
-       << "    centerOfMass [ 0 -0.0375 0 ]"
-       << "    inertiaMatrix [ 0.01 0.000421875 0.000421875 0 0 0 ]"
-       << "  }"
-       << "  wheelPhysics Physics {"
-       << "    density -1"
-       << "    mass " << WHEEL_MASS
-       << "  }"
        << "  bodyContactMaterial \"body\""
        << "  wheelContactMaterial \"wheel\""
+       << "  bodySubdivision 24"
        << "  patches ["
        << "    SoccerRobotNumberPatch {" // number patch
        << "      id " << id
@@ -201,7 +192,7 @@ public:
       for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
         reset_node(getFromDef(robot_name(is_red, id)),
                    c::ROBOT_INIT_POSTURE[id][0] * s,
-                   c::ROBOT_SIZE / 2,
+                   c::ROBOT_HEIGHT / 2,
                    c::ROBOT_INIT_POSTURE[id][1] * s,
                    c::ROBOT_INIT_POSTURE[id][2] + (is_red ? 0. : c::PI));
       }
@@ -255,7 +246,7 @@ public:
 
     const auto s = is_red ? 1 : -1;
     const double translation[] = {c::ROBOT_FOUL_POSTURE[id][0] * s,
-                                  c::ROBOT_SIZE / 2,
+                                  c::ROBOT_HEIGHT / 2,
                                   c::ROBOT_FOUL_POSTURE[id][1] * s};
     const double rotation[] = { 0, 1, 0,
                                 c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
@@ -317,7 +308,7 @@ private: // private member functions
         const auto s = is_red ? 1 : -1;
         for(std::size_t id = 0; id < NUMBER_OF_ROBOTS; ++id) {
           const auto x  = ROBOT_INIT_POSTURE[id][0] * s;
-          const auto y  = ROBOT_SIZE / 2;
+          const auto y  = ROBOT_HEIGHT / 2;
           const auto z  = ROBOT_INIT_POSTURE[id][1] * s;
           const auto th = ROBOT_INIT_POSTURE[id][2] + (is_red ? 0. : constants::PI);
           ss << generate_robot_node_string(x, y, z, th, is_red, id);
