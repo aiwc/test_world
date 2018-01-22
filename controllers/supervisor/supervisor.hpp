@@ -57,6 +57,10 @@ namespace /* anonymous */ {
        << "{"
        << "  translation " << x << " " << y << " " << z
        << "  rotation 0 1 0 " << th - PI / 2 // Differential wheel faces to -z direction
+       << "  lwTranslation " << -AXLE_LENGTH / 2 << " " << (-ROBOT_HEIGHT + 2 * WHEEL_RADIUS) / 2 << " 0"
+       << "  lwRotation 1 0 0 " << PI / 2
+       << "  rwTranslation " << AXLE_LENGTH / 2 << " " << (-ROBOT_HEIGHT + 2 * WHEEL_RADIUS) / 2 << " 0"
+       << "  rwRotation 1 0 0 " << PI / 2
        << "  name \"" << (is_red_team ? "R" : "B") << id << "\""
        << "  customData \"0 0\""
        << "  controller \"soccer_robot\""
@@ -177,20 +181,39 @@ public:
   {
     namespace c = constants;
 
-    const auto reset_node = [&](webots::Node* pn, double x, double y, double z, double th) {
+    const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
       const double translation[] = {x, y, z};
-      const double rotation[] = {0, 1, 0, th - c::PI / 2};
+      const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
       pn->resetPhysics();
     };
 
-    reset_node(getFromDef(c::DEF_BALL), 0, c::BALL_RADIUS, 0, 0);
+    const auto reset_robot_node = [&](webots::Node* pn, double x, double y, double z, double th) {
+      const double translation[] = {x, y, z};
+      const double rotation[] = {0, 1, 0, th - c::PI / 2};
+      const double lwTranslation[] = {-c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
+      const double rwTranslation[] = {c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
+      const double wheelRotation[] = {1, 0, 0, c::PI / 2};
+
+      pn->getField("translation")->setSFVec3f(translation);
+      pn->getField("rotation")->setSFRotation(rotation);
+
+      pn->getField("lwTranslation")->setSFVec3f(lwTranslation);
+      pn->getField("lwRotation")->setSFRotation(wheelRotation);
+
+      pn->getField("rwTranslation")->setSFVec3f(rwTranslation);
+      pn->getField("rwRotation")->setSFRotation(wheelRotation);
+
+      pn->resetPhysics();
+    };
+
+    reset_ball_node(getFromDef(c::DEF_BALL), 0, c::BALL_RADIUS, 0);
 
     for(const auto& is_red : {true, false}) {
       const auto s = is_red ? 1 : -1;
       for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-        reset_node(getFromDef(robot_name(is_red, id)),
+        reset_robot_node(getFromDef(robot_name(is_red, id)),
                    c::ROBOT_INIT_POSTURE[id][0] * s,
                    c::ROBOT_HEIGHT / 2,
                    c::ROBOT_INIT_POSTURE[id][1] * s,

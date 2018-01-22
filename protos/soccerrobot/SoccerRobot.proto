@@ -5,6 +5,13 @@ PROTO SoccerRobot [
   field SFVec3f    translation         0 0 0
   field SFRotation rotation            0 1 0 0
   field SFVec3f    scale               1 1 1
+
+  # fields for left and right wheels
+  field SFVec3f    lwTranslation       -0.035 -0.0075 0
+  field SFRotation lwRotation          1 0 0 1.570796
+  field SFVec3f    rwTranslation       0.035 -0.0075 0
+  field SFRotation rwRotation          1 0 0 1.570796
+
   # children
   field SFString   name                "soccer robot"
   field SFString   model               ""
@@ -56,7 +63,7 @@ PROTO SoccerRobot [
   field SFBool   sideCover  TRUE
   field SFBool   weightPlate FALSE
 
-  field SFFloat  distanceToFloor 0.001
+  field SFFloat  distanceToFloor 0.002
   field SFFloat  distanceToPatch 0.001
   field SFFloat  distanceToWheel 0.001
   field SFNode   bodyAppearance Black { }
@@ -365,8 +372,8 @@ PROTO SoccerRobot [
           }
         ]
         endPoint  DEF LEFTWHEEL Solid {
-          translation %{=-al / 2}% %{=(-h + 2 * wr) / 2}% 0
-          rotation 1 0 0 %{=math.pi / 2}%
+          translation IS lwTranslation
+          rotation IS lwRotation
           children [
             DEF LEFT_WHEEL_SHAPE Transform {
               rotation 0 0 1 %{=math.pi / 2}%
@@ -423,8 +430,8 @@ PROTO SoccerRobot [
           }
         ]
         endPoint  Solid {
-          translation %{=al / 2}% %{=(-h + 2 * wr) / 2}% 0
-          rotation 1 0 0 %{=math.pi / 2}%
+          translation IS rwTranslation
+          rotation IS rwRotation
           children [
             Transform {
               rotation 0 1 0 %{=math.pi}%
