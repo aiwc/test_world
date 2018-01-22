@@ -1,7 +1,7 @@
 #VRML_SIM R2018a utf8
 WorldInfo {
-  ERP 0.01
-  basicTimeStep 5
+  ERP 0.05
+  basicTimeStep 10
   FPS 20
   optimalThreadCount 8
   defaultDamping Damping {
@@ -113,8 +113,8 @@ WorldInfo {
   ]
 }
 DEF DEF_AUDVIEW Viewpoint {
-  orientation -1 2.4176132e-15 7.2818904e-16 0.72
-  position -0.072123853 4.3703004 4.9813297
+  orientation -1.0 0 0 0.8910057735495215
+  position 0 6.839949869285961 5.658156540652288
 }
 Background {
   skyColor [
@@ -126,7 +126,7 @@ DirectionalLight {
   direction 0 -1 0
 }
 TestReferee {
-  translation 0 8 0
+  translation 0 12.72 0
   children [
     Transform {
       rotation 1 0 0 4.712389
@@ -162,18 +162,21 @@ SoccerField5v5 {
   wallContactMaterial "wall"
 }
 DEF DEF_STADIUM Stadium {
+  scale 1.65 1.65 1.65
   castShadows FALSE
   goalPost [
     DEF DEF_GOALPOST Group {
       children [
         Goalpost {
-          translation -1.21 0 0
+          translation -1.24 0 0
+          scale 0.88 0.88 0.88
           castShadows IS castShadows
           name "goalpost_left"
         }
         Goalpost {
-          translation 1.21 0 0
+          translation 1.24 0 0
           rotation 0 1 0 3.141592635
+          scale 0.88 0.88 0.88
           castShadows IS castShadows
           name "goalpost_right"
         }

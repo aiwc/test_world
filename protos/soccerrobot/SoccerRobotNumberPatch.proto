@@ -4,8 +4,8 @@ PROTO SoccerRobotNumberPatch [
   # fields inherited from Shape
 
   # fields specific to Patch
-  field SFFloat length 0.075
-  field SFFloat width 0.075
+  field SFFloat radius 0.0575
+  field SFFloat scale 0.8
   field SFInt32 id 0 # should be >= 0
   field SFBool isTeamTagRed TRUE
   field SFString name "number_patch"
@@ -13,8 +13,8 @@ PROTO SoccerRobotNumberPatch [
 {
   %{
     -- local variables
-    local length = fields.length.value
-    local width = fields.width.value
+    local radius = fields.radius.value
+    local scale = fields.scale.value
     local id = fields.id.value
     local isTeamTagRed = fields.isTeamTagRed.value
 
@@ -34,11 +34,11 @@ PROTO SoccerRobotNumberPatch [
               local color
               if isTeamTagRed then color = 'red' else color = 'blue' end
             }%
-            url [ "textures/%{=color}%.png" ]
+            url [ "textures/%{=color}%_cylinder.png" ]
           }
         }
         geometry Plane {
-          size %{=length}% %{=width}%
+          size %{=2*radius}% %{=2*radius}%
         }
       }
       DEF TEAMNUMBER Transform {
@@ -52,7 +52,7 @@ PROTO SoccerRobotNumberPatch [
               }
             }
             geometry Plane {
-              size %{=length}% %{=width}%
+              size %{=scale*2*radius}% %{=scale*2*radius}%
             }
           }
         ]

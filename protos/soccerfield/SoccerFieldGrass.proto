@@ -6,17 +6,18 @@ PROTO SoccerFieldGrass [
   field SFVec3f    scale 1 1 1
 
   # fields specific to SoccerField
-  field SFInt32  numberOfPlane 24
-  field SFFloat  length 2.7
-  field SFFloat  width 2
+  field SFFloat  blockSize 0.25
+  field SFFloat  length 4.6
+  field SFFloat  width 3.4
 ]
 {
   %{
-    local np = fields.numberOfPlane.value
+    local bs = fields.blockSize.value
     local l  = fields.length.value
     local w  = fields.width.value
 
-    local pl = l / np
+    local bn = math.floor(l / (2 * bs))
+    local ll = math.max(0, l / 2 - bs * bn)
   }%
   Slot {
     type "soccer_field_grass"
@@ -25,31 +26,55 @@ PROTO SoccerFieldGrass [
       rotation IS rotation
       scale IS scale
       children [
-        %{ for i = 0, (np - 1) do }%
-
-        Transform {
-          translation %{=(-l / 2) + i * pl + pl / 2}% 0 0
-          children [
-            Shape {
-              %{
-                local color
-                if i % 2 == 0 then
-                color = 'LightGreen'
-                else
-                color = 'DarkGreen'
-                end
-              }%
-              appearance %{=color}% { }
-              geometry Plane {
-                size %{=pl}% %{=w}%
+        %{ local m = 1 }%
+        %{ for k = 0, 1 do }%
+          %{ for i = 0, bn - 1 do }%
+          Transform {
+            translation %{=m * (i * bs + bs / 2)}% 0 0
+            children [
+              Shape {
+                %{
+                  local color
+                  if i % 2 == k then
+                  color = 'LightGreen'
+                  else
+                  color = 'DarkGreen'
+                  end
+                }%
+                appearance %{=color}% { }
+                geometry Plane {
+                  size %{=bs}% %{=w}%
+                }
               }
-            }
-          ]
-        }
+            ]
+          }
+          %{ end }%
 
+          %{ if ll > 0 then }%
+          Transform {
+            translation %{=m * (bn * bs + ll / 2)}% 0 0
+            children [
+              Shape {
+                %{
+                  local color
+                  if bn % 2 == k then
+                  color = 'LightGreen'
+                  else
+                  color = 'DarkGreen'
+                  end
+                }%
+                appearance %{=color}% { }
+                geometry Plane {
+                  size %{=ll}% %{=w}%
+                }
+              }
+            ]
+          }
+          %{ end }%
+
+          %{ m = -1 }%
         %{ end }%
       ]
     }
   }
 }
-
