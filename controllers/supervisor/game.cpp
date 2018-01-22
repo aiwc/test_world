@@ -965,7 +965,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
     return;
   }
 
-  const auto report = invocation->argument<std::string>(1);
+  const auto report = invocation->argument<std::vector<std::string>>(1);
 
   // we will handle this report internally.
 
