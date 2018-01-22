@@ -1,6 +1,6 @@
 #VRML_SIM R2018a utf8
 WorldInfo {
-  ERP 0.01
+  ERP 0.05
   basicTimeStep 10
   FPS 20
   optimalThreadCount 8
