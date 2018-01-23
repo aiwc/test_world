@@ -1,3 +1,9 @@
+// File:              game.hpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup game management header
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong
+
 #ifndef H_GAME_HPP
 #define H_GAME_HPP
 #pragma once
@@ -142,6 +148,10 @@ private:
   msgpack::object info_[2]; // for red team's view and blue team's view
 
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
+
+  const bool deadlock_reset_flag_;
+  const bool goal_area_foul_flag_;
+  const bool penalty_area_foul_flag_;
 
   const std::size_t game_time_ms_;
   std::size_t time_ms_ = 0;

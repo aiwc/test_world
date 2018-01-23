@@ -1,3 +1,9 @@
+// File:              supervisor.hpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup supervisor header
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong
+
 #ifndef H_SUPERVISOR_HPP
 #define H_SUPERVISOR_HPP
 #pragma once
@@ -121,6 +127,21 @@ public:
     // control visibility to cams
     control_visibility();
     enable_cameras(constants::CAM_PERIOD_MS);
+  }
+
+  bool get_deadlock_reset_flag() const
+  {
+    return static_cast<bool>(getSelf()->getField("deadlockReset")->getSFBool());
+  }
+
+  bool get_penalty_area_foul_flag() const
+  {
+    return static_cast<bool>(getSelf()->getField("penaltyAreaFoul")->getSFBool());
+  }
+
+  bool get_goal_area_foul_flag() const
+  {
+    return static_cast<bool>(getSelf()->getField("goalAreaFoul")->getSFBool());
   }
 
   std::size_t get_game_time_ms() const

@@ -1,4 +1,10 @@
 #VRML_SIM R2018a utf8
+#File:              aiwc_linux.wbt
+#Date:              Jan. 23, 2018
+#Description:       AI Soccer World for Linux
+#Author(s):         Inbae Jeong, Chansol Hong
+#Current Developer: Chansol Hong
+
 WorldInfo {
   ERP 0.05
   basicTimeStep 10
@@ -125,7 +131,7 @@ DirectionalLight {
   ambientIntensity 1
   direction 0 -1 0
 }
-TestReferee {
+Referee {
   translation 0 12.72 0
   children [
     Transform {
@@ -152,8 +158,6 @@ TestReferee {
   teamADataPath "../../examples/team_a_data"
   teamBExecutable "../../examples/rulebased_algorithm/rulebased_algorithm"
   teamBDataPath "../../examples/team_b_data"
-  commentatorExecutable "../../examples/commentator-skeleton-cpp/commentator-skeleton"
-  commentatorDataPath "../../examples/commentator_data"
 }
 SoccerField5v5 {
   grassSlot DEF DEF_GRASS SoccerFieldGrass {

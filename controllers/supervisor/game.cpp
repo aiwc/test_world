@@ -1,3 +1,9 @@
+// File:              game.cpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup game management
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong
+
 #include "game.hpp"
 
 #include <boost/format.hpp>
@@ -60,6 +66,9 @@ namespace msgpack {
 
 game::game(supervisor& sv)
   : sv_(sv)
+  , deadlock_reset_flag_(sv_.get_deadlock_reset_flag())
+  , goal_area_foul_flag_(sv_.get_goal_area_foul_flag())
+  , penalty_area_foul_flag_(sv_.get_penalty_area_foul_flag())
   , game_time_ms_(sv_.get_game_time_ms())
 {
   for(auto& fc : foul_pa_counter_) {
@@ -69,6 +78,10 @@ game::game(supervisor& sv)
   for(auto& fc : foul_ga_counter_) {
     fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
   }
+
+  std::cout << "   deadlock reset: " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
+  std::cout << "   goal area foul: " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
+  std::cout << "penalty area foul: " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
 }
 
 void game::run()
@@ -735,7 +748,7 @@ void game::run_game()
     }
 
     // if the ball is not moved for c::DEADLOCK_THRESHOLD
-    if(reset_reason == c::NONE) {
+    if(reset_reason == c::NONE && deadlock_reset_flag_ == true) {
       if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
         deadlock_time_ = time_ms_;
       }
@@ -753,7 +766,7 @@ void game::run_game()
     }
 
     // if a team is blocking the goal area
-    {
+    if (goal_area_foul_flag_ == true) {
       for(const auto& team : {T_RED, T_BLUE}) {
         auto cnt_rbts_iga = count_robots_in_goal_area(team == T_RED);
         foul_ga_counter_[team].push_back(cnt_rbts_iga);
@@ -786,7 +799,7 @@ void game::run_game()
     }
 
     // if a team is blocking the penalty area
-    {
+    if (penalty_area_foul_flag_ == true) {
       for(const auto& team : {T_RED, T_BLUE}) {
         auto cnt_rbts_ipa = count_robots_in_penalty_area(team == T_RED);
         foul_pa_counter_[team].push_back(cnt_rbts_ipa);
