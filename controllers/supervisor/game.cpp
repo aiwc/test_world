@@ -2,7 +2,7 @@
 // Date:              Jan. 23, 2018
 // Description:       AI World Cup game management
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include "game.hpp"
 

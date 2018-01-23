@@ -1,3 +1,9 @@
+// File:              soccer_robot.cpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup soccer robot controller
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 #include <webots/Robot.hpp>
 #include <webots/Motor.hpp>
 
@@ -50,13 +56,13 @@ private:
     rw->setPosition(std::numeric_limits<double>::infinity());
     rw->setVelocity(slipNoise(right));
   }
-  
+
   // Add slip noise
   double slipNoise(double v)
   {
     boost::random_device rd{};
     std::default_random_engine re{rd()};
-    std::uniform_real_distribution<double> urd(-sn, sn);    
+    std::uniform_real_distribution<double> urd(-sn, sn);
     return v*(1 + urd(re));
   }
 };

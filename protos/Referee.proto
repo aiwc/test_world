@@ -1,9 +1,9 @@
-#VRML_SIM VR2018a utf8
+#VRML_SIM R2018a utf8
 #File:              Referee.proto
 #Date:              Jan. 23, 2018
-#Description:       Referee node for AI World Cup
+#Description:       Referee proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Referee [
   # fields inherited from Supervisor

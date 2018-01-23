@@ -1,7 +1,10 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              Stand.proto
+#Date:              Jan. 23, 2018
+#Description:       Spectator stand proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: hidden
-# For stadium side.
-# Created by sjlee
 
 PROTO Stand [
   field SFVec3f    translation 0 0 0
@@ -39,10 +42,10 @@ PROTO Stand [
           translation 0 -0.1 0
           children [
             Shape {
-              appearance IS groundAppearance 
+              appearance IS groundAppearance
               geometry Plane {
                 size 370 300
-              }  
+              }
               castShadows IS castShadows
             }
           ]
@@ -352,7 +355,7 @@ PROTO Stand [
                     }
                   }
                 ]
-              } 
+              }
               Transform {
                 translation 0 -10 0
                 rotation 0 1 0 3.14
@@ -659,7 +662,7 @@ PROTO Stand [
                         }
                       }
                     ]
-                  } 
+                  }
                 ]
               }
               Transform {
@@ -952,7 +955,7 @@ PROTO Stand [
                     }
                   }
                 ]
-              }  
+              }
               Transform {
                 translation 0 -10 0
                 rotation 0 1 0 3.14
@@ -1246,7 +1249,7 @@ PROTO Stand [
                         }
                       }
                     ]
-                  }  
+                  }
                 ]
               }
             ]
@@ -1256,5 +1259,3 @@ PROTO Stand [
     ]
   }
 }
-
-

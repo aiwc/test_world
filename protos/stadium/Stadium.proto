@@ -1,10 +1,15 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              Stadium.proto
+#Date:              Jan. 23, 2018
+#Description:       A stadium proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Stadium [
   field SFVec3f    translation 0 0 0
   field SFRotation rotation 0 1 0 0
   field SFVec3f    scale 1 1 1
-  
+
   field SFString   name "stadium"
 
   field SFNode standAppearance LightGray { }
@@ -61,5 +66,3 @@ PROTO Stadium [
     ]
   }
 }
-
-

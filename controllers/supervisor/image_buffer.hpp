@@ -1,3 +1,9 @@
+// File:              image_buffer.hpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup image buffer header
+// Author(s):         Inbae Jeong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 #ifndef H_IMAGE_BUFFER_HPP
 #define H_IMAGE_BUFFER_HPP
 #pragma once

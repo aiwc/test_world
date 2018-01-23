@@ -1,5 +1,11 @@
-#VRML_SIM V8.6.2 utf8
-# An ornage ball with customizable radius.
+#VRML_SIM R2018a utf8
+#File:              SoccerBallOrangeShape.proto
+#Date:              Jan. 23, 2018
+#Description:       Soccer ball proto for AI World Cup
+#Author(s):         Inbae Jeong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
+# An orange ball with customizable radius.
 # Created by inbae.jeong@gmail.com
 
 PROTO SoccerBallOrangeShape [

@@ -1,4 +1,9 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              SoccerRobot.proto
+#Date:              Jan. 23, 2018
+#Description:       AI soccer robot proto for AI World Cup
+#Author(s):         Inbae Jeong, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerRobot [
   # fields inherited from Robot
@@ -52,13 +57,13 @@ PROTO SoccerRobot [
   field SFFloat  wheelRadius    0.03
   field SFFloat  wheelThickness 0.004
   field SFFloat  wheelTireThickness 0.0
-  
+
   field SFFloat  bodyRadius     0.0575
   field SFFloat  bodySubdivision 24
   field SFFloat  wheelVisibleRatio 0.75
-  
+
   field SFFloat  weightThickness 0.01
-  
+
   field SFBool   topCover   TRUE
   field SFBool   sideCover  TRUE
   field SFBool   weightPlate FALSE
@@ -115,7 +120,7 @@ PROTO SoccerRobot [
       print("kinematics mode is enabled")
       kinematic = true
     end
-    
+
     local mv = fields.maxSpeed.value
     local sn = fields.slipNoise.value
   }%
@@ -152,8 +157,8 @@ PROTO SoccerRobot [
               }
             ]
           }
-          %{ end 
-          end }%          
+          %{ end
+          end }%
           %{
             local lbh = math.min(h - df - dp, wvr * (2 * wr + dw - df))
             local lbw = al - wt - 2 * dw
@@ -162,36 +167,36 @@ PROTO SoccerRobot [
             local nlx = -plx
             local ply = lbw / 2
             local nly = -ply
-            
+
             local tva = {} -- temporary vertex array
             tva[0] = {} -- x-coordinate
             tva[1] = {} -- y-coordinate
             for i = 0, (bs - 1) do
               local th = i * 2 * math.pi / bs
-        
-              tva[0][i] = br * math.cos(th + math.pi / bs)-- - math.pi /6) 
+
+              tva[0][i] = br * math.cos(th + math.pi / bs)-- - math.pi /6)
               tva[1][i] = br * math.sin(th + math.pi / bs)-- - math.pi /6)
             end
             local lbs = 0
             local va = {} -- vertex array
             va[0] = {} -- x-coordinate
             va[1] = {} -- y-coordinate
-            
-            -- crossing point 
+
+            -- crossing point
             local cp = function (x, x1, y1, x2, y2) return y1 + (x - x1) * (y2 - y1) / (x2 - x1) end
-            
+
             -- calculate the vertex points of the lower body shape
             for i = 0, (bs - 1) do
               local prev = i - 1
               if prev < 0 then
                 prev = bs - 1
               end
-              
+
               local next = i + 1
               if next > bs - 1 then
                 next = 0
               end
-              
+
               -- side cover (points above y-limits AND below x-limits are reorganized)
               if sc then
                 -- use points that do not hide wheels
@@ -200,7 +205,7 @@ PROTO SoccerRobot [
                   va[1][lbs] = tva[1][i]
                   lbs = lbs + 1
                 end
-                
+
                 -- reorganize points that hide wheels
                 if math.abs(tva[1][i]) > ply or math.abs(tva[1][next]) > ply then
                   if tva[1][i] <= nly and tva[1][next] > nly then
@@ -222,7 +227,7 @@ PROTO SoccerRobot [
                       va[0][lbs] = plx
                       va[1][lbs] = cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
                       lbs = lbs + 1
-                      
+
                       va[0][lbs] = plx
                       va[1][lbs] = ply
                       lbs = lbs + 1
@@ -240,7 +245,7 @@ PROTO SoccerRobot [
                       va[0][lbs] = nlx
                       va[1][lbs] = ply
                       lbs = lbs + 1
-                      
+
                       va[0][lbs] = nlx
                       va[1][lbs] = cp(nlx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
                       lbs = lbs + 1
@@ -251,7 +256,7 @@ PROTO SoccerRobot [
                       va[0][lbs] = nlx
                       va[1][lbs] = cp(nlx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
                       lbs = lbs + 1
-                      
+
                       va[0][lbs] = nlx
                       va[1][lbs] = nly
                       lbs = lbs + 1
@@ -268,12 +273,12 @@ PROTO SoccerRobot [
                     if cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next]) <= nly then
                       va[0][lbs] = plx
                       va[1][lbs] = nly
-                      lbs = lbs + 1 
-                      
+                      lbs = lbs + 1
+
                       va[0][lbs] = plx
                       va[1][lbs] = cp(plx, tva[0][i], tva[1][i], tva[0][next], tva[1][next])
                       lbs = lbs + 1
-                    end          
+                    end
                   end
                 end
               -- no side cover (points above y-limits are reorganized)
@@ -287,8 +292,8 @@ PROTO SoccerRobot [
                   if tva[1][next] <= ply then -- next vertex will be within positive y limit
                     va[0][lbs] = cp(ply, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
                     va[1][lbs] = ply
-                    lbs = lbs + 1             
-                  end              
+                    lbs = lbs + 1
+                  end
                 elseif tva[1][i] <= nly then -- vertex out of negative limit
                   if tva[1][prev] > nly then -- previous vertex was within negative y limit
                     va[0][lbs] = cp(nly, tva[1][i], tva[0][i], tva[1][prev], tva[0][prev])
@@ -298,8 +303,8 @@ PROTO SoccerRobot [
                   if tva[1][next] > nly then -- next vertex will be within negative y limit
                     va[0][lbs] = cp(nly, tva[1][i], tva[0][i], tva[1][next], tva[0][next])
                     va[1][lbs] = nly
-                    lbs = lbs + 1            
-                  end              
+                    lbs = lbs + 1
+                  end
                 else -- vertex within limit
                   va[0][lbs] = tva[0][i]
                   va[1][lbs] = tva[1][i]
@@ -323,7 +328,7 @@ PROTO SoccerRobot [
                         local cx = va[0][i]
                         local cy = va[1][i]
                       }%
-                      
+
                       %{=cx}% %{=-lbh/2}% %{=cy}% # 0 : lower
                       %{=cx}% %{=lbh/2}% %{=cy}% # 1 : upper
                       %{ end }%
@@ -333,7 +338,7 @@ PROTO SoccerRobot [
                     %{
                       local cl = function (i) return (i % lbs) * 2 + 0 end
                       local cu = function (i) return (i % lbs) * 2 + 1 end
-        
+
                       for i = 0, (lbs - 1) do
                     }%
                     %{=cl(i)}%
