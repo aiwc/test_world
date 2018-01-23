@@ -3,7 +3,7 @@
 #Date:              Jan. 23, 2018
 #Description:       Referee node for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Referee [
   # fields inherited from Supervisor

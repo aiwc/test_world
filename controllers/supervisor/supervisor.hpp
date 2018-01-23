@@ -2,7 +2,7 @@
 // Date:              Jan. 23, 2018
 // Description:       AI World Cup supervisor header
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_SUPERVISOR_HPP
 #define H_SUPERVISOR_HPP
