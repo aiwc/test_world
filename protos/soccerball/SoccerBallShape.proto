@@ -1,4 +1,10 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              SoccerBallShape.proto
+#Date:              Jan. 23, 2018
+#Description:       Soccer ball proto for AI World Cup
+#Author(s):         Inbae Jeong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 # A black and white soccer ball with customizable radius and subdivision
 # Imported and modified by inbae.jeong@gmail.com
 

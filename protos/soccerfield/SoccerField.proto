@@ -1,4 +1,9 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              SoccerField.proto
+#Date:              Jan. 23, 2018
+#Description:       Soccer field proto for AI World Cup
+#Author(s):         Inbae Jeong, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerField [
   # fields inherited from Solid: Default values are set according to the corresponding default values of Solid

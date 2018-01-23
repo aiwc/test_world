@@ -1,6 +1,11 @@
-# VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              Placement.proto
+#Date:              Jan. 23, 2018
+#Description:       A set-of-seats proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: hidden
-# Placement
+
 PROTO Placement [
   field SFVec3f    translation 0 0 0
   field SFRotation rotation 0 1 0 0

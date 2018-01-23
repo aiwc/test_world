@@ -1,6 +1,9 @@
-#VRML_SIM V8.6.2 utf8
-# For spectator 2.
-# Created by sjlee
+#VRML_SIM R2018a utf8
+#File:              Spectator_2.proto
+#Date:              Jan. 23, 2018
+#Description:       A spectator proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Spectator_2 [
   field SFVec3f    translation 0 0 0
@@ -25,7 +28,7 @@ PROTO Spectator_2 [
         rotation 0 1 0 %{=math.pi/2}%
         scale 0.0006061 0.0006061 0.0006061
         children [
-          Transform {  
+          Transform {
             translation %{=-14.4/0.06061}% %{=-5.26/0.06061}% %{=-0.2/0.06061}%
             children [
               Shape {
@@ -512,7 +515,7 @@ PROTO Spectator_2 [
               }
             ]
           }
-          
+
           Shape {
             appearance IS shirtAppearance
             castShadows IS castShadows

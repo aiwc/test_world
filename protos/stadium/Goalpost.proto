@@ -1,6 +1,9 @@
-#VRML_SIM V8.6.2 utf8
-# Goal Post.
-# Created by sjlee
+#VRML_SIM R2018a utf8
+#File:              Goalpost.proto
+#Date:              Jan. 23, 2018
+#Description:       A goalpost proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Goalpost [
   field SFVec3f    translation 0 0 0
@@ -36,9 +39,9 @@ PROTO Goalpost [
                   size 0.15 0.48
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
           Transform {
             rotation 0 0 1 %{=math.pi}%
             translation 0 -0.001 0
@@ -55,9 +58,9 @@ PROTO Goalpost [
                   size 0.15 0.48
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          } 
+          }
         ]
       }
       Transform {
@@ -79,9 +82,9 @@ PROTO Goalpost [
                   size 0.17 0.48
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
           Transform {
             rotation 0 0 1 %{=math.pi}%
             translation 0 -0.001 0
@@ -98,9 +101,9 @@ PROTO Goalpost [
                   size 0.17 0.48
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
         ]
       }
       Transform {
@@ -122,9 +125,9 @@ PROTO Goalpost [
                   size 0.16 0.14
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
           Transform {
             rotation 1 0 0 %{=-math.pi/2}%
             translation 0 0 -0.001
@@ -141,9 +144,9 @@ PROTO Goalpost [
                   size 0.16 0.14
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
         ]
       }
       Transform {
@@ -165,9 +168,9 @@ PROTO Goalpost [
                   size 0.16 0.14
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
           Transform {
             rotation 1 0 0 %{=-math.pi/2}%
             translation 0 0 -0.001
@@ -184,9 +187,9 @@ PROTO Goalpost [
                   size 0.16 0.14
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
         ]
       }
       Transform {
@@ -208,9 +211,9 @@ PROTO Goalpost [
                   size 0.16 0.048
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
           Transform {
             rotation 1 0 0 %{=-math.pi/2}%
             translation 0 0 -0.001
@@ -227,9 +230,9 @@ PROTO Goalpost [
                   size 0.16 0.048
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
         ]
       }
       Transform {
@@ -251,9 +254,9 @@ PROTO Goalpost [
                   size 0.16 0.048
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
           Transform {
             rotation 1 0 0 %{=-math.pi/2}%
             translation 0 0 -0.001
@@ -270,16 +273,16 @@ PROTO Goalpost [
                   size 0.16 0.048
                 }
                 castShadows IS castShadows
-              }  
+              }
             ]
-          }  
+          }
         ]
       }
       Transform {
         translation 0 0.09 0.2335
         rotation 0 -0.70710678 0.70710678 -3.142
         scale 0.01 0.01 0.01
-        children [      
+        children [
           Shape {
             appearance IS frameAppearance
             castShadows IS castShadows
@@ -1129,5 +1132,3 @@ PROTO Goalpost [
     ]
   }
 }
-
-
