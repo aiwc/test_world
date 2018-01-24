@@ -1,6 +1,6 @@
 #VRML_SIM R2018a utf8
 #File:              aiwc_linux.wbt
-#Date:              Jan. 23, 2018
+#Date:              Jan. 24, 2018
 #Description:       AI Soccer World for Linux
 #Author(s):         Inbae Jeong, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
@@ -154,9 +154,9 @@ Referee {
     }
   ]
   controller "supervisor"
-  teamAExecutable "../../examples/rulebased_algorithm/rulebased_algorithm"
+  teamAExecutable "../../examples/player_rulebased_cpp/player_rulebased"
   teamADataPath "../../examples/team_a_data"
-  teamBExecutable "../../examples/rulebased_algorithm/rulebased_algorithm"
+  teamBExecutable "../../examples/player_rulebased_cpp/player_rulebased"
   teamBDataPath "../../examples/team_b_data"
 }
 SoccerField5v5 {
