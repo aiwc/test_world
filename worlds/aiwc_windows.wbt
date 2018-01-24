@@ -1,6 +1,6 @@
 #VRML_SIM R2018a utf8
 #File:              aiwc_windows.wbt
-#Date:              Jan. 23, 2018
+#Date:              Jan. 24, 2018
 #Description:       AI Soccer World for Windows
 #Author(s):         Inbae Jeong, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
@@ -154,9 +154,9 @@ Referee {
     }
   ]
   controller "supervisor"
-  teamAExecutable "../../examples/rulebased_algorithm/rulebased_algorithm.exe"
+  teamAExecutable "../../examples/player_rulebased_cpp/player_rulebased.exe"
   teamADataPath "../../examples/team_a_data"
-  teamBExecutable "../../examples/rulebased_algorithm/rulebased_algorithm.exe"
+  teamBExecutable "../../examples/player_rulebased_cpp/player_rulebased.exe"
   teamBDataPath "../../examples/team_b_data"
 }
 SoccerField5v5 {
