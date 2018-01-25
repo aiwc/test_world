@@ -1,3 +1,9 @@
+// File:              constants.hpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup header for constants
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 #ifndef H_CONSTANTS_HPP
 #define H_CONSTANTS_HPP
 #pragma once
@@ -33,42 +39,49 @@ namespace constants {
   constexpr std::size_t CAM_PERIOD_MS = 50; // 20 fps = 50 ms
   constexpr std::size_t ESTIMATED_SUBIMAGE_SIZE = (RESOLUTION_X / SUBIMAGE_NX) * (RESOLUTION_Y / SUBIMAGE_NY) * 4 + 100;
 
-  // Dimensions
-  constexpr double FIELD_LENGTH = 2.2;
-  constexpr double FIELD_WIDTH  = 1.8;
+  // Field Dimensions
+  constexpr double FIELD_LENGTH = 3.8;
+  constexpr double FIELD_WIDTH  = 2.7;
   constexpr double GOAL_DEPTH   = 0.15;
-  constexpr double GOAL_WIDTH   = 0.4;
-  constexpr double PENALTY_AREA_DEPTH = 0.35;
-  constexpr double PENALTY_AREA_WIDTH = 0.8;
+  constexpr double GOAL_WIDTH   = 0.6;
+  constexpr double PENALTY_AREA_DEPTH = 0.5;
+  constexpr double PENALTY_AREA_WIDTH = 1.3;
+  constexpr double GOAL_AREA_DEPTH = 0.2;
+  constexpr double GOAL_AREA_WIDTH = 0.85;
 
-  constexpr double BALL_RADIUS = 0.02135;
-  constexpr double ROBOT_SIZE = 0.075;
+  // Ball Dimension
+  constexpr double BALL_RADIUS = 0.03;
+
+  // Robot Dimensions
+  constexpr double ROBOT_SIZE = 0.115; //DEPRECATED: will be removed on next release
+  constexpr double ROBOT_HEIGHT = 0.075;
+  constexpr double ROBOT_RADIUS = 0.0575;
   constexpr double AXLE_LENGTH = 0.07;
   constexpr double WHEEL_RADIUS = 0.03;
 
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
   constexpr double MAX_FORCE = 0.1;
-  constexpr double SLIP_NOISE = 0.05;
-  constexpr double MAX_LINEAR_VELOCITY = 1.2;
+  constexpr double SLIP_NOISE = 0;//.05;
+  constexpr double MAX_LINEAR_VELOCITY = 1.8;
   constexpr double BODY_MASS = 0.45;
   constexpr double WHEEL_MASS = 0.05;
 
   constexpr double ROBOT_INIT_POSTURE[NUMBER_OF_ROBOTS][3] = {
     // x, y, th
-    {-0.3,  0.4, 0},
-    {-0.3, -0.4, 0},
-    {-0.6,  0.4, 0},
-    {-0.6, -0.4, 0},
-    {-1.0,  0.0, PI / 2},
+    {-0.4,  0.3, 0},
+    {-0.4, -0.3, 0},
+    {-1.0,  0.6, 0},
+    {-1.0, -0.6, 0},
+    {-1.8,  0.0, PI / 2},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    {-1.2, 0.35, 0},
-    {-1.2, 0.45, 0},
-    {-1.2, 0.55, 0},
-    {-1.2, 0.65, 0},
-    {-1.2, 0.75, 0},
+    {-2.0, 0.55, 0},
+    {-2.0, 0.70, 0},
+    {-2.0, 0.85, 0},
+    {-2.0, 1.00, 0},
+    {-2.0, 1.15, 0},
   };
 
   // WAMP router settings
@@ -88,10 +101,12 @@ namespace constants {
   constexpr std::size_t WAIT_END_MS      = 3  * 1000; // ms
   constexpr std::size_t DEFAULT_GAME_TIME_MS     = 300 * 1000; // ms
   constexpr std::size_t PERIOD_MS        = 50; // ms
-  constexpr std::size_t FOUL_DURATION_MS = 5 * 1000; // ms
-  constexpr double      FOUL_THRESHOLD = 4.; // number of robots in penalty area
-  constexpr double      DEADLOCK_DURATION_MS  = 5000; // ms
-  constexpr double      DEADLOCK_THRESHOLD = 0.05; // m/s
+  constexpr std::size_t FOUL_PA_DURATION_MS = 5 * 1000; // ms
+  constexpr std::size_t FOUL_GA_DURATION_MS = 5 * 1000; // ms
+  constexpr double      FOUL_PA_THRESHOLD = 4.; // number of robots in penalty area
+  constexpr double      FOUL_GA_THRESHOLD = 2.; // number of robots in goal area
+  constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
+  constexpr double      DEADLOCK_THRESHOLD = 0.1; // m/s
 
   constexpr std::size_t NUM_COMMENTS = 10;
 

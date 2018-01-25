@@ -1,10 +1,15 @@
-#VRML_SIM V8.5.3 utf8
+#VRML_SIM R2018a utf8
+#File:              SoccerField5v5.proto
+#Date:              Jan. 23, 2018
+#Description:       A 5 vs 5 soccer field proto for AI World Cup
+#Author(s):         Inbae Jeong, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerField5v5 [
-  field SFFloat  height 0.4 # height of virtual ceiling
-  field SFFloat  floorLength 3
-  field SFFloat  floorWidth 2
-  field SFFloat  wallHeight 0.05
+  field SFFloat  height 0.12 # height of virtual ceiling
+  field SFFloat  floorLength 4.6
+  field SFFloat  floorWidth 3.4
+  field SFFloat  wallHeight 0.075
   field SFFloat  wallThickness 0.025
   field SFNode   floorAppearance Black { }
   field SFNode   wallAppearance Gray { }
@@ -15,13 +20,13 @@ PROTO SoccerField5v5 [
 ]
 {
   SoccerField {
-    length 2.2
-    width 1.8
+    length 3.8
+    width 2.7
     height IS height
-    cornerLength 0.07
+    cornerLength 0.1
     floorLength IS floorLength
     floorWidth IS floorWidth
-    goalWidth 0.4
+    goalWidth 0.6
     goalDepth 0.15
     wallHeight IS wallHeight
     wallThickness IS wallThickness
@@ -29,10 +34,14 @@ PROTO SoccerField5v5 [
     wallAppearance IS wallAppearance
 
     centerDotRadius 0.01
-    centerCircleRadius 0.25
+    centerCircleRadius 0.35
     centerCircleSubdivision 24
-    penaltyAreaDepth 0.35
-    penaltyAreaWidth 0.8
+    penaltyAreaDepth 0.5
+    penaltyAreaWidth 1.3
+    goalAreaDepth 0.2
+    goalAreaWidth 0.85
+    penaltyArcProportion 0.25
+    penaltyArcSubdivision 7
 
     lineAppearance White { }
     lineThickness IS lineThickness

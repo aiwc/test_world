@@ -1,3 +1,9 @@
+// File:              game.hpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup game management header
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 #ifndef H_GAME_HPP
 #define H_GAME_HPP
 #pragma once
@@ -53,7 +59,7 @@ public:
   game(game&&) = default;
   game& operator=(game&&) = default;
 
-  void run(); // throws webots_revert_exceptions 
+  void run(); // throws webots_revert_exceptions
 
 private:
   void connect_to_server();
@@ -73,7 +79,8 @@ private:
   // simulator-related functions
   void send_speed(); // send wheel speed to the simulator
 
-  std::size_t count_robots_in_penalty_area(bool is_red) const;
+  std::size_t count_robots_in_goal_area(bool is_red);
+  std::size_t count_robots_in_penalty_area(bool is_red);
 
   void publish_current_frame(std::size_t reset_reason);
 
@@ -142,15 +149,23 @@ private:
 
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
+  const bool deadlock_reset_flag_;
+  const bool goal_area_foul_flag_;
+  const bool penalty_area_foul_flag_;
+
   const std::size_t game_time_ms_;
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
   std::atomic<bool> paused_{true};
 
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
 
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_pa_counter_;
+
   std::size_t deadlock_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;

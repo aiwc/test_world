@@ -1,4 +1,10 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              SoccerBall.proto
+#Date:              Jan. 23, 2018
+#Description:       Soccer ball proto for AI World Cup
+#Author(s):         Inbae Jeong, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 # A soccer ball with no shape. Shape should be added in the slot.
 # It's to control visibility to cameras.
 PROTO SoccerBall [
@@ -7,7 +13,7 @@ PROTO SoccerBall [
   field SFRotation rotation 0 1 0 0
   field SFVec3f    scale 1 1 1
   # children
-  field SFString name "soccer_field"
+  field SFString name "soccer_ball"
   field SFString model ""
   field SFString description ""
   field SFString contactMaterial "default"
@@ -21,16 +27,16 @@ PROTO SoccerBall [
   field SFFloat rotationStep 0.261799387 # pi/12 rad
 
   # fields specific to SoccerBall
-  field SFFloat radius 0.02135
+  field SFFloat radius 0.03
   field SFInt32 subdivision 2
   field SFFloat mass 0.046
   field MFNode shapes [
     DEF DEF_SOCCERBALLSHAPE SoccerBallShape {
-      radius 0.02135
+      radius 0.03
       subdivision 3
     }
     DEF DEF_ORANGESHAPE SoccerBallOrangeShape {
-      radius 0.02135
+      radius 0.03
       subdivision 3
     }
   ]

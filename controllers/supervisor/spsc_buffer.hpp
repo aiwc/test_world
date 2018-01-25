@@ -1,3 +1,9 @@
+// File:              spsc_buffer.hpp
+// Date:              Jan. 23, 2018
+// Description:       AI World Cup spsc buffer header
+// Author(s):         Inbae Jeong, Chansol Hong
+// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+
 #ifndef H_SPSC_BUFFER_HPP
 #define H_SPSC_BUFFER_HPP
 #pragma once
@@ -73,6 +79,8 @@ namespace aiwc {
           break;
         }
       } while(!flag_.compare_exchange_weak(f, detail::flag::consume(f)));
+
+      f = flag_.load(); //reload
 
       return data_[f.snap()];
     }

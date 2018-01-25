@@ -1,7 +1,10 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              Banners.proto
+#Date:              Jan. 23, 2018
+#Description:       A multiple ADs banner proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: hidden
-# Multiple AD banner.
-# Created by sjlee
 
 PROTO Banners [
   field SFVec3f    translation 0 0 0
@@ -15,6 +18,7 @@ PROTO Banners [
   field SFFloat    frameThickness 0.01
   field SFBool     bannerBehind FALSE
   field MFString   url []
+  field SFString   name "banners"
 ]
 {
   %{
@@ -34,6 +38,7 @@ PROTO Banners [
   Solid {
     translation IS translation
     rotation IS rotation
+    name IS name
     children [
       %{ for i = 0, (wn - 1) do }%
         %{ rwx = -rw/2 + i * rw/wn }%
@@ -46,6 +51,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rwp_banner_' .. i}%"
         }
       %{end}%
       %{ for i = 0, (hn - 1) do }%
@@ -59,6 +65,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rhp_banner_' .. i}%"
         }
       %{end}%
       %{ for i = 0, (wn - 1) do }%
@@ -72,6 +79,7 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rwn_banner_' .. i}%"
         }
       %{end}%
       %{ for i = 0, (hn - 1) do }%
@@ -85,10 +93,9 @@ PROTO Banners [
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
+          name "%{='rhn_banner_' .. i}%"
         }
       %{end}%
     ]
   }
 }
-
-

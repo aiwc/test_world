@@ -1,4 +1,9 @@
-#VRML_SIM V8.6.2 utf8
+#VRML_SIM R2018a utf8
+#File:              SoccerFieldLine.proto
+#Date:              Jan. 23, 2018
+#Description:       Soccer field line proto for AI World Cup
+#Author(s):         Inbae Jeong, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerFieldLine [
   field SFVec3f    translation 0 0 0
@@ -201,7 +206,7 @@ PROTO SoccerFieldLine [
           }
         ]
       }
-    
+
       DEF RIGHTGOALLINE Transform {
         rotation 0 1 0 %{=math.pi}%
         children [
@@ -218,7 +223,7 @@ PROTO SoccerFieldLine [
               coord Coordinate {
                 point [
                   %{
-                    local hca = math.cos(1 - pap)
+                    local hca = math.acos(1 - pap)
                     for i = 0, (pas - 1) do
                     local th = -hca + i * 2 * hca / (pas - 1)
 
@@ -254,7 +259,7 @@ PROTO SoccerFieldLine [
           }
         ]
       }
-      
+
       DEF RIGHTPENALTYARC Transform {
         rotation 0 1 0 %{=math.pi}%
         children[

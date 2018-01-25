@@ -1,6 +1,9 @@
-#VRML_SIM V8.6.2 utf8
-# AD banner.
-# Created by sjlee
+#VRML_SIM R2018a utf8
+#File:              Banner.proto
+#Date:              Jan. 23, 2018
+#Description:       An AD banner proto for AI World Cup
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Banner [
   field SFVec3f    translation 0 0 0
@@ -13,6 +16,7 @@ PROTO Banner [
   field SFFloat    frameThickness 0.01
   field SFBool     bannerBehind FALSE
   field SFString   url ""
+  field SFString   name "banner"
 ]
 {
   %{
@@ -26,6 +30,7 @@ PROTO Banner [
     translation IS translation
     rotation IS rotation
     scale IS scale
+    name IS name
     children [
       DEF PANEL Group {
         children [
@@ -48,9 +53,9 @@ PROTO Banner [
                       size %{=l-th}% %{=h-2*th}%
                     }
                     castShadows IS castShadows
-                  }  
+                  }
                 ]
-              }  
+              }
             ]
           }
           Transform {
@@ -76,11 +81,11 @@ PROTO Banner [
                       size %{=l-th}% %{=h-2*th}%
                     }
                     castShadows IS castShadows
-                  }  
+                  }
                 ]
-              }  
+              }
             ]
-          }        
+          }
         ]
       }
       DEF FRAME Group {
@@ -96,9 +101,9 @@ PROTO Banner [
                 castShadows IS castShadows
 	      }
 	    ]
-          }  
+          }
           Transform {
-	    translation 0 %{=h-th/2}% %{=th/2}% 
+	    translation 0 %{=h-th/2}% %{=th/2}%
 	    children [
 	      Shape {
                 appearance IS frameAppearance
@@ -108,23 +113,21 @@ PROTO Banner [
                 castShadows IS castShadows
 	      }
 	    ]
-          }   
+          }
           Transform {
 	    translation 0 %{=h/2}% %{=l/2+th/2}%
 	    children [
 	      Shape {
                 appearance IS frameAppearance
 	        geometry Box {
-	          size %{=th}% %{=h}% %{=th}% 
+	          size %{=th}% %{=h}% %{=th}%
 	        }
                 castShadows IS castShadows
 	      }
 	    ]
-          }  
+          }
         ]
       }
     ]
   }
 }
-
-
