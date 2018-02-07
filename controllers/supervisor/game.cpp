@@ -341,9 +341,13 @@ void game::bootup_vm()
       auto& ti = kv.second;
 
       // launch process
-      boost::filesystem::path p_exe = ti.executable;
+      std::string exe = ti.executable;
+      #ifdef _WIN32
+        exe += ".exe";
+      #endif
+      boost::filesystem::path p_exe = exe;
 
-      ti.c = bp::child(bp::exe = ti.executable,
+      ti.c = bp::child(bp::exe = exe,
                        bp::args = {c::SERVER_IP,
                            std::to_string(c::RS_PORT),
                            c::REALM,
