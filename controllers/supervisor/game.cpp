@@ -64,8 +64,10 @@ namespace msgpack {
   } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
 } // namespace msgpack
 
-game::game(supervisor& sv)
+game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
+  , rs_port_(rs_port)
+  , uds_path_(uds_path)
   , deadlock_reset_flag_(sv_.get_deadlock_reset_flag())
   , goal_area_foul_flag_(sv_.get_goal_area_foul_flag())
   , penalty_area_foul_flag_(sv_.get_penalty_area_foul_flag())
@@ -297,11 +299,11 @@ void game::connect_to_server()
 {
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
-  boost::asio::local::stream_protocol::endpoint uds_endpoint(c::RS_PATH);
+  boost::asio::local::stream_protocol::endpoint uds_endpoint(uds_path_);
   transport_ = std::make_shared<autobahn::wamp_uds_transport>(io_, uds_endpoint);
 #else
-  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(constants::SERVER_IP),
-                                              constants::RS_PORT);
+  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(c::SERVER_IP),
+                                              rs_port_);
   transport_ = std::make_shared<autobahn::wamp_tcp_transport>(io_, tcp_endpoint);
 #endif
   session_   = std::make_shared<autobahn::wamp_session>(io_);
@@ -309,7 +311,7 @@ void game::connect_to_server()
 
   transport_->connect().get();
   session_->start().get();
-  session_->join(constants::REALM).get();
+  session_->join(c::REALM).get();
 
   // register calles
   session_->provide("aiwc.bootup",    [&](autobahn::wamp_invocation i) { return on_bootup(i); }).get();
@@ -349,7 +351,7 @@ void game::bootup_vm()
       boost::filesystem::path p_exe = exe;
       ti.c = bp::child(bp::exe = exe,
                        bp::args = {c::SERVER_IP,
-                           std::to_string(c::RS_PORT),
+                           std::to_string(rs_port_),
                            c::REALM,
                            key,
                            boost::filesystem::absolute(ti.datapath).string()},

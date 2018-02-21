@@ -16,14 +16,14 @@ int main()
 {
   using namespace constants;
 
-  wamp_router wr(WS_PORT, RS_PORT, RS_PATH, REALM);
+  wamp_router wr(RS_PORT, REALM);
 
   auto wamp_router_th = std::thread([&]() {
       wr.run();
     });
 
   supervisor sv;
-  game g(sv);
+  game g(sv, wr.get_rs_port(), wr.get_uds_path());
   g.run();
 
   wr.shutdown();

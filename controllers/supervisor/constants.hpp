@@ -86,9 +86,6 @@ namespace constants {
 
   // WAMP router settings
   const std::string SERVER_IP = "127.0.0.1";
-  constexpr std::size_t WS_PORT = 6217;
-  constexpr std::size_t RS_PORT = 6218;
-  const std::string RS_PATH = "/tmp/aiwc.sock";
   const std::string REALM = "default";
 
   constexpr std::size_t KEY_LENGTH = 10;

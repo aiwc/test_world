@@ -52,7 +52,7 @@ class game
   };
 
 public:
-  game(supervisor& sv);
+  game(supervisor& sv, std::size_t rs_port, std::string uds_path);
 
   game(const game&) = delete;
   game& operator=(const game&) = delete;
@@ -106,6 +106,9 @@ private:
   std::shared_ptr<autobahn::wamp_tcp_transport> transport_;
 #endif
   std::shared_ptr<autobahn::wamp_session> session_;
+
+  std::size_t rs_port_;
+  std::string uds_path_;
 
   std::thread publish_thread_;
   std::atomic<bool> events_stop_;
