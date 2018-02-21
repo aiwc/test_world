@@ -16,7 +16,7 @@ int main()
 {
   using namespace constants;
 
-  wamp_router wr(RS_PORT, REALM);
+  wamp_router wr(REALM);
 
   auto wamp_router_th = std::thread([&]() {
       wr.run();

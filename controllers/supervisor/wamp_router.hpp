@@ -21,13 +21,12 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/random/random_device.hpp>
 
-#include <sys/socket.h>
-
 #include <memory>
 #include <utility>
 
 #include <iostream>
 
+#ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
 namespace /* anonymous */ {
 
   std::string random_string(std::size_t len)
@@ -45,19 +44,18 @@ namespace /* anonymous */ {
   }
 
 } // namespace /* anonymous */
+#endif
 
 class wamp_router
 {
 public:
-  wamp_router(std::size_t rs_port,
-              const std::string& realm)
+  wamp_router(const std::string& realm)
     : io_service_()
     , work_()
     , routers_(std::make_shared<bonefish::wamp_routers>())
     , serializers_(std::make_shared<bonefish::wamp_serializers>())
     , rs_server_()
     , ws_server_()
-    , rs_port_(rs_port)
   {
     routers_->add_router(std::make_shared<bonefish::wamp_router>(io_service_, realm));
 
@@ -65,23 +63,22 @@ public:
     serializers_->add_serializer(std::make_shared<bonefish::msgpack_serializer>());
 
     while (true) { //a while loop to ensure finding a free port/path
-      try {
-        rs_port_ = find_free_port();
+      rs_port_ = find_free_port();
 
-        rs_server_ = std::make_shared<bonefish::rawsocket_server>(routers_, serializers_);
-        auto tcp_listener = std::make_shared<bonefish::tcp_listener>(io_service_, boost::asio::ip::address(), rs_port_);
-        rs_server_->attach_listener(std::static_pointer_cast<bonefish::rawsocket_listener>(tcp_listener));
+      rs_server_ = std::make_shared<bonefish::rawsocket_server>(routers_, serializers_);
+      auto tcp_listener = std::make_shared<bonefish::tcp_listener>(io_service_, boost::asio::ip::address(), rs_port_);
+      rs_server_->attach_listener(std::static_pointer_cast<bonefish::rawsocket_listener>(tcp_listener));
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
-        uds_path_ = "/tmp/aiwc-" + random_string(10) + ".sock";
-        auto uds_listener = std::make_shared<bonefish::uds_listener>(io_service_, uds_path_);
-        rs_server_->attach_listener(std::static_pointer_cast<bonefish::rawsocket_listener>(uds_listener));
+      uds_path_ = "/tmp/aiwc-" + random_string(10) + ".sock";
+      auto uds_listener = std::make_shared<bonefish::uds_listener>(io_service_, uds_path_);
+      rs_server_->attach_listener(std::static_pointer_cast<bonefish::rawsocket_listener>(uds_listener));
 #else
-        (void)uds_path_;
+      (void)uds_path_;
 #endif
 
+      try {
         rs_server_->start();
-
         break; //if listening succeeds, leave the loop and proceed
       }
       catch (const boost::system::system_error& err) {
@@ -134,31 +131,9 @@ private:
 
   std::size_t find_free_port() const
   {
-    int sockfd;
-    struct sockaddr_in address, actual;
-    socklen_t len = sizeof(actual);
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = 0;
-
-    if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-      std::string errstr = "socket(): ";
-      throw std::runtime_error(errstr + strerror(errno));
-    }
-    if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-      std::string errstr = "bind(): ";
-      throw std::runtime_error(errstr + strerror(errno));
-    }
-    if (getsockname(sockfd, (struct sockaddr *)&actual, &len) < 0) {
-      std::string errstr = "getsockname(): ";
-      throw std::runtime_error(errstr + strerror(errno));
-    }
-    if (close(sockfd) < 0) {
-      std::string errstr = "close(): ";
-      throw std::runtime_error(errstr + strerror(errno));
-    }
-
-    return ntohs(actual.sin_port);
+    boost::asio::io_service service;
+    boost::asio::ip::tcp::acceptor acceptor(service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 0));
+    return acceptor.local_endpoint().port();
   }
 
   boost::asio::io_service io_service_;
