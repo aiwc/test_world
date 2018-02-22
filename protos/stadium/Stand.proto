@@ -4,7 +4,7 @@
 #Description:       Spectator stand proto for AI World Cup
 #Author(s):         Seung-Jae Lee, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
-# tags: hidden
+# tags: static, hidden
 
 PROTO Stand [
   field SFVec3f    translation 0 0 0

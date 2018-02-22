@@ -4,6 +4,7 @@
 #Description:       Soccer field proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
 PROTO SoccerField [
   # fields inherited from Solid: Default values are set according to the corresponding default values of Solid

@@ -4,6 +4,7 @@
 #Description:       An AD banner proto for AI World Cup
 #Author(s):         Seung-Jae Lee, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
 PROTO Banner [
   field SFVec3f    translation 0 0 0

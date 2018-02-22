@@ -4,6 +4,7 @@
 #Description:       Soccer field grass proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
 PROTO SoccerFieldGrass [
   field SFVec3f    translation 0 0 0
