@@ -20,34 +20,30 @@ PROTO Referee [
   field SFBool     synchronization     TRUE
 
   # fields specific to Referee
-  field SFFloat    gameTime            300
-  field SFBool     deadlockReset       TRUE
-  field SFBool     goalAreaFoul        TRUE
-  field SFBool     penaltyAreaFoul     TRUE
+  unconnectedField SFFloat    gameTime            300
+  unconnectedField SFBool     deadlockReset       TRUE
+  unconnectedField SFBool     goalAreaFoul        TRUE
+  unconnectedField SFBool     penaltyAreaFoul     TRUE
 
-  field SFString   teamAName           "teamA"
-  field SFFloat    teamARating         0
-  field SFString   teamAExecutable     ""
-  field SFString   teamADataPath       ""
+  unconnectedField SFString   teamAName           "teamA"
+  unconnectedField SFFloat    teamARating         0
+  unconnectedField SFString   teamAExecutable     ""
+  unconnectedField SFString   teamADataPath       ""
 
-  field SFString   teamBName           "teamB"
-  field SFFloat    teamBRating         0
-  field SFString   teamBExecutable     ""
-  field SFString   teamBDataPath       ""
+  unconnectedField SFString   teamBName           "teamB"
+  unconnectedField SFFloat    teamBRating         0
+  unconnectedField SFString   teamBExecutable     ""
+  unconnectedField SFString   teamBDataPath       ""
 
-  field SFString   commentatorName       "commentator"
-  field SFString   commentatorExecutable ""
-  field SFString   commentatorDataPath   ""
+  unconnectedField SFString   commentatorName       "commentator"
+  unconnectedField SFString   commentatorExecutable ""
+  unconnectedField SFString   commentatorDataPath   ""
 
-  field SFString   reporterName          "reporter"
-  field SFString   reporterExecutable    ""
-  field SFString   reporterDataPath      ""
+  unconnectedField SFString   reporterName          "reporter"
+  unconnectedField SFString   reporterExecutable    ""
+  unconnectedField SFString   reporterDataPath      ""
 ]
 {
-  %{
-    # prevent error messages saying that parameters have no matching IS field
-  }%
-
   Supervisor {
     translation     IS translation
     rotation        IS rotation

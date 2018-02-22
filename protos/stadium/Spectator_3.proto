@@ -4,6 +4,7 @@
 #Description:       A spectator proto for AI World Cup
 #Author(s):         Seung-Jae Lee, Chansol Hong
 #Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
 PROTO Spectator_3 [
   field SFVec3f    translation 0 0 0
