@@ -1,8 +1,5 @@
-// File:              game.cpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup game management
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include "game.hpp"
 
@@ -12,6 +9,7 @@
 #include <random>
 #include <string>
 
+#include "rapidjson/document.h"
 #include <fstream>
 
 namespace c = constants;
@@ -68,10 +66,6 @@ game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
   , rs_port_(rs_port)
   , uds_path_(uds_path)
-  , deadlock_reset_flag_(sv_.get_deadlock_reset_flag())
-  , goal_area_foul_flag_(sv_.get_goal_area_foul_flag())
-  , penalty_area_foul_flag_(sv_.get_penalty_area_foul_flag())
-  , game_time_ms_(sv_.get_game_time_ms())
 {
   for(auto& fc : foul_pa_counter_) {
     fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
@@ -81,6 +75,39 @@ game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
     fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
   }
 
+  //default game time
+  game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
+
+  //open config.json
+  std::ifstream config_file("../../worlds/config.json");
+  if (!config_file)
+    std::cout << "Could not read 'config.json' configuration file: using default settings" << std::endl;
+  else {
+    std::string buffer((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
+    config_file.close();
+
+    rapidjson::Document config_json;
+    config_json.Parse(buffer.c_str());
+
+    if (!config_json.IsObject())
+      std::cout << "Format of 'config.json' seems to be wrong: using default settings" << std::endl;
+    else { //fetch settings from config.json
+      if (config_json.HasMember("game_time") && config_json["game_time"].IsNumber()) {
+        game_time_ms_ = static_cast<size_t>(config_json["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
+      }
+
+      if (config_json.HasMember("deadlock_reset") && config_json["deadlock_reset"].IsBool())
+        deadlock_reset_flag_ = config_json["deadlock_reset"].GetBool();
+
+      if (config_json.HasMember("goal_area_foul") && config_json["goal_area_foul"].IsBool())
+        goal_area_foul_flag_ = config_json["goal_area_foul"].GetBool();
+
+      if (config_json.HasMember("penalty_area_foul") && config_json["penalty_area_foul"].IsBool())
+        penalty_area_foul_flag_ = config_json["penalty_area_foul"].GetBool();
+    }
+  }
+
+  std::cout << "    game duration: " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
   std::cout << "   deadlock reset: " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
   std::cout << "   goal area foul: " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
   std::cout << "penalty area foul: " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;

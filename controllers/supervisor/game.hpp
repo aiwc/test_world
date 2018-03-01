@@ -1,8 +1,5 @@
-// File:              game.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup game management header
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_GAME_HPP
 #define H_GAME_HPP
@@ -152,11 +149,11 @@ private:
 
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
-  const bool deadlock_reset_flag_;
-  const bool goal_area_foul_flag_;
-  const bool penalty_area_foul_flag_;
+  std::size_t game_time_ms_;
+  bool deadlock_reset_flag_ = true;
+  bool goal_area_foul_flag_ = true;
+  bool penalty_area_foul_flag_ = true;
 
-  const std::size_t game_time_ms_;
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;

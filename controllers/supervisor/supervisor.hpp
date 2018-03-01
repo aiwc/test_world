@@ -1,8 +1,5 @@
-// File:              supervisor.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup supervisor header
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_SUPERVISOR_HPP
 #define H_SUPERVISOR_HPP
@@ -54,38 +51,6 @@ public:
     // control visibility to cams
     control_visibility();
     enable_cameras(constants::CAM_PERIOD_MS);
-  }
-
-  bool get_deadlock_reset_flag() const
-  {
-    return static_cast<bool>(getSelf()->getField("deadlockReset")->getSFBool());
-  }
-
-  bool get_penalty_area_foul_flag() const
-  {
-    return static_cast<bool>(getSelf()->getField("penaltyAreaFoul")->getSFBool());
-  }
-
-  bool get_goal_area_foul_flag() const
-  {
-    return static_cast<bool>(getSelf()->getField("goalAreaFoul")->getSFBool());
-  }
-
-  std::size_t get_game_time_ms() const
-  {
-    const auto pf = getSelf()->getField("gameTime");
-
-    std::size_t gt_ms = 0;
-
-    if(pf) {
-      gt_ms = static_cast<std::size_t>(pf->getSFFloat() * 1000);
-    }
-
-    if(gt_ms == 0) {
-      gt_ms = constants::DEFAULT_GAME_TIME_MS;
-    }
-
-    return gt_ms / constants::PERIOD_MS * constants::PERIOD_MS;
   }
 
   //         name         rating  executable   data directory path
