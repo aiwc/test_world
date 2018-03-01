@@ -19,12 +19,6 @@ PROTO Referee [
   field SFString   controllerArgs      ""
   field SFBool     synchronization     TRUE
 
-  # fields specific to Referee
-  field SFFloat    gameTime            300
-  field SFBool     deadlockReset       TRUE
-  field SFBool     goalAreaFoul        TRUE
-  field SFBool     penaltyAreaFoul     TRUE
-
   field SFString   teamAName           "teamA"
   field SFFloat    teamARating         0
   field SFString   teamAExecutable     ""
