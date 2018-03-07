@@ -53,38 +53,6 @@ public:
     enable_cameras(constants::CAM_PERIOD_MS);
   }
 
-  //         name         rating  executable   data directory path
-  std::tuple<std::string, double, std::string, std::string> get_team_info(bool is_red) const
-  {
-    const auto prefix = std::string("team") + (is_red ? "A" : "B");
-
-    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
-                           getSelf()->getField(prefix + "Rating")->getSFFloat(),
-                           getSelf()->getField(prefix + "Executable")->getSFString(),
-                           getSelf()->getField(prefix + "DataPath")->getSFString()
-                           );
-  }
-
-  std::tuple<std::string, std::string, std::string> get_commentator_info() const
-  {
-    const auto prefix = std::string("commentator");
-
-    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
-                           getSelf()->getField(prefix + "Executable")->getSFString(),
-                           getSelf()->getField(prefix + "DataPath")->getSFString()
-                           );
-  }
-
-  std::tuple<std::string, std::string, std::string> get_reporter_info() const
-  {
-    const auto prefix = std::string("reporter");
-
-    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
-                           getSelf()->getField(prefix + "Executable")->getSFString(),
-                           getSelf()->getField(prefix + "DataPath")->getSFString()
-                           );
-  }
-
   const unsigned char* get_image(bool is_red) const
   {
     return pc_cams_[is_red ? C_CAMA : C_CAMB]->getImage();

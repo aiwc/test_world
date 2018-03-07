@@ -74,43 +74,6 @@ game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   for(auto& fc : foul_ga_counter_) {
     fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
   }
-
-  //default game time
-  game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
-
-  //open config.json
-  std::ifstream config_file("../../worlds/config.json");
-  if (!config_file)
-    std::cout << "Could not read 'config.json' configuration file: using default settings" << std::endl;
-  else {
-    std::string buffer((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
-    config_file.close();
-
-    rapidjson::Document config_json;
-    config_json.Parse(buffer.c_str());
-
-    if (!config_json.IsObject())
-      std::cout << "Format of 'config.json' seems to be wrong: using default settings" << std::endl;
-    else { //fetch settings from config.json
-      if (config_json.HasMember("game_time") && config_json["game_time"].IsNumber()) {
-        game_time_ms_ = static_cast<size_t>(config_json["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
-      }
-
-      if (config_json.HasMember("deadlock_reset") && config_json["deadlock_reset"].IsBool())
-        deadlock_reset_flag_ = config_json["deadlock_reset"].GetBool();
-
-      if (config_json.HasMember("goal_area_foul") && config_json["goal_area_foul"].IsBool())
-        goal_area_foul_flag_ = config_json["goal_area_foul"].GetBool();
-
-      if (config_json.HasMember("penalty_area_foul") && config_json["penalty_area_foul"].IsBool())
-        penalty_area_foul_flag_ = config_json["penalty_area_foul"].GetBool();
-    }
-  }
-
-  std::cout << "    game duration: " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
-  std::cout << "   deadlock reset: " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
-  std::cout << "   goal area foul: " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
-  std::cout << "penalty area foul: " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
 }
 
 void game::run()
@@ -150,29 +113,81 @@ void game::run()
       }
     });
 
-  // gets the teams' information from the matching server
-  // In test code we use static information
+  //open 'config.json' to read configurations
+  std::ifstream config_file("../../config.json");
+  if (!config_file)
+    throw std::runtime_error("Could not read 'config.json' configuration file.");
+
+  std::string buffer((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
+  config_file.close();
+
+  rapidjson::Document config_json;
+  config_json.Parse(buffer.c_str());
+
+  if (!config_json.IsObject())
+    throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
+
+  //gets game rules from 'config.json' (if no rules specified, default options are given)
+  {
+    game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
+    deadlock_reset_flag_ = true;
+    goal_area_foul_flag_ = true;
+    penalty_area_foul_flag_ = true;
+
+    if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
+      if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
+        game_time_ms_ = static_cast<size_t>(config_json["rule"]["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
+
+      if (config_json["rule"].HasMember("deadlock_reset") && config_json["rule"]["deadlock_reset"].IsBool())
+        deadlock_reset_flag_ = config_json["rule"]["deadlock_reset"].GetBool();
+
+      if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
+        goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
+
+      if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
+        penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
+    }
+    else
+      std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
+
+    std::cout << "Rules:" << std::endl;
+    std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
+    std::cout << "    deadlock reset - " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
+    std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
+    std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl << std::endl;
+  }
+
+  const auto path_prefix = std::string("../../");
+
+  // gets the teams' information from 'config.json'
+  assert(config_json.HasMember("team_a") && config_json["team_a"].IsObject());
+  assert(config_json.HasMember("team_b") && config_json["team_b"].IsObject());
   for(const auto& team : {T_RED, T_BLUE}) {
-    const auto tup = sv_.get_team_info(team == T_RED);
-    const auto tup_op = sv_.get_team_info(team != T_RED);
+    const auto tc = ((team == T_RED) ? "team_a" : "team_b");
+    const auto tc_op = ((team != T_RED) ? "team_a" : "team_b");
 
     // my team
-    const std::string& name   = std::get<0>(tup);
-    const double&      rating = std::get<1>(tup);
-    const std::string& exe    = std::get<2>(tup);
-    const std::string& data   = std::get<3>(tup);
+    const std::string& name   = ((config_json[tc].HasMember("name") && config_json[tc]["name"].IsString()) ? config_json[tc]["name"].GetString() : "");
+    const double&      rating = 0; //rating is currently disabled
+    const std::string& exe    = ((config_json[tc].HasMember("executable") && config_json[tc]["executable"].IsString()) ? config_json[tc]["executable"].GetString() : "");
+    const std::string& data   = ((config_json[tc].HasMember("datapath") && config_json[tc]["datapath"].IsString()) ? config_json[tc]["datapath"].GetString() : "");
 
     // opponent
-    const std::string& name_op   = std::get<0>(tup_op);
-    const double&      rating_op = std::get<1>(tup_op);
+    const std::string& name_op   = ((config_json[tc_op].HasMember("name") && config_json[tc_op]["name"].IsString()) ? config_json[tc_op]["name"].GetString() : "");
+    const double&      rating_op = 0; //rating is currently disabled
 
     const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                 std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                std::make_tuple(name, rating, exe, data,
+                                                std::make_tuple(name, rating, path_prefix + exe, path_prefix + data,
                                                                 ROLE_PLAYER, team == T_RED)
                                                 );
 
     assert(ret.second);
+
+    std::cout << ((team == T_RED) ? "Team A: " : "Team B: ") << std::endl;
+    std::cout << "  team name - " << name << std::endl;
+    std::cout << " executable - " << exe << std::endl;
+    std::cout << "  data path - " << data << std::endl << std::endl;
 
     // create information for aiwc.get_info() in advance
     using map = msgpack::type::assoc_vector<std::string, msgpack::object>;
@@ -205,45 +220,59 @@ void game::run()
     info_[team] = msgpack::object(info, z_info_);
   }
 
-  // gets commentator information
-  {
-    const auto tup = sv_.get_commentator_info();
-
-    const std::string& name   = std::get<0>(tup);
-    const std::string& exe    = std::get<1>(tup);
-    const std::string& data   = std::get<2>(tup);
+  // gets commentator information from 'config.json' (commentator is optional)
+  if (config_json.HasMember("commentator") && config_json["commentator"].IsObject()) {
+    const std::string& name   = ((config_json["commentator"].HasMember("name") && config_json["commentator"]["name"].IsString()) ? config_json["commentator"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["commentator"].HasMember("executable") && config_json["commentator"]["executable"].IsString()) ? config_json["commentator"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["commentator"].HasMember("datapath") && config_json["commentator"]["datapath"].IsString()) ? config_json["commentator"]["datapath"].GetString() : "");
 
     if(!exe.empty()) {
       // commentator is treated as red team with rating 0
       const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                   std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, exe, data,
+                                                  std::make_tuple(name, 0, path_prefix + exe, data,
                                                                   ROLE_COMMENTATOR, true)
                                                   );
 
       assert(ret.second);
+
+      std::cout << "Commentator: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
     }
+    else
+      std::cout << "Commentator \"executable\" is missing: skipping commentator" << std::endl;
   }
+  else
+    std::cout << "\"commentator\" section of 'config.json' seems to be missing: skipping commentator" << std::endl;
 
-  // gets reporter information
-  {
-    const auto tup = sv_.get_reporter_info();
-
-    const std::string& name   = std::get<0>(tup);
-    const std::string& exe    = std::get<1>(tup);
-    const std::string& data   = std::get<2>(tup);
+  // gets reporter information from 'config.json' (reporter is optional)
+  if (config_json.HasMember("reporter") && config_json["reporter"].IsObject()) {
+    const std::string& name   = ((config_json["reporter"].HasMember("name") && config_json["reporter"]["name"].IsString()) ? config_json["reporter"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["reporter"].HasMember("executable") && config_json["reporter"]["executable"].IsString()) ? config_json["reporter"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["reporter"].HasMember("datapath") && config_json["reporter"]["datapath"].IsString()) ? config_json["reporter"]["datapath"].GetString() : "");
 
     if(!exe.empty()) {
       // reporter is treated as red team with rating 0
       const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                   std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, exe, data,
+                                                  std::make_tuple(name, 0, path_prefix + exe, data,
                                                                   ROLE_REPORTER, true)
                                                   );
 
       assert(ret.second);
+
+      std::cout << "Reporter: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
     }
+    else
+      std::cout << "Reporter \"executable\" is missing: skipping reporter" << std::endl;
   }
+  else
+    std::cout << "\"reporter\" section of 'config.json' seems to be missing: skipping reporter" << std::endl;
 
   // initialize promises and futures
   bootup_promise_ = {};
