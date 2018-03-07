@@ -87,6 +87,10 @@ PROTO SoccerRobot [
     density -1
     mass 0.0001
   }
+  field SFNode supportPhysics Physics {
+    density -1
+    mass 0.0001
+  }
 
   field SFString bodyContactMaterial "default"
   field SFString wheelContactMaterial "default"
@@ -458,6 +462,44 @@ PROTO SoccerRobot [
               }
             ]
           }
+        }
+      }
+      DEF FRONTSUPPORT Solid {
+        translation 0 %{=-h/2 + df}% %{=-(br - 2*df)}%
+        children [
+          Shape {
+            appearance IS tireAppearance
+            geometry Sphere {
+              radius %{=df}%
+              subdivision 1
+            }
+          }
+        ]
+        name "front support"
+        contactMaterial IS bodyContactMaterial
+        physics IS supportPhysics
+        boundingObject Sphere {
+            radius %{=df}%
+            subdivision 1
+        }
+      }
+      DEF REARSUPPORT Solid {
+        translation 0 %{=-h/2 + df}% %{=br - 2*df}%
+        children [
+          Shape {
+            appearance IS tireAppearance
+            geometry Sphere {
+              radius %{=df}%
+              subdivision 1
+            }
+          }
+        ]
+        name "rear support"
+        contactMaterial IS bodyContactMaterial
+        physics IS supportPhysics
+        boundingObject Sphere {
+            radius %{=df}%
+            subdivision 1
         }
       }
       %{ if wp and wht > 0 then }%
