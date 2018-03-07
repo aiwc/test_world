@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              SoccerRobotNumberPatch.proto
-#Date:              Jan. 23, 2018
-#Description:       AI soccer robot number patch proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerRobotNumberPatch [
   # fields inherited from Shape

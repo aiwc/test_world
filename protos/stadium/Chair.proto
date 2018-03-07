@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              Chair.proto
-#Date:              Jan. 23, 2018
-#Description:       A chair proto for AI World Cup
 #Author(s):         AI World Cup Developers
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Chair [
   field SFVec3f    translation 0 0 0

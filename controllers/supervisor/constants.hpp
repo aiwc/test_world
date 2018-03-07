@@ -1,8 +1,5 @@
-// File:              constants.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup header for constants
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_CONSTANTS_HPP
 #define H_CONSTANTS_HPP
