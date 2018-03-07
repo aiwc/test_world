@@ -1,8 +1,5 @@
-// File:              image_buffer.cpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup image buffer
 // Author(s):         Inbae Jeong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include "image_buffer.hpp"
 

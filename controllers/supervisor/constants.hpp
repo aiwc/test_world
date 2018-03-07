@@ -1,8 +1,5 @@
-// File:              constants.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup header for constants
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_CONSTANTS_HPP
 #define H_CONSTANTS_HPP
@@ -77,11 +74,11 @@ namespace constants {
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    {-2.0, 0.55, 0},
-    {-2.0, 0.70, 0},
-    {-2.0, 0.85, 0},
-    {-2.0, 1.00, 0},
-    {-2.0, 1.15, 0},
+    {-1.99, 0.55, 0},
+    {-1.99, 0.70, 0},
+    {-1.99, 0.85, 0},
+    {-1.99, 1.00, 0},
+    {-1.99, 1.15, 0},
   };
 
   // WAMP router settings

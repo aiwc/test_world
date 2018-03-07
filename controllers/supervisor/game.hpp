@@ -150,9 +150,9 @@ private:
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
   std::size_t game_time_ms_;
-  bool deadlock_reset_flag_ = true;
-  bool goal_area_foul_flag_ = true;
-  bool penalty_area_foul_flag_ = true;
+  bool deadlock_reset_flag_;
+  bool goal_area_foul_flag_;
+  bool penalty_area_foul_flag_;
 
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};

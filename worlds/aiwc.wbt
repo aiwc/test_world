@@ -151,10 +151,6 @@ Referee {
     }
   ]
   controller "supervisor"
-  teamAExecutable "../../examples/player_rulebased_cpp/player_rulebased"
-  teamADataPath "../../examples/team_a_data"
-  teamBExecutable "../../examples/player_rulebased_cpp/player_rulebased"
-  teamBDataPath "../../examples/team_b_data"
 }
 SoccerField5v5 {
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
