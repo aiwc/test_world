@@ -163,7 +163,7 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.1
+  height 0.085
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
   }
   floorContactMaterial "floor"
