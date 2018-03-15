@@ -1016,7 +1016,7 @@ void game::on_commentate(autobahn::wamp_invocation invocation)
   }
 
   std::unique_lock<std::mutex> lck(m_comments_);
-  comments_.push_back(invocation->argument<std::string>(1));
+  comments_.push_back((boost::format("[%.2f] ") % (time_ms_ / 1000.)).str() + invocation->argument<std::string>(1));
 
   invocation->empty_result();
 }
