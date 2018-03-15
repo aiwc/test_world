@@ -283,7 +283,7 @@ void game::run()
   connect_to_server();
 
   // bootup VMs & wait until app players boot up
-  bootup_vm();
+  run_participant();
   bootup_future.wait();
 
   // wait until 2 players are ready for c::WAIT_READY seconds
@@ -327,7 +327,7 @@ void game::run()
         }
       }
       catch(const webots_revert_exception& e) {
-        terminate_vm();
+        terminate_participant();
       }
     }
   }
@@ -378,11 +378,9 @@ void game::connect_to_server()
   session_->provide("aiwc.report",    [&](autobahn::wamp_invocation i) { return on_report(i); }).get();
 }
 
-void game::bootup_vm()
+void game::run_participant()
 {
-  // bootup VMs. replaced to process.
-
-  // send bootup signal. VM's startup script is supposed to do this.
+  // bootup PCs for participants. currently replaced by running a child process.
   std::vector<boost::future<autobahn::wamp_call_result> > bootup_futures;
   for(const auto& kv : player_team_infos_) {
     bootup_futures.emplace_back(session_->call("aiwc.bootup", std::make_tuple(kv.first)));
@@ -398,8 +396,13 @@ void game::bootup_vm()
       const auto& key = kv.first;
       auto& ti = kv.second;
 
-      // launch process
+      // launch participant process
       boost::filesystem::path p_exe = ti.executable;
+#ifdef _WIN32
+      // Windows needs an additional routine of directly calling 'python'
+      // and pass the script path as an argument to run python scripts
+      if (ti.executable.compare(ti.executable.length() - 3, 3, ".py")) {
+#endif
       ti.c = bp::child(bp::exe = ti.executable,
                        bp::args = {c::SERVER_IP,
                            std::to_string(rs_port_),
@@ -407,6 +410,19 @@ void game::bootup_vm()
                            key,
                            boost::filesystem::absolute(ti.datapath).string()},
                        bp::start_dir = p_exe.parent_path());
+#ifdef _WIN32
+      }
+      else { // if python script, enter special handler
+        ti.c = bp::child(bp::exe = bp::search_path("python").string(),
+                         bp::args = {ti.executable,
+                             c::SERVER_IP,
+                             std::to_string(rs_port_),
+                             c::REALM,
+                             key,
+                             boost::filesystem::absolute(ti.datapath).string()},
+                         bp::start_dir = p_exe.parent_path());
+      }
+#endif
     }
   }
   catch(const boost::process::process_error& err) {
@@ -417,11 +433,12 @@ void game::bootup_vm()
         ti.c.terminate();
       }
     }
+    std::cout << err.what() << std::endl;
     throw std::runtime_error("one of the given executables does not exist, or cannot run");
   }
 }
 
-void game::terminate_vm()
+void game::terminate_participant()
 {
   for(auto& kv : player_team_infos_) {
     kv.second.c.terminate();

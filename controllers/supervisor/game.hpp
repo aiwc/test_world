@@ -61,8 +61,8 @@ public:
 private:
   void connect_to_server();
 
-  void bootup_vm();
-  void terminate_vm();
+  void run_participant();
+  void terminate_participant();
 
   void update_label();
 
