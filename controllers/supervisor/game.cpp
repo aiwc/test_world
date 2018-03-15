@@ -401,7 +401,7 @@ void game::run_participant()
 #ifdef _WIN32
       // Windows needs an additional routine of directly calling 'python'
       // and pass the script path as an argument to run python scripts
-      if (ti.executable.compare(ti.executable.length() - 3, 3, ".py")) {
+      if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
       ti.c = bp::child(bp::exe = ti.executable,
                        bp::args = {c::SERVER_IP,
@@ -433,7 +433,7 @@ void game::run_participant()
         ti.c.terminate();
       }
     }
-    std::cout << err.what() << std::endl;
+    std::cerr << err.what() << std::endl;
     throw std::runtime_error("one of the given executables does not exist, or cannot run");
   }
 }
