@@ -102,7 +102,7 @@ namespace constants {
   constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.1; // m/s
 
-  constexpr std::size_t NUM_COMMENTS = 10;
+  constexpr std::size_t NUM_COMMENTS = 5;
 
   constexpr std::size_t MSG_MAX_SIZE = 90000; // bytes
 
