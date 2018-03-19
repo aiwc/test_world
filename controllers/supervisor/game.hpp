@@ -113,6 +113,8 @@ private:
   std::condition_variable events_cv_;
   std::deque<std::tuple<std::string, msgpack::object, msgpack::zone> > events_;
 
+  std::vector<std::string> report; // reporter's report if reporter exists
+
   struct team_info
   {
     team_info(std::string name, double rating, std::string exe, std::string datapath,
