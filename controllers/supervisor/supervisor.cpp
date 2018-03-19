@@ -26,7 +26,5 @@ int main()
   wr.shutdown();
   wamp_router_th.join();
 
-  sv.simulationRevert();
-
   return 0;
 }

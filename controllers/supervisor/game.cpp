@@ -332,6 +332,14 @@ void game::run()
     }
   }
 
+  // save the report if anything has been written
+  if (report.size() > 0) {
+    std::ofstream rfile(std::string("../../reports/") + config_json["reporter"]["name"].GetString() + ".txt");
+    for (auto& line : report)
+      rfile << line << std::endl;
+    rfile.close();
+  }
+
   // stop publishing and wait until publish thread stops
   events_stop_ = true;
   events_cv_.notify_one();
@@ -1023,7 +1031,7 @@ void game::on_commentate(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
 
-  // if the caller is not a player, then error
+  // if the caller is not a commentator, then error
   auto it = player_team_infos_.find(caller);
   if((it == std::cend(player_team_infos_))
      || (it->second.role != ROLE_COMMENTATOR)
@@ -1043,7 +1051,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
 
-  // if the caller is not a player, then error
+  // if the caller is not a reporter, then error
   auto it = player_team_infos_.find(caller);
   if((it == std::cend(player_team_infos_))
      || (it->second.role != ROLE_REPORTER)
@@ -1052,7 +1060,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
     return;
   }
 
-  const auto report = invocation->argument<std::vector<std::string>>(1);
+  report = invocation->argument<std::vector<std::string>>(1);
 
   // we will handle this report internally.
 
