@@ -172,6 +172,11 @@ SoccerField5v5 {
 DEF DEF_STADIUM Stadium {
   scale 1.65 1.65 1.65
   castShadows FALSE
+  bannerUrl [
+    "textures/cyberbotics.png"
+    "textures/hynix.png"
+    "textures/kaist.png"
+  ]
   goalPost [
     DEF DEF_GOALPOST Group {
       children [
