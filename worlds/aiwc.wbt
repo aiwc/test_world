@@ -77,8 +77,8 @@ WorldInfo {
     DEF body-body ContactProperties {
       material1 "body"
       material2 "body"
-      softERP 0.15
-      softCFM 1e-5
+      softERP 0.3
+      softCFM 1e-7
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -87,8 +87,8 @@ WorldInfo {
       material1 "body"
       material2 "wheel"
       bounce 0
-      softERP 0.15
-      softCFM 1e-5
+      softERP 0.3
+      softCFM 1e-7
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -107,8 +107,8 @@ WorldInfo {
       material1 "wheel"
       material2 "wheel"
       bounce 0
-      softERP 0.15
-      softCFM 1e-5
+      softERP 0.3
+      softCFM 1e-7
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -163,7 +163,7 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.085
+  height 0.2
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
   }
   floorContactMaterial "floor"
