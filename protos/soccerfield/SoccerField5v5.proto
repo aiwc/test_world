@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              SoccerField5v5.proto
-#Date:              Jan. 23, 2018
-#Description:       A 5 vs 5 soccer field proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerField5v5 [
   field SFFloat  height 0.12 # height of virtual ceiling

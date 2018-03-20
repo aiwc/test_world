@@ -1,8 +1,5 @@
-// File:              constants.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup header for constants
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_CONSTANTS_HPP
 #define H_CONSTANTS_HPP
@@ -62,8 +59,8 @@ namespace constants {
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
   constexpr double MAX_FORCE = 0.1;
-  constexpr double SLIP_NOISE = 0;//.05;
-  constexpr double MAX_LINEAR_VELOCITY = 1.8;
+  constexpr double SLIP_NOISE = 0.05;
+  constexpr double MAX_LINEAR_VELOCITY = 1.6;
   constexpr double BODY_MASS = 0.45;
   constexpr double WHEEL_MASS = 0.05;
 
@@ -77,18 +74,15 @@ namespace constants {
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    {-2.0, 0.55, 0},
-    {-2.0, 0.70, 0},
-    {-2.0, 0.85, 0},
-    {-2.0, 1.00, 0},
-    {-2.0, 1.15, 0},
+    {-1.99, 0.55, 0},
+    {-1.99, 0.70, 0},
+    {-1.99, 0.85, 0},
+    {-1.99, 1.00, 0},
+    {-1.99, 1.15, 0},
   };
 
   // WAMP router settings
   const std::string SERVER_IP = "127.0.0.1";
-  constexpr std::size_t WS_PORT = 6217;
-  constexpr std::size_t RS_PORT = 6218;
-  const std::string RS_PATH = "/tmp/aiwc.sock";
   const std::string REALM = "default";
 
   constexpr std::size_t KEY_LENGTH = 10;
@@ -108,7 +102,7 @@ namespace constants {
   constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.1; // m/s
 
-  constexpr std::size_t NUM_COMMENTS = 10;
+  constexpr std::size_t NUM_COMMENTS = 5;
 
   constexpr std::size_t MSG_MAX_SIZE = 90000; // bytes
 

@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              Stand.proto
-#Date:              Jan. 23, 2018
-#Description:       Spectator stand proto for AI World Cup
 #Author(s):         Seung-Jae Lee, Chansol Hong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static, hidden
 
 PROTO Stand [

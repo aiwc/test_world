@@ -1,8 +1,5 @@
-// File:              soccer_robot.cpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup soccer robot controller
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include <webots/Robot.hpp>
 #include <webots/Motor.hpp>

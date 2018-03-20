@@ -9,7 +9,8 @@ LFLAGS = -pthread
 
 CFLAGS += -I ../../extlibs/bonefish/include \
 	-I ../../extlibs/msgpack-c/include \
-	-I ../../extlibs/autobahn-cpp/include
+	-I ../../extlibs/autobahn-cpp/include \
+	-I ../../extlibs/rapidjson/include
 
 CXX_SOURCES += supervisor.cpp game.cpp image_buffer.cpp
 
@@ -26,7 +27,7 @@ ifneq ($(OSTYPE),windows)
 # need >=boost-1.64. use bundled boost for systems that has lower version of boost
 CFLAGS += -I ../../extlibs/boost-1.65.1/include
 LFLAGS += -L ../../extlibs/boost-1.65.1/lib/$(OSTYPE)
-BOOST_POSTFIX = 
+BOOST_POSTFIX =
 else
 # webots for windows contains boost
 # winsock

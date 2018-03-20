@@ -14,7 +14,7 @@
 1. Go to Wiki page (https://github.com/aiwc/test_world/wiki)
 2. Refer to Webots-related pages
 
-**Directory Description**
+**Descriptions**
 
 **controllers**: Contains programs for managing AI Soccer simulation system. **(Programs in this directory are managed by us and need not be modified)**
 
@@ -42,7 +42,6 @@
 
 **worlds**: Contains AI Soccer simulation world file **(Files in this directory can be run using Webots Robot Simulator)**
 
-- aiwc_linux.wbt: Webots world file for linux
+- aiwc.wbt: Webots world file
 
-- aiwc_windows.wbt: Webots world file for windows
-
+**config.json**: Configuration file for setting player executables, setting game duration, and turning some rules on/off for effective training. **(Participants should modify the player information in this file to tell the simulation which program to execute)**

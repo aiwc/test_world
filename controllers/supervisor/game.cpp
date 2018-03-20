@@ -1,8 +1,5 @@
-// File:              game.cpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup game management
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include "game.hpp"
 
@@ -12,6 +9,7 @@
 #include <random>
 #include <string>
 
+#include "rapidjson/document.h"
 #include <fstream>
 
 namespace c = constants;
@@ -64,12 +62,10 @@ namespace msgpack {
   } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
 } // namespace msgpack
 
-game::game(supervisor& sv)
+game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
-  , deadlock_reset_flag_(sv_.get_deadlock_reset_flag())
-  , goal_area_foul_flag_(sv_.get_goal_area_foul_flag())
-  , penalty_area_foul_flag_(sv_.get_penalty_area_foul_flag())
-  , game_time_ms_(sv_.get_game_time_ms())
+  , rs_port_(rs_port)
+  , uds_path_(uds_path)
 {
   for(auto& fc : foul_pa_counter_) {
     fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
@@ -78,10 +74,6 @@ game::game(supervisor& sv)
   for(auto& fc : foul_ga_counter_) {
     fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
   }
-
-  std::cout << "   deadlock reset: " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
-  std::cout << "   goal area foul: " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
-  std::cout << "penalty area foul: " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
 }
 
 void game::run()
@@ -121,29 +113,81 @@ void game::run()
       }
     });
 
-  // gets the teams' information from the matching server
-  // In test code we use static information
+  //open 'config.json' to read configurations
+  std::ifstream config_file("../../config.json");
+  if (!config_file)
+    throw std::runtime_error("Could not read 'config.json' configuration file.");
+
+  std::string buffer((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
+  config_file.close();
+
+  rapidjson::Document config_json;
+  config_json.Parse(buffer.c_str());
+
+  if (!config_json.IsObject())
+    throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
+
+  //gets game rules from 'config.json' (if no rules specified, default options are given)
+  {
+    game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
+    deadlock_reset_flag_ = true;
+    goal_area_foul_flag_ = true;
+    penalty_area_foul_flag_ = true;
+
+    if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
+      if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
+        game_time_ms_ = static_cast<size_t>(config_json["rule"]["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
+
+      if (config_json["rule"].HasMember("deadlock_reset") && config_json["rule"]["deadlock_reset"].IsBool())
+        deadlock_reset_flag_ = config_json["rule"]["deadlock_reset"].GetBool();
+
+      if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
+        goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
+
+      if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
+        penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
+    }
+    else
+      std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
+
+    std::cout << "Rules:" << std::endl;
+    std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
+    std::cout << "    deadlock reset - " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
+    std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
+    std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl << std::endl;
+  }
+
+  const auto path_prefix = std::string("../../");
+
+  // gets the teams' information from 'config.json'
+  assert(config_json.HasMember("team_a") && config_json["team_a"].IsObject());
+  assert(config_json.HasMember("team_b") && config_json["team_b"].IsObject());
   for(const auto& team : {T_RED, T_BLUE}) {
-    const auto tup = sv_.get_team_info(team == T_RED);
-    const auto tup_op = sv_.get_team_info(team != T_RED);
+    const auto tc = ((team == T_RED) ? "team_a" : "team_b");
+    const auto tc_op = ((team != T_RED) ? "team_a" : "team_b");
 
     // my team
-    const std::string& name   = std::get<0>(tup);
-    const double&      rating = std::get<1>(tup);
-    const std::string& exe    = std::get<2>(tup);
-    const std::string& data   = std::get<3>(tup);
+    const std::string& name   = ((config_json[tc].HasMember("name") && config_json[tc]["name"].IsString()) ? config_json[tc]["name"].GetString() : "");
+    const double&      rating = 0; //rating is currently disabled
+    const std::string& exe    = ((config_json[tc].HasMember("executable") && config_json[tc]["executable"].IsString()) ? config_json[tc]["executable"].GetString() : "");
+    const std::string& data   = ((config_json[tc].HasMember("datapath") && config_json[tc]["datapath"].IsString()) ? config_json[tc]["datapath"].GetString() : "");
 
     // opponent
-    const std::string& name_op   = std::get<0>(tup_op);
-    const double&      rating_op = std::get<1>(tup_op);
+    const std::string& name_op   = ((config_json[tc_op].HasMember("name") && config_json[tc_op]["name"].IsString()) ? config_json[tc_op]["name"].GetString() : "");
+    const double&      rating_op = 0; //rating is currently disabled
 
     const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                 std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                std::make_tuple(name, rating, exe, data,
+                                                std::make_tuple(name, rating, path_prefix + exe, path_prefix + data,
                                                                 ROLE_PLAYER, team == T_RED)
                                                 );
 
     assert(ret.second);
+
+    std::cout << ((team == T_RED) ? "Team A: " : "Team B: ") << std::endl;
+    std::cout << "  team name - " << name << std::endl;
+    std::cout << " executable - " << exe << std::endl;
+    std::cout << "  data path - " << data << std::endl << std::endl;
 
     // create information for aiwc.get_info() in advance
     using map = msgpack::type::assoc_vector<std::string, msgpack::object>;
@@ -176,45 +220,59 @@ void game::run()
     info_[team] = msgpack::object(info, z_info_);
   }
 
-  // gets commentator information
-  {
-    const auto tup = sv_.get_commentator_info();
-
-    const std::string& name   = std::get<0>(tup);
-    const std::string& exe    = std::get<1>(tup);
-    const std::string& data   = std::get<2>(tup);
+  // gets commentator information from 'config.json' (commentator is optional)
+  if (config_json.HasMember("commentator") && config_json["commentator"].IsObject()) {
+    const std::string& name   = ((config_json["commentator"].HasMember("name") && config_json["commentator"]["name"].IsString()) ? config_json["commentator"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["commentator"].HasMember("executable") && config_json["commentator"]["executable"].IsString()) ? config_json["commentator"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["commentator"].HasMember("datapath") && config_json["commentator"]["datapath"].IsString()) ? config_json["commentator"]["datapath"].GetString() : "");
 
     if(!exe.empty()) {
       // commentator is treated as red team with rating 0
       const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                   std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, exe, data,
+                                                  std::make_tuple(name, 0, path_prefix + exe, data,
                                                                   ROLE_COMMENTATOR, true)
                                                   );
 
       assert(ret.second);
+
+      std::cout << "Commentator: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
     }
+    else
+      std::cout << "Commentator \"executable\" is missing: skipping commentator" << std::endl;
   }
+  else
+    std::cout << "\"commentator\" section of 'config.json' seems to be missing: skipping commentator" << std::endl;
 
-  // gets reporter information
-  {
-    const auto tup = sv_.get_reporter_info();
-
-    const std::string& name   = std::get<0>(tup);
-    const std::string& exe    = std::get<1>(tup);
-    const std::string& data   = std::get<2>(tup);
+  // gets reporter information from 'config.json' (reporter is optional)
+  if (config_json.HasMember("reporter") && config_json["reporter"].IsObject()) {
+    const std::string& name   = ((config_json["reporter"].HasMember("name") && config_json["reporter"]["name"].IsString()) ? config_json["reporter"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["reporter"].HasMember("executable") && config_json["reporter"]["executable"].IsString()) ? config_json["reporter"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["reporter"].HasMember("datapath") && config_json["reporter"]["datapath"].IsString()) ? config_json["reporter"]["datapath"].GetString() : "");
 
     if(!exe.empty()) {
       // reporter is treated as red team with rating 0
       const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                   std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, exe, data,
+                                                  std::make_tuple(name, 0, path_prefix + exe, data,
                                                                   ROLE_REPORTER, true)
                                                   );
 
       assert(ret.second);
+
+      std::cout << "Reporter: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
     }
+    else
+      std::cout << "Reporter \"executable\" is missing: skipping reporter" << std::endl;
   }
+  else
+    std::cout << "\"reporter\" section of 'config.json' seems to be missing: skipping reporter" << std::endl;
 
   // initialize promises and futures
   bootup_promise_ = {};
@@ -225,7 +283,7 @@ void game::run()
   connect_to_server();
 
   // bootup VMs & wait until app players boot up
-  bootup_vm();
+  run_participant();
   bootup_future.wait();
 
   // wait until 2 players are ready for c::WAIT_READY seconds
@@ -269,9 +327,17 @@ void game::run()
         }
       }
       catch(const webots_revert_exception& e) {
-        terminate_vm();
+        terminate_participant();
       }
     }
+  }
+
+  // save the report if anything has been written
+  if (report.size() > 0) {
+    std::ofstream rfile(std::string("../../reports/") + config_json["reporter"]["name"].GetString() + ".txt");
+    for (auto& line : report)
+      rfile << line << std::endl;
+    rfile.close();
   }
 
   // stop publishing and wait until publish thread stops
@@ -297,11 +363,11 @@ void game::connect_to_server()
 {
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
-  boost::asio::local::stream_protocol::endpoint uds_endpoint(c::RS_PATH);
+  boost::asio::local::stream_protocol::endpoint uds_endpoint(uds_path_);
   transport_ = std::make_shared<autobahn::wamp_uds_transport>(io_, uds_endpoint);
 #else
-  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(constants::SERVER_IP),
-                                              constants::RS_PORT);
+  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(c::SERVER_IP),
+                                              rs_port_);
   transport_ = std::make_shared<autobahn::wamp_tcp_transport>(io_, tcp_endpoint);
 #endif
   session_   = std::make_shared<autobahn::wamp_session>(io_);
@@ -309,7 +375,7 @@ void game::connect_to_server()
 
   transport_->connect().get();
   session_->start().get();
-  session_->join(constants::REALM).get();
+  session_->join(c::REALM).get();
 
   // register calles
   session_->provide("aiwc.bootup",    [&](autobahn::wamp_invocation i) { return on_bootup(i); }).get();
@@ -320,11 +386,9 @@ void game::connect_to_server()
   session_->provide("aiwc.report",    [&](autobahn::wamp_invocation i) { return on_report(i); }).get();
 }
 
-void game::bootup_vm()
+void game::run_participant()
 {
-  // bootup VMs. replaced to process.
-
-  // send bootup signal. VM's startup script is supposed to do this.
+  // bootup PCs for participants. currently replaced by running a child process.
   std::vector<boost::future<autobahn::wamp_call_result> > bootup_futures;
   for(const auto& kv : player_team_infos_) {
     bootup_futures.emplace_back(session_->call("aiwc.bootup", std::make_tuple(kv.first)));
@@ -340,20 +404,33 @@ void game::bootup_vm()
       const auto& key = kv.first;
       auto& ti = kv.second;
 
-      // launch process
-      std::string exe = ti.executable;
+      // launch participant process
+      boost::filesystem::path p_exe = ti.executable;
 #ifdef _WIN32
-      if (exe.compare(exe.length() - 3, 3, ".py")) // skip python controllers
-        exe += ".exe";
+      // Windows needs an additional routine of directly calling 'python'
+      // and pass the script path as an argument to run python scripts
+      if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
-      boost::filesystem::path p_exe = exe;
-      ti.c = bp::child(bp::exe = exe,
+      ti.c = bp::child(bp::exe = ti.executable,
                        bp::args = {c::SERVER_IP,
-                           std::to_string(c::RS_PORT),
+                           std::to_string(rs_port_),
                            c::REALM,
                            key,
                            boost::filesystem::absolute(ti.datapath).string()},
                        bp::start_dir = p_exe.parent_path());
+#ifdef _WIN32
+      }
+      else { // if python script, enter special handler
+        ti.c = bp::child(bp::exe = bp::search_path("python").string(),
+                         bp::args = {ti.executable,
+                             c::SERVER_IP,
+                             std::to_string(rs_port_),
+                             c::REALM,
+                             key,
+                             boost::filesystem::absolute(ti.datapath).string()},
+                         bp::start_dir = p_exe.parent_path());
+      }
+#endif
     }
   }
   catch(const boost::process::process_error& err) {
@@ -364,11 +441,12 @@ void game::bootup_vm()
         ti.c.terminate();
       }
     }
+    std::cerr << err.what() << std::endl;
     throw std::runtime_error("one of the given executables does not exist, or cannot run");
   }
 }
 
-void game::terminate_vm()
+void game::terminate_participant()
 {
   for(auto& kv : player_team_infos_) {
     kv.second.c.terminate();
@@ -953,7 +1031,7 @@ void game::on_commentate(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
 
-  // if the caller is not a player, then error
+  // if the caller is not a commentator, then error
   auto it = player_team_infos_.find(caller);
   if((it == std::cend(player_team_infos_))
      || (it->second.role != ROLE_COMMENTATOR)
@@ -963,7 +1041,7 @@ void game::on_commentate(autobahn::wamp_invocation invocation)
   }
 
   std::unique_lock<std::mutex> lck(m_comments_);
-  comments_.push_back(invocation->argument<std::string>(1));
+  comments_.push_back((boost::format("[%.2f] ") % (time_ms_ / 1000.)).str() + invocation->argument<std::string>(1));
 
   invocation->empty_result();
 }
@@ -973,7 +1051,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
 
-  // if the caller is not a player, then error
+  // if the caller is not a reporter, then error
   auto it = player_team_infos_.find(caller);
   if((it == std::cend(player_team_infos_))
      || (it->second.role != ROLE_REPORTER)
@@ -982,7 +1060,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
     return;
   }
 
-  const auto report = invocation->argument<std::vector<std::string>>(1);
+  report = invocation->argument<std::vector<std::string>>(1);
 
   // we will handle this report internally.
 

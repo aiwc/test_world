@@ -1,8 +1,5 @@
-// File:              game.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup game management header
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_GAME_HPP
 #define H_GAME_HPP
@@ -52,7 +49,7 @@ class game
   };
 
 public:
-  game(supervisor& sv);
+  game(supervisor& sv, std::size_t rs_port, std::string uds_path);
 
   game(const game&) = delete;
   game& operator=(const game&) = delete;
@@ -64,8 +61,8 @@ public:
 private:
   void connect_to_server();
 
-  void bootup_vm();
-  void terminate_vm();
+  void run_participant();
+  void terminate_participant();
 
   void update_label();
 
@@ -107,11 +104,16 @@ private:
 #endif
   std::shared_ptr<autobahn::wamp_session> session_;
 
+  std::size_t rs_port_;
+  std::string uds_path_;
+
   std::thread publish_thread_;
   std::atomic<bool> events_stop_;
   std::mutex events_mutex_;
   std::condition_variable events_cv_;
   std::deque<std::tuple<std::string, msgpack::object, msgpack::zone> > events_;
+
+  std::vector<std::string> report; // reporter's report if reporter exists
 
   struct team_info
   {
@@ -149,11 +151,11 @@ private:
 
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
-  const bool deadlock_reset_flag_;
-  const bool goal_area_foul_flag_;
-  const bool penalty_area_foul_flag_;
+  std::size_t game_time_ms_;
+  bool deadlock_reset_flag_;
+  bool goal_area_foul_flag_;
+  bool penalty_area_foul_flag_;
 
-  const std::size_t game_time_ms_;
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
