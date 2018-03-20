@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              LightGreen.proto
-#Date:              Jan. 23, 2018
-#Description:       A simple color proto
 #Author(s):         Inbae Jeong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO LightGreen [
 ]

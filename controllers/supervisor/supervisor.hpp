@@ -1,8 +1,5 @@
-// File:              supervisor.hpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup supervisor header
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #ifndef H_SUPERVISOR_HPP
 #define H_SUPERVISOR_HPP
@@ -24,79 +21,10 @@
 #include <cmath>
 
 namespace /* anonymous */ {
-
-  std::string generate_ball_node_string(double x, double y, double z, double radius)
-  {
-    using namespace constants;
-
-    // It is well known that stringstream is horribly slow.
-    // Will it affect the performance? I don't think so.
-    std::stringstream ss;
-    ss << "DEF " << DEF_BALL << " SoccerBall {"
-       << "  translation " << x << " " << y << " " << z
-       << "  radius " << radius
-       << "  contactMaterial \"ball\""
-       << "  shapes ["
-       << "    DEF " << DEF_BALLSHAPE << " SoccerBallShape {"
-       << "      radius " << radius
-       << "    }"
-       << "    DEF " << DEF_ORANGESHAPE << " SoccerBallOrangeShape {"
-       << "      radius " << radius
-       << "    }"
-       << "  ]"
-       << "}";
-    return ss.str();
-  }
-
   std::string robot_name(bool is_red_team, std::size_t id)
   {
     return constants::DEF_ROBOT_PREFIX + (is_red_team ? "R" : "B") + std::to_string(id);
   }
-
-  std::string generate_robot_node_string(double x, double y, double z, double th,
-                                         bool is_red_team, std::size_t id)
-  {
-    using namespace constants;
-
-    std::stringstream ss;
-    ss << "DEF " << robot_name(is_red_team, id) << " SoccerRobot"
-       << "{"
-       << "  translation " << x << " " << y << " " << z
-       << "  rotation 0 1 0 " << th - PI / 2 // Differential wheel faces to -z direction
-       << "  lwTranslation " << -AXLE_LENGTH / 2 << " " << (-ROBOT_HEIGHT + 2 * WHEEL_RADIUS) / 2 << " 0"
-       << "  lwRotation 1 0 0 " << PI / 2
-       << "  rwTranslation " << AXLE_LENGTH / 2 << " " << (-ROBOT_HEIGHT + 2 * WHEEL_RADIUS) / 2 << " 0"
-       << "  rwRotation 1 0 0 " << PI / 2
-       << "  name \"" << (is_red_team ? "R" : "B") << id << "\""
-       << "  customData \"0 0\""
-       << "  controller \"soccer_robot\""
-       << "  maxSpeed " << MAX_LINEAR_VELOCITY / WHEEL_RADIUS
-       << "  maxForce " << MAX_FORCE
-       << "  slipNoise " << SLIP_NOISE
-       << "  bodyContactMaterial \"body\""
-       << "  wheelContactMaterial \"wheel\""
-       << "  bodySubdivision 24"
-       << "  patches ["
-       << "    SoccerRobotNumberPatch {" // number patch
-       << "      id " << id
-       << "      isTeamTagRed " << (is_red_team ? "TRUE" : "FALSE")
-       << "      name \"number_patch\""
-       << "    }"
-       << "    SoccerRobotIDPatch {" // id patch to cam_a
-       << "      id " << CODEWORDS[id]
-       << "      isTeamTagRed " << (is_red_team ? "TRUE" : "FALSE")
-       << "      name \"id_patch_red\""
-       << "    }"
-       << "    SoccerRobotIDPatch {" // id patch to cam_b
-       << "      id " << CODEWORDS[id]
-       << "      isTeamTagRed " << (!is_red_team ? "TRUE" : "FALSE")
-       << "      name \"id_patch_blue\""
-       << "    }"
-       << "  ]"
-       << "}";
-    return ss.str();
-  }
-
 } // namespace /* anonymous */
 
 
@@ -120,77 +48,9 @@ public:
       throw std::runtime_error("No mandatory cam nodes exists in world");
     }
 
-    // remove existing ball and robots and place them
-    remove_ball_and_robots();
-    place_ball_and_robots();
-
     // control visibility to cams
     control_visibility();
     enable_cameras(constants::CAM_PERIOD_MS);
-  }
-
-  bool get_deadlock_reset_flag() const
-  {
-    return static_cast<bool>(getSelf()->getField("deadlockReset")->getSFBool());
-  }
-
-  bool get_penalty_area_foul_flag() const
-  {
-    return static_cast<bool>(getSelf()->getField("penaltyAreaFoul")->getSFBool());
-  }
-
-  bool get_goal_area_foul_flag() const
-  {
-    return static_cast<bool>(getSelf()->getField("goalAreaFoul")->getSFBool());
-  }
-
-  std::size_t get_game_time_ms() const
-  {
-    const auto pf = getSelf()->getField("gameTime");
-
-    std::size_t gt_ms = 0;
-
-    if(pf) {
-      gt_ms = static_cast<std::size_t>(pf->getSFFloat() * 1000);
-    }
-
-    if(gt_ms == 0) {
-      gt_ms = constants::DEFAULT_GAME_TIME_MS;
-    }
-
-    return gt_ms / constants::PERIOD_MS * constants::PERIOD_MS;
-  }
-
-  //         name         rating  executable   data directory path
-  std::tuple<std::string, double, std::string, std::string> get_team_info(bool is_red) const
-  {
-    const auto prefix = std::string("team") + (is_red ? "A" : "B");
-
-    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
-                           getSelf()->getField(prefix + "Rating")->getSFFloat(),
-                           getSelf()->getField(prefix + "Executable")->getSFString(),
-                           getSelf()->getField(prefix + "DataPath")->getSFString()
-                           );
-  }
-
-  std::tuple<std::string, std::string, std::string> get_commentator_info() const
-  {
-    const auto prefix = std::string("commentator");
-
-    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
-                           getSelf()->getField(prefix + "Executable")->getSFString(),
-                           getSelf()->getField(prefix + "DataPath")->getSFString()
-                           );
-  }
-
-  std::tuple<std::string, std::string, std::string> get_reporter_info() const
-  {
-    const auto prefix = std::string("reporter");
-
-    return std::make_tuple(getSelf()->getField(prefix + "Name")->getSFString(),
-                           getSelf()->getField(prefix + "Executable")->getSFString(),
-                           getSelf()->getField(prefix + "DataPath")->getSFString()
-                           );
   }
 
   const unsigned char* get_image(bool is_red) const
@@ -314,54 +174,6 @@ public:
   }
 
 private: // private member functions
-  void remove_ball_and_robots()
-  {
-    using namespace constants;
-
-    const auto& remove_node = [&](const std::string& defname) {
-      auto* const pn = getFromDef(defname);
-      if(pn) {
-        pn->remove();
-      }
-    };
-
-    remove_node(constants::DEF_BALL);
-
-    for(const auto& is_red : {true, false}) {
-      for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
-        remove_node(robot_name(is_red, id));
-      }
-    }
-  }
-
-  void place_ball_and_robots()
-  {
-    using namespace constants;
-
-    auto* const pn_root = getRoot();
-    assert(pn_root);
-    auto* const pf_children = pn_root->getField("children");
-
-    // put ball
-    pf_children->importMFNodeFromString(-1, generate_ball_node_string(0, BALL_RADIUS, 0, BALL_RADIUS));
-
-    // put robots
-    {
-      std::stringstream ss;
-      for(const auto& is_red : {true, false}) {
-        const auto s = is_red ? 1 : -1;
-        for(std::size_t id = 0; id < NUMBER_OF_ROBOTS; ++id) {
-          const auto x  = ROBOT_INIT_POSTURE[id][0] * s;
-          const auto y  = ROBOT_HEIGHT / 2;
-          const auto z  = ROBOT_INIT_POSTURE[id][1] * s;
-          const auto th = ROBOT_INIT_POSTURE[id][2] + (is_red ? 0. : constants::PI);
-          ss << generate_robot_node_string(x, y, z, th, is_red, id);
-        }
-      }
-      pf_children->importMFNodeFromString(-1, ss.str());
-    }
-  }
-
   void control_visibility()
   {
     using namespace constants;

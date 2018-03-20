@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              MyBox.proto
-#Date:              Jan. 23, 2018
-#Description:       A custom box proto for AI World Cup
 #Author(s):         Inbae Jeong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 # A custom box that has 6 different materials for each side
 # TODO: Texture orientation should be consistent with Box

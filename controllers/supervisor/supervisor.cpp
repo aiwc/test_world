@@ -1,8 +1,5 @@
-// File:              supervisor.cpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup supervisor
 // Author(s):         Inbae Jeong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include "constants.hpp"
 #include "supervisor.hpp"
@@ -16,20 +13,18 @@ int main()
 {
   using namespace constants;
 
-  wamp_router wr(WS_PORT, RS_PORT, RS_PATH, REALM);
+  wamp_router wr(REALM);
 
   auto wamp_router_th = std::thread([&]() {
       wr.run();
     });
 
   supervisor sv;
-  game g(sv);
+  game g(sv, wr.get_rs_port(), wr.get_uds_path());
   g.run();
 
   wr.shutdown();
   wamp_router_th.join();
-
-  sv.simulationRevert();
 
   return 0;
 }

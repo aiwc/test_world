@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              SoccerRobot.proto
-#Date:              Jan. 23, 2018
-#Description:       AI soccer robot proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerRobot [
   # fields inherited from Robot
@@ -84,6 +81,10 @@ PROTO SoccerRobot [
     mass 0.05
   }
   field SFNode weightPhysics Physics {
+    density -1
+    mass 0.0001
+  }
+  field SFNode supportPhysics Physics {
     density -1
     mass 0.0001
   }
@@ -458,6 +459,44 @@ PROTO SoccerRobot [
               }
             ]
           }
+        }
+      }
+      DEF FRONTSUPPORT Solid {
+        translation 0 %{=-h/2 + df}% %{=-(br - 2*df)}%
+        children [
+          Shape {
+            appearance IS tireAppearance
+            geometry Sphere {
+              radius %{=df}%
+              subdivision 1
+            }
+          }
+        ]
+        name "front support"
+        contactMaterial IS bodyContactMaterial
+        physics IS supportPhysics
+        boundingObject Sphere {
+            radius %{=df}%
+            subdivision 1
+        }
+      }
+      DEF REARSUPPORT Solid {
+        translation 0 %{=-h/2 + df}% %{=br - 2*df}%
+        children [
+          Shape {
+            appearance IS tireAppearance
+            geometry Sphere {
+              radius %{=df}%
+              subdivision 1
+            }
+          }
+        ]
+        name "rear support"
+        contactMaterial IS bodyContactMaterial
+        physics IS supportPhysics
+        boundingObject Sphere {
+            radius %{=df}%
+            subdivision 1
         }
       }
       %{ if wp and wht > 0 then }%
