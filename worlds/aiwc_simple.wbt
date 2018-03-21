@@ -164,46 +164,14 @@ Referee {
 }
 SoccerField5v5 {
   height 0.2
-  grassSlot DEF DEF_GRASS SoccerFieldGrass {
-  }
+  grassSlot NULL
   floorContactMaterial "floor"
   wallContactMaterial "wall"
-}
-DEF DEF_STADIUM Stadium {
-  scale 1.65 1.65 1.65
-  castShadows FALSE
-  bannerUrl [
-    "textures/cyberbotics.png"
-    "textures/hynix.png"
-    "textures/kaist.png"
-  ]
-  goalPost [
-    DEF DEF_GOALPOST Group {
-      children [
-        Goalpost {
-          translation -1.24 0 0
-          scale 0.88 0.88 0.88
-          castShadows IS castShadows
-          name "goalpost_left"
-        }
-        Goalpost {
-          translation 1.24 0 0
-          rotation 0 1 0 3.141592635
-          scale 0.88 0.88 0.88
-          castShadows IS castShadows
-          name "goalpost_right"
-        }
-      ]
-    }
-  ]
 }
 DEF DEF_BALL SoccerBall {
   translation 0 0.03 0
   contactMaterial "ball"
   shapes [
-    DEF DEF_BALLSHAPE SoccerBallShape {
-      radius 0.03
-    }
     DEF DEF_ORANGESHAPE SoccerBallOrangeShape {
       radius 0.03
     }
@@ -222,6 +190,15 @@ DEF DEF_ROBOTR0 SoccerRobot {
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
+  patches [
+    SoccerRobotIDPatch {
+      name "id_patch_red"
+    }
+    SoccerRobotIDPatch {
+      isTeamTagRed FALSE
+      name "id_patch_blue"
+    }
+  ]
 }
 DEF DEF_ROBOTR1 SoccerRobot {
   translation -0.4 0.0375 -0.3
@@ -237,9 +214,6 @@ DEF DEF_ROBOTR1 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 1
-    }
     SoccerRobotIDPatch {
       id 31
       name "id_patch_red"
@@ -265,9 +239,6 @@ DEF DEF_ROBOTR2 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 2
-    }
     SoccerRobotIDPatch {
       id 227
       name "id_patch_red"
@@ -293,9 +264,6 @@ DEF DEF_ROBOTR3 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 3
-    }
     SoccerRobotIDPatch {
       id 364
       name "id_patch_red"
@@ -320,9 +288,6 @@ DEF DEF_ROBOTR4 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 4
-    }
     SoccerRobotIDPatch {
       id 437
       name "id_patch_red"
@@ -348,9 +313,6 @@ DEF DEF_ROBOTB0 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      isTeamTagRed FALSE
-    }
     SoccerRobotIDPatch {
       isTeamTagRed FALSE
       name "id_patch_red"
@@ -374,10 +336,6 @@ DEF DEF_ROBOTB1 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 1
-      isTeamTagRed FALSE
-    }
     SoccerRobotIDPatch {
       id 31
       isTeamTagRed FALSE
@@ -403,10 +361,6 @@ DEF DEF_ROBOTB2 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 2
-      isTeamTagRed FALSE
-    }
     SoccerRobotIDPatch {
       id 227
       isTeamTagRed FALSE
@@ -432,10 +386,6 @@ DEF DEF_ROBOTB3 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 3
-      isTeamTagRed FALSE
-    }
     SoccerRobotIDPatch {
       id 364
       isTeamTagRed FALSE
@@ -461,10 +411,6 @@ DEF DEF_ROBOTB4 SoccerRobot {
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
-    SoccerRobotNumberPatch {
-      id 4
-      isTeamTagRed FALSE
-    }
     SoccerRobotIDPatch {
       id 437
       isTeamTagRed FALSE

@@ -191,13 +191,18 @@ private: // private member functions
     {
       auto* pn_ballshape = getFromDef(DEF_BALLSHAPE);
       auto* pn_orangeshape = getFromDef(DEF_ORANGESHAPE);
-      if(!pn_ballshape || !pn_orangeshape) {
-        throw std::runtime_error("No ball shape");
+      if(!pn_orangeshape) {
+        throw std::runtime_error("Missing mendatory ORANGESHAPE of BALL");
       }
 
-      pn_ballshape->setVisibility(pn_cams_[N_CAMA], false);
-      pn_ballshape->setVisibility(pn_cams_[N_CAMB], false);
-      pn_orangeshape->setVisibility(pn_cams_[N_VIEWPOINT], false);
+      if(pn_ballshape) {
+        pn_ballshape->setVisibility(pn_cams_[N_CAMA], false);
+        pn_ballshape->setVisibility(pn_cams_[N_CAMB], false);
+      }
+
+      if(pn_ballshape && pn_orangeshape) {
+        pn_orangeshape->setVisibility(pn_cams_[N_VIEWPOINT], false);
+      }
     }
 
     // Stadium is visible only to viewpoint, optional
@@ -217,18 +222,30 @@ private: // private member functions
 
           auto* pf_patches = pn_robot->getField("patches");
 
-          assert(pf_patches && (pf_patches->getCount() == 3));
+          assert(pf_patches && (pf_patches->getCount() == 2 || pf_patches->getCount() == 3));
 
-          auto* pn_number  = pf_patches->getMFNode(0);
-          auto* pn_id_red  = pf_patches->getMFNode(1);
-          auto* pn_id_blue = pf_patches->getMFNode(2);
+          //number patch for decoration exists
+          if (pf_patches->getCount() == 3) {
+            auto* pn_number  = pf_patches->getMFNode(0);
+            auto* pn_id_red  = pf_patches->getMFNode(1);
+            auto* pn_id_blue = pf_patches->getMFNode(2);
 
-          pn_number->setVisibility(pn_cams_[N_CAMA], false);
-          pn_number->setVisibility(pn_cams_[N_CAMB], false);
-          pn_id_red->setVisibility(pn_cams_[N_VIEWPOINT], false);
-          pn_id_red->setVisibility(pn_cams_[N_CAMB], false);
-          pn_id_blue->setVisibility(pn_cams_[N_VIEWPOINT], false);
-          pn_id_blue->setVisibility(pn_cams_[N_CAMA], false);
+            pn_number->setVisibility(pn_cams_[N_CAMA], false);
+            pn_number->setVisibility(pn_cams_[N_CAMB], false);
+            pn_id_red->setVisibility(pn_cams_[N_VIEWPOINT], false);
+            pn_id_red->setVisibility(pn_cams_[N_CAMB], false);
+            pn_id_blue->setVisibility(pn_cams_[N_VIEWPOINT], false);
+            pn_id_blue->setVisibility(pn_cams_[N_CAMA], false);
+          }
+          else { //no decorations
+            auto* pn_id_red = pf_patches->getMFNode(0);
+            auto* pn_id_blue = pf_patches->getMFNode(1);
+
+            pn_id_red->setVisibility(pn_cams_[N_VIEWPOINT], true);
+            pn_id_red->setVisibility(pn_cams_[N_CAMB], false);
+            pn_id_blue->setVisibility(pn_cams_[N_VIEWPOINT], false);
+            pn_id_blue->setVisibility(pn_cams_[N_CAMA], false);
+          }
         }
       }
     }
