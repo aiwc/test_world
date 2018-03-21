@@ -17,10 +17,6 @@ PROTO Referee [
   field SFBool     synchronization     TRUE
 ]
 {
-  %{
-    # prevent error messages saying that parameters have no matching IS field
-  }%
-
   Supervisor {
     translation     IS translation
     rotation        IS rotation

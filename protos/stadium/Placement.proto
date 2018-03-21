@@ -1,7 +1,7 @@
 #VRML_SIM R2018a utf8
 #Author(s):         Seung-Jae Lee, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
-# tags: hidden
+# tags: static, hidden
 
 PROTO Placement [
   field SFVec3f    translation 0 0 0
@@ -24,7 +24,7 @@ PROTO Placement [
 
     math.randomseed(os.time())
 
-    # '#a' doesn't work in procedural proto since # is used for comments. let's just count.
+    -- '#a' doesn't work in procedural proto since # is used for comments. let's just count.
     local array_length = function(a)
     local ret = 0
     for _,_ in pairs(a) do
@@ -33,7 +33,7 @@ PROTO Placement [
     return ret
     end
 
-    # color name MUST have matching protos/colors/*.proto
+    -- color name MUST have matching protos/colors/*.proto
     local shirt = {"DarkGray", "Gray", "LightGray", "White"}
     local pants = shirt
     local shoes = {"Black"}
