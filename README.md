@@ -43,8 +43,9 @@ Please refer to the [Wiki pages](https://github.com/aiwc/test_world/wiki).
 
 **reports**: If AI World Cup simulation is run with an AI Reporter, the report will be stored in this directory after the game. The created file's name will be (reporter team name specified in config.json).txt. **(Only related to AI Reporters)**
 
-**worlds**: Contains AI World Cup simulation world file **(File in this directory can be run using Webots Robot Simulator)**
+**worlds**: Contains AI World Cup simulation world files **(Files in this directory can be run using Webots Robot Simulator)**
 
 - aiwc.wbt: Webots world file
+- aiwc_simple.wbt: A simplified version of aiwc.wbt without visual decorations (stadium, grass field, etc.). This world can be run faster than aiwc.wbt without any differences in data observed by the participant's AI program.
 
 **config.json**: Configuration file for setting player executables, setting game duration, and turning some rules on/off for effective training. Please refer to the [Wiki page](https://github.com/aiwc/test_world/wiki/How-to-use-AI-World-Cup-simulation-program) for parameter descriptions **(Participants should modify the player information in this file to tell the simulation which program to execute)**
