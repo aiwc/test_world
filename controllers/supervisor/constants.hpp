@@ -58,11 +58,7 @@ namespace constants {
 
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr double MAX_FORCE = 0.1;
-  constexpr double SLIP_NOISE = 0.05;
-  constexpr double MAX_LINEAR_VELOCITY = 1.6;
-  constexpr double BODY_MASS = 0.45;
-  constexpr double WHEEL_MASS = 0.05;
+  constexpr double MAX_LINEAR_VELOCITY = 1.65;
 
   constexpr double ROBOT_INIT_POSTURE[NUMBER_OF_ROBOTS][3] = {
     // x, y, th
@@ -100,7 +96,7 @@ namespace constants {
   constexpr double      FOUL_PA_THRESHOLD = 4.; // number of robots in penalty area
   constexpr double      FOUL_GA_THRESHOLD = 2.; // number of robots in goal area
   constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
-  constexpr double      DEADLOCK_THRESHOLD = 0.1; // m/s
+  constexpr double      DEADLOCK_THRESHOLD = 0.5; // m/s
 
   constexpr std::size_t NUM_COMMENTS = 5;
 
