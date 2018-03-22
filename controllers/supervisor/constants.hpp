@@ -91,12 +91,10 @@ namespace constants {
   constexpr std::size_t WAIT_END_MS      = 3  * 1000; // ms
   constexpr std::size_t DEFAULT_GAME_TIME_MS     = 300 * 1000; // ms
   constexpr std::size_t PERIOD_MS        = 50; // ms
-  constexpr std::size_t FOUL_PA_DURATION_MS = 5 * 1000; // ms
-  constexpr std::size_t FOUL_GA_DURATION_MS = 5 * 1000; // ms
-  constexpr double      FOUL_PA_THRESHOLD = 4.; // number of robots in penalty area
+  constexpr double      FOUL_PA_THRESHOLD = 3.; // number of robots in penalty area
   constexpr double      FOUL_GA_THRESHOLD = 2.; // number of robots in goal area
   constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
-  constexpr double      DEADLOCK_THRESHOLD = 0.5; // m/s
+  constexpr double      DEADLOCK_THRESHOLD = 0.25; // m/s
 
   constexpr std::size_t NUM_COMMENTS = 5;
 
