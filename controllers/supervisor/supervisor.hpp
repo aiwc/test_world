@@ -9,6 +9,7 @@
 #include "spsc_buffer.hpp"
 
 #include <webots/Camera.hpp>
+#include <webots/Receiver.hpp>
 #include <webots/Supervisor.hpp>
 
 #include <algorithm>
@@ -39,6 +40,7 @@ public:
   supervisor()
     : pn_cams_{getFromDef(constants::DEF_AUDVIEW), getFromDef(constants::DEF_CAMA), getFromDef(constants::DEF_CAMB)}
     , pc_cams_{getCamera(constants::NAME_CAMA), getCamera(constants::NAME_CAMB)}
+    , pr_recv_{getReceiver(constants::NAME_RECV)}
   {
     constexpr auto is_null = [](const auto* p) { return !p; };
 
@@ -48,9 +50,15 @@ public:
       throw std::runtime_error("No mandatory cam nodes exists in world");
     }
 
+    // check if recv node exists
+    if(pr_recv_ == NULL) {
+      throw std::runtime_error("No mandatory recv node exists in world");
+    }
+
     // control visibility to cams
     control_visibility();
     enable_cameras(constants::CAM_PERIOD_MS);
+    enable_receiver(constants::RECV_PERIOD_MS);
   }
 
   const unsigned char* get_image(bool is_red) const
@@ -140,6 +148,26 @@ public:
     const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
 
     return std::make_tuple(x, y, th);
+  }
+
+  std::array<std::array<bool,constants::NUMBER_OF_ROBOTS>,2> get_robot_touch_ball() const
+  {
+    bool rc[2][constants::NUMBER_OF_ROBOTS];
+    for (std::size_t i = 0; i < 2; i++)
+      for (std::size_t j = 0; j < constants::NUMBER_OF_ROBOTS; j++)
+        rc[i][j] = false;
+
+    while (pr_recv_->getQueueLength() > 0) {
+      const char *message = (const char *)pr_recv_->getData();
+      for (std::size_t i = 0; i < 2; i++)
+        for (std::size_t j = 0; j < constants::NUMBER_OF_ROBOTS; j++)
+          if ((int)message[i+2*j] == 1) {
+            rc[i][j] = true;
+          }
+      pr_recv_->nextPacket();
+    }
+
+    return {{{rc[0][0], rc[0][1], rc[0][2], rc[0][3], rc[0][4]}, {rc[1][0], rc[1][1], rc[1][2], rc[1][3], rc[1][4]}}};
   }
 
   void send_to_foulzone(bool is_red, std::size_t id)
@@ -258,9 +286,15 @@ private: // private member functions
     }
   }
 
+  void enable_receiver(std::size_t period_in_ms)
+  {
+    pr_recv_->enable(period_in_ms);
+  }
+
 private: // private member variables
   std::array<webots::Node*, 3> pn_cams_;
   std::array<webots::Camera*, 2> pc_cams_;
+  webots::Receiver* pr_recv_;
 };
 
 #endif // H_SUPERVISOR_HPP

@@ -723,7 +723,8 @@ void game::publish_current_frame(std::size_t reset_reason)
 {
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
-  std::array<std::array<std::tuple<double, double, double, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
+  const auto g_touch = sv_.get_robot_touch_ball();
+  std::array<std::array<std::tuple<double, double, double, bool, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       const auto r = sv_.get_robot_posture(team == T_RED, id);
@@ -731,6 +732,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<1>(g_robots[team][id]) = std::get<1>(r);
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
+      std::get<4>(g_robots[team][id]) = g_touch[team][id];
     }
   }
 

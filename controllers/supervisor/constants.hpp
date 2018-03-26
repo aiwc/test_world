@@ -21,6 +21,7 @@ namespace constants {
   const std::string DEF_STADIUM = "DEF_STADIUM";
   const std::string NAME_CAMA   = "cam_a";
   const std::string NAME_CAMB   = "cam_b";
+  const std::string NAME_RECV  = "recv";
 
   // these DEF names are for dynamically created node such as ball and robots
   const std::string DEF_BALL         = "DEF_BALL";
@@ -29,11 +30,12 @@ namespace constants {
   const std::string DEF_ROBOT_PREFIX = "DEF_ROBOT";
 
   // cams
-  constexpr std::size_t RESOLUTION_X  = 640;
-  constexpr std::size_t RESOLUTION_Y  = 480;
-  constexpr std::size_t SUBIMAGE_NX   = 40;
-  constexpr std::size_t SUBIMAGE_NY   = 40;
-  constexpr std::size_t CAM_PERIOD_MS = 50; // 20 fps = 50 ms
+  constexpr std::size_t RESOLUTION_X   = 640;
+  constexpr std::size_t RESOLUTION_Y   = 480;
+  constexpr std::size_t SUBIMAGE_NX    = 40;
+  constexpr std::size_t SUBIMAGE_NY    = 40;
+  constexpr std::size_t CAM_PERIOD_MS  = 50; // 20 fps = 50 ms
+  constexpr std::size_t RECV_PERIOD_MS = 50;
   constexpr std::size_t ESTIMATED_SUBIMAGE_SIZE = (RESOLUTION_X / SUBIMAGE_NX) * (RESOLUTION_Y / SUBIMAGE_NY) * 4 + 100;
 
   // Field Dimensions
@@ -91,8 +93,8 @@ namespace constants {
   constexpr std::size_t WAIT_END_MS      = 3  * 1000; // ms
   constexpr std::size_t DEFAULT_GAME_TIME_MS     = 300 * 1000; // ms
   constexpr std::size_t PERIOD_MS        = 50; // ms
-  constexpr double      FOUL_PA_THRESHOLD = 3.; // number of robots in penalty area
-  constexpr double      FOUL_GA_THRESHOLD = 2.; // number of robots in goal area
+  constexpr double      FOUL_PA_THRESHOLD = 4.; // number of robots in penalty area
+  constexpr double      FOUL_GA_THRESHOLD = 3.; // number of robots in goal area
   constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.25; // m/s
 

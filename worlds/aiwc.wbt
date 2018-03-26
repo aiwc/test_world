@@ -4,6 +4,7 @@
 
 WorldInfo {
   ERP 0.15
+  physics "collision_detector"
   basicTimeStep 10
   FPS 20
   optimalThreadCount 8
@@ -68,7 +69,6 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      bounce 0.75
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -78,7 +78,7 @@ WorldInfo {
     DEF body-body ContactProperties {
       material1 "body"
       material2 "body"
-      softERP 0.3
+      softERP 0
       softCFM 1e-7
       bumpSound ""
       rollSound ""
@@ -97,7 +97,6 @@ WorldInfo {
     DEF body-ball ContactProperties {
       material1 "body"
       material2 "ball"
-      bounce 0.75
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -108,7 +107,7 @@ WorldInfo {
       material1 "wheel"
       material2 "wheel"
       bounce 0
-      softERP 0.3
+      softERP 0
       softCFM 1e-7
       bumpSound ""
       rollSound ""
@@ -142,6 +141,9 @@ DirectionalLight {
 Referee {
   translation 0 12.72 0
   children [
+    DEF DEF_RECV Receiver {
+      name "recv"
+    }
     Transform {
       rotation 1 0 0 4.712389
       children [
