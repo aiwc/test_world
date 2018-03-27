@@ -18,11 +18,11 @@
   "commentator": {
     "name": "commentator",
     "executable": "",
-    "datapath": "examples/commentator"
+    "datapath": "examples/commentator_data"
   },
   "reporter": {
     "name": "reporter",
     "executable": "",
-    "datapath": "examples/reporter"
+    "datapath": "examples/reporter_data"
   }
 }
