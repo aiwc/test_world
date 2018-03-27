@@ -150,6 +150,17 @@ public:
     return std::make_tuple(x, y, th);
   }
 
+  double get_distance_from_ball(bool is_red, std::size_t id) const
+  {
+    const auto ball = get_ball_position();
+    const auto robot = get_robot_posture(is_red, id);
+
+    const double x = ball[0] - std::get<0>(robot);
+    const double y = ball[1] - std::get<1>(robot);
+
+    return std::sqrt(x*x + y*y);
+  }
+
   std::array<std::array<bool,constants::NUMBER_OF_ROBOTS>,2> get_robot_touch_ball() const
   {
     bool rc[2][constants::NUMBER_OF_ROBOTS];

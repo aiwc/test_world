@@ -1,7 +1,7 @@
 {
   "rule": {
     "game_time": 300,
-    "deadlock_reset": true,
+    "deadlock": true,
     "goal_area_foul": true,
     "penalty_area_foul": true
   },

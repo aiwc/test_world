@@ -42,7 +42,6 @@ WorldInfo {
         0.1
       ]
       bounce 0
-      bounceVelocity 1e-5
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -53,7 +52,7 @@ WorldInfo {
       material1 "wall"
       material2 "body"
       bounce 0
-      softERP 0.15
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -63,7 +62,7 @@ WorldInfo {
       material1 "wall"
       material2 "wheel"
       bounce 0
-      softERP 0.15
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -72,9 +71,9 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      bounce 0.25
-      softERP 0.15
-      softCFM 1e-5
+      bounce 0.5
+      softERP 0.8
+      softCFM 1e-9
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -102,7 +101,7 @@ WorldInfo {
     DEF body-ball ContactProperties {
       material1 "body"
       material2 "ball"
-      bounce 0.75
+      bounce 0.5
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -114,7 +113,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-5
       bumpSound ""
       rollSound ""
       slideSound ""
