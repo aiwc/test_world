@@ -74,8 +74,8 @@ PROTO SoccerRobot [
   field SFNode   wheelAppearance White { }
   field SFNode bodyPhysics Physics {
     density -1
-    mass 0.45
-    centerOfMass [0 -0.0373 0]
+    mass 0.75
+    centerOfMass [0 -0.025 0]
   }
   field SFNode wheelPhysics Physics {
     density -1
@@ -466,7 +466,7 @@ PROTO SoccerRobot [
         translation 0 %{=-h/2 + df}% %{=-(br - 2*df)}%
         children [
           Shape {
-            appearance IS tireAppearance
+            appearance IS bodyAppearance
             geometry Sphere {
               radius %{=df}%
               subdivision 1
@@ -485,7 +485,7 @@ PROTO SoccerRobot [
         translation 0 %{=-h/2 + df}% %{=br - 2*df}%
         children [
           Shape {
-            appearance IS tireAppearance
+            appearance IS bodyAppearance
             geometry Sphere {
               radius %{=df}%
               subdivision 1

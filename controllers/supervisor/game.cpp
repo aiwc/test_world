@@ -71,7 +71,15 @@ game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
     fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
   }
 
+  for(auto& fc : foul_opa_counter_) {
+    fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
+  }
+
   for(auto& fc : foul_ga_counter_) {
+    fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
+  }
+
+  for(auto& fc : foul_oga_counter_) {
     fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
   }
 }
@@ -526,6 +534,13 @@ void game::reset()
     }
   }
 
+  // reset in_opponent_penalty_area
+  for(auto& team_iopa : in_opponent_penalty_area_) {
+    for(auto& robot_iopa : team_iopa) {
+      robot_iopa = false;
+    }
+  }
+
   // reset in_goal_area
   for(auto& team_iga : in_goal_area_) {
     for(auto& robot_iga : team_iga) {
@@ -533,14 +548,26 @@ void game::reset()
     }
   }
 
+  // reset in_opponent_goal_area
+  for(auto& team_ioga : in_opponent_goal_area_) {
+    for(auto& robot_ioga : team_ioga) {
+      robot_ioga = false;
+    }
+  }
+
   stop_robots();
 
-  // reset foul counter
+  // reset foul counters
   for(auto& fc : foul_pa_counter_) {
     fc.clear();
   }
-
+  for(auto& fc : foul_opa_counter_) {
+    fc.clear();
+  }
   for(auto& fc : foul_ga_counter_) {
+    fc.clear();
+  }
+  for(auto& fc : foul_oga_counter_) {
     fc.clear();
   }
 
@@ -620,6 +647,40 @@ std::size_t game::count_robots_in_goal_area(bool is_red)
   return ret;
 }
 
+std::size_t game::count_robots_in_opponent_goal_area(bool is_red)
+{
+  std::size_t ret = 0;
+
+  constexpr auto is_in_opponent_goal = [](double x, double y) {
+    return (x > c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
+  };
+
+  constexpr auto is_in_opponent_goal_area = [](double x, double y) {
+    return
+    (x <= c::FIELD_LENGTH / 2)
+    && (x > c::FIELD_LENGTH / 2 - c::GOAL_AREA_DEPTH)
+    && (std::abs(y) < c::GOAL_AREA_WIDTH / 2);
+  };
+
+  for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+    const auto pos = sv_.get_robot_posture(is_red, id);
+    const double sign = is_red ? 1 : -1;
+
+    const auto x = sign * std::get<0>(pos);
+    const auto y = sign * std::get<1>(pos);
+
+    if(is_in_opponent_goal(x, y) || is_in_opponent_goal_area(x, y)) {
+      in_opponent_goal_area_[is_red ? T_RED : T_BLUE][id] = true;
+      ++ret;
+    }
+    else {
+      in_opponent_goal_area_[is_red ? T_RED : T_BLUE][id] = false;
+    }
+  }
+
+  return ret;
+}
+
 std::size_t game::count_robots_in_penalty_area(bool is_red)
 {
   std::size_t ret = 0;
@@ -654,11 +715,46 @@ std::size_t game::count_robots_in_penalty_area(bool is_red)
   return ret;
 }
 
+std::size_t game::count_robots_in_opponent_penalty_area(bool is_red)
+{
+  std::size_t ret = 0;
+
+  constexpr auto is_in_opponent_goal = [](double x, double y) {
+    return (x > c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
+  };
+
+  constexpr auto is_in_opponent_penalty_area = [](double x, double y) {
+    return
+    (x <= c::FIELD_LENGTH / 2)
+    && (x > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH)
+    && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2);
+  };
+
+  for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+    const auto pos = sv_.get_robot_posture(is_red, id);
+    const double sign = is_red ? 1 : -1;
+
+    const auto x = sign * std::get<0>(pos);
+    const auto y = sign * std::get<1>(pos);
+
+    if(is_in_opponent_goal(x, y) || is_in_opponent_penalty_area(x, y)) {
+      in_opponent_penalty_area_[is_red ? T_RED : T_BLUE][id] = true;
+      ++ret;
+    }
+    else {
+      in_opponent_penalty_area_[is_red ? T_RED : T_BLUE][id] = false;
+    }
+  }
+
+  return ret;
+}
+
 void game::publish_current_frame(std::size_t reset_reason)
 {
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
-  std::array<std::array<std::tuple<double, double, double, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
+  const auto g_touch = sv_.get_robot_touch_ball();
+  std::array<std::array<std::tuple<double, double, double, bool, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       const auto r = sv_.get_robot_posture(team == T_RED, id);
@@ -666,6 +762,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<1>(g_robots[team][id]) = std::get<1>(r);
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
+      std::get<4>(g_robots[team][id]) = g_touch[team][id];
     }
   }
 
@@ -772,7 +869,19 @@ void game::run_game()
     }
   }
 
+  for(auto& team_ipa : in_opponent_penalty_area_) {
+    for(auto& robot_ipa : team_ipa) {
+      robot_ipa = false;
+    }
+  }
+
   for(auto& team_iga : in_goal_area_) {
+    for(auto& robot_iga : team_iga) {
+      robot_iga = false;
+    }
+  }
+
+  for(auto& team_iga : in_opponent_goal_area_) {
     for(auto& robot_iga : team_iga) {
       robot_iga = false;
     }
@@ -811,7 +920,8 @@ void game::run_game()
     // check rules
     { // if a team scored
       const auto ball_x = std::get<0>(sv_.get_ball_position());
-      if(std::abs(ball_x) > c::FIELD_LENGTH / 2) {
+      const auto ball_y = std::get<1>(sv_.get_ball_position());
+      if((std::abs(ball_x) > c::FIELD_LENGTH / 2) && (std::abs(ball_y) < c::GOAL_WIDTH /2)) {
         ++score_[(ball_x > 0) ? T_RED : T_BLUE];
         update_label();
 
@@ -829,7 +939,7 @@ void game::run_game()
       }
     }
 
-    // if the ball is not moved for c::DEADLOCK_THRESHOLD
+    // if the ball is not moved for c::DEADLOCK_DURATION_MS
     if(reset_reason == c::NONE && deadlock_reset_flag_ == true) {
       if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
         deadlock_time_ = time_ms_;
@@ -850,32 +960,61 @@ void game::run_game()
     // if a team is blocking the goal area
     if (goal_area_foul_flag_ == true) {
       for(const auto& team : {T_RED, T_BLUE}) {
-        auto cnt_rbts_iga = count_robots_in_goal_area(team == T_RED);
-        foul_ga_counter_[team].push_back(cnt_rbts_iga);
+        {
+          auto cnt_rbts_iga = count_robots_in_goal_area(team == T_RED);
+          foul_ga_counter_[team].push_back(cnt_rbts_iga);
 
-        const auto sum = std::accumulate(std::cbegin(foul_ga_counter_[team]), std::cend(foul_ga_counter_[team]), (std::size_t)0);
-        if((cnt_rbts_iga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_ga_counter_[team].capacity())) {
-          std::mt19937 rng{std::random_device{}()};
-          std::uniform_int_distribution<std::size_t> dist(0, 4);
+          const auto sum = std::accumulate(std::cbegin(foul_ga_counter_[team]), std::cend(foul_ga_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_iga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_ga_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
 
-          auto& team_activeness = activeness_[team];
+            auto& team_activeness = activeness_[team];
 
-          if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
-                         [](const auto& is_active) { return is_active; })) {
-            for(;;) {
-              std::size_t id = dist(rng);
-              auto& is_active = activeness_[team][id];
-              auto& is_iga = in_goal_area_[team][id];
-              if(is_active && is_iga) {
-                is_active = false;
-                is_iga = false;
-                sv_.send_to_foulzone(team == T_RED, id);
-                break;
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_iga = in_goal_area_[team][id];
+                if(is_active && is_iga) {
+                  is_active = false;
+                  is_iga = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
               }
             }
+            foul_ga_counter_[team].clear();
           }
+        }
+        {
+          auto cnt_rbts_ioga = count_robots_in_opponent_goal_area(team == T_RED);
+          foul_oga_counter_[team].push_back(cnt_rbts_ioga);
 
-          foul_ga_counter_[team].clear();
+          const auto sum = std::accumulate(std::cbegin(foul_oga_counter_[team]), std::cend(foul_oga_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_ioga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_oga_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
+
+            auto& team_activeness = activeness_[team];
+
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_ioga = in_opponent_goal_area_[team][id];
+                if(is_active && is_ioga) {
+                  is_active = false;
+                  is_ioga = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
+              }
+            }
+            foul_oga_counter_[team].clear();
+          }
         }
       }
     }
@@ -883,32 +1022,61 @@ void game::run_game()
     // if a team is blocking the penalty area
     if (penalty_area_foul_flag_ == true) {
       for(const auto& team : {T_RED, T_BLUE}) {
-        auto cnt_rbts_ipa = count_robots_in_penalty_area(team == T_RED);
-        foul_pa_counter_[team].push_back(cnt_rbts_ipa);
+        {
+          auto cnt_rbts_ipa = count_robots_in_penalty_area(team == T_RED);
+          foul_pa_counter_[team].push_back(cnt_rbts_ipa);
 
-        const auto sum = std::accumulate(std::cbegin(foul_pa_counter_[team]), std::cend(foul_pa_counter_[team]), (std::size_t)0);
-        if((cnt_rbts_ipa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_pa_counter_[team].capacity())) {
-          std::mt19937 rng{std::random_device{}()};
-          std::uniform_int_distribution<std::size_t> dist(0, 4);
+          const auto sum = std::accumulate(std::cbegin(foul_pa_counter_[team]), std::cend(foul_pa_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_ipa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_pa_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
 
-          auto& team_activeness = activeness_[team];
+            auto& team_activeness = activeness_[team];
 
-          if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
-                         [](const auto& is_active) { return is_active; })) {
-            for(;;) {
-              std::size_t id = dist(rng);
-              auto& is_active = activeness_[team][id];
-              auto& is_ipa = in_penalty_area_[team][id];
-              if(is_active && is_ipa) {
-                is_active = false;
-                is_ipa = false;
-                sv_.send_to_foulzone(team == T_RED, id);
-                break;
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_ipa = in_penalty_area_[team][id];
+                if(is_active && is_ipa) {
+                  is_active = false;
+                  is_ipa = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
               }
             }
+            foul_pa_counter_[team].clear();
           }
+        }
+        {
+          auto cnt_rbts_iopa = count_robots_in_opponent_penalty_area(team == T_RED);
+          foul_opa_counter_[team].push_back(cnt_rbts_iopa);
 
-          foul_pa_counter_[team].clear();
+          const auto sum = std::accumulate(std::cbegin(foul_opa_counter_[team]), std::cend(foul_opa_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_iopa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_opa_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
+
+            auto& team_activeness = activeness_[team];
+
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_iopa = in_opponent_penalty_area_[team][id];
+                if(is_active && is_iopa) {
+                  is_active = false;
+                  is_iopa = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
+              }
+            }
+            foul_opa_counter_[team].clear();
+          }
         }
       }
     }
