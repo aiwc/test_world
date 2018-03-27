@@ -138,7 +138,7 @@ void game::run()
   //gets game rules from 'config.json' (if no rules specified, default options are given)
   {
     game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
-    deadlock_reset_flag_ = true;
+    deadlock_flag_ = true;
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
 
@@ -146,8 +146,8 @@ void game::run()
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
         game_time_ms_ = static_cast<size_t>(config_json["rule"]["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
 
-      if (config_json["rule"].HasMember("deadlock_reset") && config_json["rule"]["deadlock_reset"].IsBool())
-        deadlock_reset_flag_ = config_json["rule"]["deadlock_reset"].GetBool();
+      if (config_json["rule"].HasMember("deadlock") && config_json["rule"]["deadlock"].IsBool())
+        deadlock_flag_ = config_json["rule"]["deadlock"].GetBool();
 
       if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
         goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
@@ -160,7 +160,7 @@ void game::run()
 
     std::cout << "Rules:" << std::endl;
     std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
-    std::cout << "    deadlock reset - " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
+    std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
     std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
     std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl << std::endl;
   }
@@ -497,9 +497,7 @@ void game::step(std::size_t ms)
 
   for(std::size_t i = 0; i < ms / basic_time_step; ++i) {
     if(paused_.load()) {
-      // TEMPORARY_PATCH: Workaround for Webots R2018a's bug
-      // Calling setSFString() twice to same field in single step makes program fail
-      //stop_robots();
+      stop_robots();
     }
     else {
       send_speed();
@@ -571,6 +569,7 @@ void game::reset()
     fc.clear();
   }
 
+  deadlock_reset_time_ = time_ms_;
   deadlock_time_ = time_ms_;
 }
 
@@ -939,16 +938,14 @@ void game::run_game()
       }
     }
 
-    // if the ball is not moved for c::DEADLOCK_DURATION_MS
-    if(reset_reason == c::NONE && deadlock_reset_flag_ == true) {
+    // if the ball is not moved fast enough for c::DEADLOCK_RESET_MS
+    if(reset_reason == c::NONE && deadlock_flag_ == true) {
       if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
-        deadlock_time_ = time_ms_;
+        deadlock_reset_time_ = time_ms_;
       }
-      else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
+      else if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
         pause();
-        // TEMPORARY_PATCH: Workaround for Webots R2018a's bug
-        // Calling setSFString() twice to same field in single step makes program fail
-        // stop_robots();
+        stop_robots();
         reset();
         step(c::WAIT_STABLE_MS);
         resume();
@@ -1078,6 +1075,24 @@ void game::run_game()
             foul_opa_counter_[team].clear();
           }
         }
+      }
+    }
+
+    // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
+    if(deadlock_flag_ == true) {
+      if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
+        deadlock_time_ = time_ms_;
+      }
+      else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
+        for(const auto& team : {T_RED, T_BLUE}) {
+          for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+            if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
+              activeness_[team][id] = false;
+              sv_.send_to_foulzone(team == T_RED, id);
+            }
+          }
+        }
+        deadlock_time_ = time_ms_;
       }
     }
   }

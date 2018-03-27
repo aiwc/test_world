@@ -154,7 +154,7 @@ private:
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
   std::size_t game_time_ms_;
-  bool deadlock_reset_flag_;
+  bool deadlock_flag_;
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
 
@@ -174,6 +174,7 @@ private:
   std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
   std::array<boost::circular_buffer<std::size_t>, 2> foul_oga_counter_;
 
+  std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;

@@ -97,8 +97,10 @@ namespace constants {
   constexpr std::size_t FOUL_GA_DURATION_MS = 1 * 1000; // ms
   constexpr double      FOUL_PA_THRESHOLD = 4.; // number of robots in penalty area
   constexpr double      FOUL_GA_THRESHOLD = 3.; // number of robots in goal area
-  constexpr double      DEADLOCK_DURATION_MS  = 5 * 1000; // ms
-  constexpr double      DEADLOCK_THRESHOLD = 0.5; // m/s
+  constexpr std::size_t DEADLOCK_DURATION_MS  = 2 * 1000; // ms
+  constexpr std::size_t DEADLOCK_RESET_MS = 5 * 1000; // ms
+  constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
+  constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_RADIUS + BALL_RADIUS); // robots within this range near the ball are sent off
 
   constexpr std::size_t NUM_COMMENTS = 5;
 
