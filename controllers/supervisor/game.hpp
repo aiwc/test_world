@@ -161,13 +161,18 @@ private:
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_goal_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_goal_area_;
   std::atomic<bool> paused_{true};
 
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
+
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_pa_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_opa_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_oga_counter_;
 
   std::size_t deadlock_time_ = 0;
 
