@@ -38,6 +38,9 @@ WorldInfo {
     DEF floor-ball ContactProperties {
       material1 "floor"
       material2 "ball"
+      coulombFriction [
+        0.1
+      ]
       bounce 0
       bounceVelocity 1e-5
       softERP 0.15
@@ -69,6 +72,7 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
+      bounce 0.25
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -78,6 +82,7 @@ WorldInfo {
     DEF body-body ContactProperties {
       material1 "body"
       material2 "body"
+      bounce 0.25
       softERP 0
       softCFM 1e-7
       bumpSound ""
@@ -97,6 +102,7 @@ WorldInfo {
     DEF body-ball ContactProperties {
       material1 "body"
       material2 "ball"
+      bounce 0.75
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -117,7 +123,7 @@ WorldInfo {
       material1 "wheel"
       material2 "ball"
       bounce 0
-      softERP 0.15
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -203,6 +209,7 @@ DEF DEF_STADIUM Stadium {
 DEF DEF_BALL SoccerBall {
   translation 0 0.03 0
   contactMaterial "ball"
+  mass 0.0184
   shapes [
     DEF DEF_BALLSHAPE SoccerBallShape {
       radius 0.03
@@ -220,7 +227,7 @@ DEF DEF_ROBOTR0 SoccerRobot {
   name "R0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -234,7 +241,7 @@ DEF DEF_ROBOTR1 SoccerRobot {
   name "R1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -262,7 +269,7 @@ DEF DEF_ROBOTR2 SoccerRobot {
   name "R2"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -290,7 +297,7 @@ DEF DEF_ROBOTR3 SoccerRobot {
   name "R3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -317,7 +324,7 @@ DEF DEF_ROBOTR4 SoccerRobot {
   name "R4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -345,7 +352,7 @@ DEF DEF_ROBOTB0 SoccerRobot {
   name "B0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -371,7 +378,7 @@ DEF DEF_ROBOTB1 SoccerRobot {
   name "B1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -400,7 +407,7 @@ DEF DEF_ROBOTB2 SoccerRobot {
   name "B2"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -429,7 +436,7 @@ DEF DEF_ROBOTB3 SoccerRobot {
   name "B3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
@@ -458,7 +465,7 @@ DEF DEF_ROBOTB4 SoccerRobot {
   name "B4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 55
+  maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"

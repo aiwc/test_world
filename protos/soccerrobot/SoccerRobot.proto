@@ -75,7 +75,7 @@ PROTO SoccerRobot [
   field SFNode bodyPhysics Physics {
     density -1
     mass 0.75
-    centerOfMass [0 -0.0373 0]
+    centerOfMass [0 -0.025 0]
   }
   field SFNode wheelPhysics Physics {
     density -1

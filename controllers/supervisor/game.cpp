@@ -920,7 +920,8 @@ void game::run_game()
     // check rules
     { // if a team scored
       const auto ball_x = std::get<0>(sv_.get_ball_position());
-      if(std::abs(ball_x) > c::FIELD_LENGTH / 2) {
+      const auto ball_y = std::get<1>(sv_.get_ball_position());
+      if((std::abs(ball_x) > c::FIELD_LENGTH / 2) && (std::abs(ball_y) < c::GOAL_WIDTH /2)) {
         ++score_[(ball_x > 0) ? T_RED : T_BLUE];
         update_label();
 
@@ -938,7 +939,7 @@ void game::run_game()
       }
     }
 
-    // if the ball is not moved for c::DEADLOCK_THRESHOLD
+    // if the ball is not moved for c::DEADLOCK_DURATION_MS
     if(reset_reason == c::NONE && deadlock_reset_flag_ == true) {
       if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
         deadlock_time_ = time_ms_;
