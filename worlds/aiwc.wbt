@@ -3,7 +3,8 @@
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 WorldInfo {
-  ERP 0.05
+  ERP 0.15
+  physics "collision_detector"
   basicTimeStep 10
   FPS 20
   optimalThreadCount 8
@@ -18,6 +19,7 @@ WorldInfo {
         0
       ]
       bounce 0
+      softERP 0.15
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -27,6 +29,7 @@ WorldInfo {
       material1 "floor"
       material2 "wheel"
       bounce 0
+      softERP 0.15
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -35,8 +38,11 @@ WorldInfo {
     DEF floor-ball ContactProperties {
       material1 "floor"
       material2 "ball"
+      coulombFriction [
+        0.1
+      ]
       bounce 0
-      bounceVelocity 1e-5
+      softERP 0.15
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -46,6 +52,7 @@ WorldInfo {
       material1 "wall"
       material2 "body"
       bounce 0
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -55,6 +62,7 @@ WorldInfo {
       material1 "wall"
       material2 "wheel"
       bounce 0
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -63,7 +71,9 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      softCFM 1e-5
+      bounce 0.5
+      softERP 0.8
+      softCFM 1e-9
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -71,8 +81,9 @@ WorldInfo {
     DEF body-body ContactProperties {
       material1 "body"
       material2 "body"
-      bounce 0
-      softCFM 1e-5
+      bounce 0.25
+      softERP 0
+      softCFM 1e-7
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -81,7 +92,8 @@ WorldInfo {
       material1 "body"
       material2 "wheel"
       bounce 0
-      softCFM 1e-5
+      softERP 0.3
+      softCFM 1e-7
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -89,9 +101,10 @@ WorldInfo {
     DEF body-ball ContactProperties {
       material1 "body"
       material2 "ball"
-      bounce 0.25
+      bounce 0.5
+      softERP 0.15
       softCFM 1e-5
-      bumpSound "../sounds/ball.wav"
+      bumpSound ""
       rollSound ""
       slideSound ""
     }
@@ -99,6 +112,7 @@ WorldInfo {
       material1 "wheel"
       material2 "wheel"
       bounce 0
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -108,6 +122,7 @@ WorldInfo {
       material1 "wheel"
       material2 "ball"
       bounce 0
+      softERP 0
       softCFM 1e-5
       bumpSound ""
       rollSound ""
@@ -131,6 +146,9 @@ DirectionalLight {
 Referee {
   translation 0 12.72 0
   children [
+    DEF DEF_RECV Receiver {
+      name "recv"
+    }
     Transform {
       rotation 1 0 0 4.712389
       children [
@@ -153,6 +171,7 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
+  height 0.2
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
   }
   floorContactMaterial "floor"
@@ -161,6 +180,11 @@ SoccerField5v5 {
 DEF DEF_STADIUM Stadium {
   scale 1.65 1.65 1.65
   castShadows FALSE
+  bannerUrl [
+    "textures/cyberbotics.png"
+    "textures/hynix.png"
+    "textures/kaist.png"
+  ]
   goalPost [
     DEF DEF_GOALPOST Group {
       children [
@@ -184,6 +208,7 @@ DEF DEF_STADIUM Stadium {
 DEF DEF_BALL SoccerBall {
   translation 0 0.03 0
   contactMaterial "ball"
+  mass 0.0184
   shapes [
     DEF DEF_BALLSHAPE SoccerBallShape {
       radius 0.03
@@ -196,15 +221,13 @@ DEF DEF_BALL SoccerBall {
 DEF DEF_ROBOTR0 SoccerRobot {
   translation -0.4 0.0375 0.3
   rotation 0 1 0 -1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "R0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -212,15 +235,13 @@ DEF DEF_ROBOTR0 SoccerRobot {
 DEF DEF_ROBOTR1 SoccerRobot {
   translation -0.4 0.0375 -0.3
   rotation 0 1 0 -1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "R1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -242,15 +263,13 @@ DEF DEF_ROBOTR1 SoccerRobot {
 DEF DEF_ROBOTR2 SoccerRobot {
   translation -1 0.0375 0.6
   rotation 0 1 0 -1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "R2"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -272,15 +291,13 @@ DEF DEF_ROBOTR2 SoccerRobot {
 DEF DEF_ROBOTR3 SoccerRobot {
   translation -1 0.0375 -0.6
   rotation 0 1 0 -1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "R3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -301,15 +318,13 @@ DEF DEF_ROBOTR3 SoccerRobot {
 }
 DEF DEF_ROBOTR4 SoccerRobot {
   translation -1.8 0.0375 0
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "R4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -331,15 +346,13 @@ DEF DEF_ROBOTR4 SoccerRobot {
 DEF DEF_ROBOTB0 SoccerRobot {
   translation 0.4 0.0375 -0.3
   rotation 0 1 0 1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "B0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -359,15 +372,13 @@ DEF DEF_ROBOTB0 SoccerRobot {
 DEF DEF_ROBOTB1 SoccerRobot {
   translation 0.4 0.0375 0.3
   rotation 0 1 0 1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "B1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -390,15 +401,13 @@ DEF DEF_ROBOTB1 SoccerRobot {
 DEF DEF_ROBOTB2 SoccerRobot {
   translation 1 0.0375 -0.6
   rotation 0 1 0 1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "B2"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -421,15 +430,13 @@ DEF DEF_ROBOTB2 SoccerRobot {
 DEF DEF_ROBOTB3 SoccerRobot {
   translation 1 0.0375 0.6
   rotation 0 1 0 1.5708
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "B3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
@@ -452,15 +459,13 @@ DEF DEF_ROBOTB3 SoccerRobot {
 DEF DEF_ROBOTB4 SoccerRobot {
   translation 1.8 0.0375 0
   rotation 0 1 0 3.14159
-  lwTranslation -0.035 -0.0075 0
   lwRotation 1 0 0 1.5708
-  rwTranslation 0.035 -0.0075 0
   rwRotation 1 0 0 1.5708
   name "B4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 60
-  slipNoise 0
+  maxSpeed 50
+  slipNoise 0.05
   maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"

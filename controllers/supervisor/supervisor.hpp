@@ -9,6 +9,7 @@
 #include "spsc_buffer.hpp"
 
 #include <webots/Camera.hpp>
+#include <webots/Receiver.hpp>
 #include <webots/Supervisor.hpp>
 
 #include <algorithm>
@@ -39,6 +40,7 @@ public:
   supervisor()
     : pn_cams_{getFromDef(constants::DEF_AUDVIEW), getFromDef(constants::DEF_CAMA), getFromDef(constants::DEF_CAMB)}
     , pc_cams_{getCamera(constants::NAME_CAMA), getCamera(constants::NAME_CAMB)}
+    , pr_recv_{getReceiver(constants::NAME_RECV)}
   {
     constexpr auto is_null = [](const auto* p) { return !p; };
 
@@ -48,9 +50,15 @@ public:
       throw std::runtime_error("No mandatory cam nodes exists in world");
     }
 
+    // check if recv node exists
+    if(pr_recv_ == NULL) {
+      throw std::runtime_error("No mandatory recv node exists in world");
+    }
+
     // control visibility to cams
     control_visibility();
     enable_cameras(constants::CAM_PERIOD_MS);
+    enable_receiver(constants::RECV_PERIOD_MS);
   }
 
   const unsigned char* get_image(bool is_red) const
@@ -142,6 +150,37 @@ public:
     return std::make_tuple(x, y, th);
   }
 
+  double get_distance_from_ball(bool is_red, std::size_t id) const
+  {
+    const auto ball = get_ball_position();
+    const auto robot = get_robot_posture(is_red, id);
+
+    const double x = ball[0] - std::get<0>(robot);
+    const double y = ball[1] - std::get<1>(robot);
+
+    return std::sqrt(x*x + y*y);
+  }
+
+  std::array<std::array<bool,constants::NUMBER_OF_ROBOTS>,2> get_robot_touch_ball() const
+  {
+    bool rc[2][constants::NUMBER_OF_ROBOTS];
+    for (std::size_t i = 0; i < 2; i++)
+      for (std::size_t j = 0; j < constants::NUMBER_OF_ROBOTS; j++)
+        rc[i][j] = false;
+
+    while (pr_recv_->getQueueLength() > 0) {
+      const char *message = (const char *)pr_recv_->getData();
+      for (std::size_t i = 0; i < 2; i++)
+        for (std::size_t j = 0; j < constants::NUMBER_OF_ROBOTS; j++)
+          if ((int)message[i+2*j] == 1) {
+            rc[i][j] = true;
+          }
+      pr_recv_->nextPacket();
+    }
+
+    return {{{rc[0][0], rc[0][1], rc[0][2], rc[0][3], rc[0][4]}, {rc[1][0], rc[1][1], rc[1][2], rc[1][3], rc[1][4]}}};
+  }
+
   void send_to_foulzone(bool is_red, std::size_t id)
   {
     namespace c = constants;
@@ -191,13 +230,18 @@ private: // private member functions
     {
       auto* pn_ballshape = getFromDef(DEF_BALLSHAPE);
       auto* pn_orangeshape = getFromDef(DEF_ORANGESHAPE);
-      if(!pn_ballshape || !pn_orangeshape) {
-        throw std::runtime_error("No ball shape");
+      if(!pn_orangeshape) {
+        throw std::runtime_error("Missing mendatory ORANGESHAPE of BALL");
       }
 
-      pn_ballshape->setVisibility(pn_cams_[N_CAMA], false);
-      pn_ballshape->setVisibility(pn_cams_[N_CAMB], false);
-      pn_orangeshape->setVisibility(pn_cams_[N_VIEWPOINT], false);
+      if(pn_ballshape) {
+        pn_ballshape->setVisibility(pn_cams_[N_CAMA], false);
+        pn_ballshape->setVisibility(pn_cams_[N_CAMB], false);
+      }
+
+      if(pn_ballshape && pn_orangeshape) {
+        pn_orangeshape->setVisibility(pn_cams_[N_VIEWPOINT], false);
+      }
     }
 
     // Stadium is visible only to viewpoint, optional
@@ -217,18 +261,30 @@ private: // private member functions
 
           auto* pf_patches = pn_robot->getField("patches");
 
-          assert(pf_patches && (pf_patches->getCount() == 3));
+          assert(pf_patches && (pf_patches->getCount() == 2 || pf_patches->getCount() == 3));
 
-          auto* pn_number  = pf_patches->getMFNode(0);
-          auto* pn_id_red  = pf_patches->getMFNode(1);
-          auto* pn_id_blue = pf_patches->getMFNode(2);
+          //number patch for decoration exists
+          if (pf_patches->getCount() == 3) {
+            auto* pn_number  = pf_patches->getMFNode(0);
+            auto* pn_id_red  = pf_patches->getMFNode(1);
+            auto* pn_id_blue = pf_patches->getMFNode(2);
 
-          pn_number->setVisibility(pn_cams_[N_CAMA], false);
-          pn_number->setVisibility(pn_cams_[N_CAMB], false);
-          pn_id_red->setVisibility(pn_cams_[N_VIEWPOINT], false);
-          pn_id_red->setVisibility(pn_cams_[N_CAMB], false);
-          pn_id_blue->setVisibility(pn_cams_[N_VIEWPOINT], false);
-          pn_id_blue->setVisibility(pn_cams_[N_CAMA], false);
+            pn_number->setVisibility(pn_cams_[N_CAMA], false);
+            pn_number->setVisibility(pn_cams_[N_CAMB], false);
+            pn_id_red->setVisibility(pn_cams_[N_VIEWPOINT], false);
+            pn_id_red->setVisibility(pn_cams_[N_CAMB], false);
+            pn_id_blue->setVisibility(pn_cams_[N_VIEWPOINT], false);
+            pn_id_blue->setVisibility(pn_cams_[N_CAMA], false);
+          }
+          else { //no decorations
+            auto* pn_id_red = pf_patches->getMFNode(0);
+            auto* pn_id_blue = pf_patches->getMFNode(1);
+
+            pn_id_red->setVisibility(pn_cams_[N_VIEWPOINT], true);
+            pn_id_red->setVisibility(pn_cams_[N_CAMB], false);
+            pn_id_blue->setVisibility(pn_cams_[N_VIEWPOINT], false);
+            pn_id_blue->setVisibility(pn_cams_[N_CAMA], false);
+          }
         }
       }
     }
@@ -241,9 +297,15 @@ private: // private member functions
     }
   }
 
+  void enable_receiver(std::size_t period_in_ms)
+  {
+    pr_recv_->enable(period_in_ms);
+  }
+
 private: // private member variables
   std::array<webots::Node*, 3> pn_cams_;
   std::array<webots::Camera*, 2> pc_cams_;
+  webots::Receiver* pr_recv_;
 };
 
 #endif // H_SUPERVISOR_HPP

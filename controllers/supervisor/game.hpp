@@ -61,8 +61,8 @@ public:
 private:
   void connect_to_server();
 
-  void bootup_vm();
-  void terminate_vm();
+  void run_participant();
+  void terminate_participant();
 
   void update_label();
 
@@ -77,7 +77,9 @@ private:
   void send_speed(); // send wheel speed to the simulator
 
   std::size_t count_robots_in_goal_area(bool is_red);
+  std::size_t count_robots_in_opponent_goal_area(bool is_red);
   std::size_t count_robots_in_penalty_area(bool is_red);
+  std::size_t count_robots_in_opponent_penalty_area(bool is_red);
 
   void publish_current_frame(std::size_t reset_reason);
 
@@ -112,6 +114,8 @@ private:
   std::mutex events_mutex_;
   std::condition_variable events_cv_;
   std::deque<std::tuple<std::string, msgpack::object, msgpack::zone> > events_;
+
+  std::vector<std::string> report; // reporter's report if reporter exists
 
   struct team_info
   {
@@ -150,22 +154,27 @@ private:
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
   std::size_t game_time_ms_;
-  bool deadlock_reset_flag_;
+  bool deadlock_flag_;
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
 
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_goal_area_;
   std::atomic<bool> paused_{true};
 
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
 
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
   std::array<boost::circular_buffer<std::size_t>, 2> foul_pa_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_opa_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
+  std::array<boost::circular_buffer<std::size_t>, 2> foul_oga_counter_;
 
+  std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;

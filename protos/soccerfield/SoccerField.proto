@@ -1,6 +1,7 @@
 #VRML_SIM R2018a utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
 PROTO SoccerField [
   # fields inherited from Solid: Default values are set according to the corresponding default values of Solid

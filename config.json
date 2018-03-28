@@ -1,28 +1,28 @@
 {
   "rule": {
     "game_time": 300,
-    "deadlock_reset": true,
+    "deadlock": true,
     "goal_area_foul": true,
     "penalty_area_foul": true
   },
   "team_a": {
     "name": "teamA",
-    "executable": "examples/player_rulebased_cpp/player_rulebased",
+    "executable": "examples/player_rulebased_py/player_rulebased.py",
     "datapath": "examples/team_a_data"
   },
   "team_b": {
     "name": "teamB",
-    "executable": "examples/player_rulebased_cpp/player_rulebased",
+    "executable": "examples/player_rulebased_py/player_rulebased.py",
     "datapath": "examples/team_b_data"
   },
   "commentator": {
     "name": "commentator",
     "executable": "",
-    "datapath": "examples/commentator"
+    "datapath": "examples/commentator_data"
   },
   "reporter": {
     "name": "reporter",
     "executable": "",
-    "datapath": "examples/reporter"
+    "datapath": "examples/reporter_data"
   }
 }
