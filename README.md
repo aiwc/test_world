@@ -12,6 +12,10 @@ Method 1. Go to [releases](https://github.com/aiwc/test_world/releases) and down
 
 Method 2. Use following git command
 
+      ## Windows only. Carriage return will invalidate simulation files.
+      git config --global core.autocrlf false
+
+      ## Both Linux and Windows
       git clone https://github.com/aiwc/test_world.git --recurse-submodules
 
 **How to run the simulation program**
