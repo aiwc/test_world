@@ -1,9 +1,7 @@
 #VRML_SIM R2018a utf8
-#File:              SoccerRobotNumberPatch.proto
-#Date:              Jan. 23, 2018
-#Description:       AI soccer robot number patch proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
 PROTO SoccerRobotNumberPatch [
   # fields inherited from Shape
@@ -32,32 +30,21 @@ PROTO SoccerRobotNumberPatch [
   Solid {
     name IS name
     children [
-      DEF TEAMCOLOR Shape {
-        appearance Appearance {
-          texture ImageTexture {
-            %{
-              local color
-              if isTeamTagRed then color = 'red' else color = 'blue' end
-            }%
-            url [ "textures/%{=color}%_cylinder.png" ]
-          }
-        }
-        geometry Plane {
-          size %{=2*radius}% %{=2*radius}%
-        }
-      }
-      DEF TEAMNUMBER Transform {
-        translation 0 0.0001 0
+      DEF TEAMPATCH Transform {
         rotation 0 1 0 %{=-math.pi/2}%
         children [
           Shape {
             appearance Appearance {
               texture ImageTexture {
-                url [ "textures/%{=fields.id.value}%.png" ]
+                %{
+                  local color
+                  if isTeamTagRed then color = 'red' else color = 'blue' end
+                }%
+                url [ "textures/%{=color}%_%{=fields.id.value}%.png" ]
               }
             }
             geometry Plane {
-              size %{=scale*2*radius}% %{=scale*2*radius}%
+              size %{=2*radius}% %{=2*radius}%
             }
           }
         ]

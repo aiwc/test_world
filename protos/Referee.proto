@@ -1,9 +1,6 @@
 #VRML_SIM R2018a utf8
-#File:              Referee.proto
-#Date:              Jan. 23, 2018
-#Description:       Referee proto for AI World Cup
 #Author(s):         Inbae Jeong, Chansol Hong
-#Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO Referee [
   # fields inherited from Supervisor
@@ -18,36 +15,8 @@ PROTO Referee [
   field SFString   controller          ""
   field SFString   controllerArgs      ""
   field SFBool     synchronization     TRUE
-
-  # fields specific to Referee
-  field SFFloat    gameTime            300
-  field SFBool     deadlockReset       TRUE
-  field SFBool     goalAreaFoul        TRUE
-  field SFBool     penaltyAreaFoul     TRUE
-
-  field SFString   teamAName           "teamA"
-  field SFFloat    teamARating         0
-  field SFString   teamAExecutable     ""
-  field SFString   teamADataPath       ""
-
-  field SFString   teamBName           "teamB"
-  field SFFloat    teamBRating         0
-  field SFString   teamBExecutable     ""
-  field SFString   teamBDataPath       ""
-
-  field SFString   commentatorName       "commentator"
-  field SFString   commentatorExecutable ""
-  field SFString   commentatorDataPath   ""
-
-  field SFString   reporterName          "reporter"
-  field SFString   reporterExecutable    ""
-  field SFString   reporterDataPath      ""
 ]
 {
-  %{
-    # prevent error messages saying that parameters have no matching IS field
-  }%
-
   Supervisor {
     translation     IS translation
     rotation        IS rotation

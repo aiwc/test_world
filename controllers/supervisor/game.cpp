@@ -1,8 +1,5 @@
-// File:              game.cpp
-// Date:              Jan. 23, 2018
-// Description:       AI World Cup game management
 // Author(s):         Inbae Jeong, Chansol Hong
-// Current Developer: Chansol Hong (cshong@rit.kaist.ac.kr)
+// Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 #include "game.hpp"
 
@@ -12,6 +9,7 @@
 #include <random>
 #include <string>
 
+#include "rapidjson/document.h"
 #include <fstream>
 
 namespace c = constants;
@@ -64,14 +62,16 @@ namespace msgpack {
   } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
 } // namespace msgpack
 
-game::game(supervisor& sv)
+game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
-  , deadlock_reset_flag_(sv_.get_deadlock_reset_flag())
-  , goal_area_foul_flag_(sv_.get_goal_area_foul_flag())
-  , penalty_area_foul_flag_(sv_.get_penalty_area_foul_flag())
-  , game_time_ms_(sv_.get_game_time_ms())
+  , rs_port_(rs_port)
+  , uds_path_(uds_path)
 {
   for(auto& fc : foul_pa_counter_) {
+    fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
+  }
+
+  for(auto& fc : foul_opa_counter_) {
     fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
   }
 
@@ -79,9 +79,9 @@ game::game(supervisor& sv)
     fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
   }
 
-  std::cout << "   deadlock reset: " << (deadlock_reset_flag_ ? "on" : "off") << std::endl;
-  std::cout << "   goal area foul: " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
-  std::cout << "penalty area foul: " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
+  for(auto& fc : foul_oga_counter_) {
+    fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
+  }
 }
 
 void game::run()
@@ -121,29 +121,81 @@ void game::run()
       }
     });
 
-  // gets the teams' information from the matching server
-  // In test code we use static information
+  //open 'config.json' to read configurations
+  std::ifstream config_file("../../config.json");
+  if (!config_file)
+    throw std::runtime_error("Could not read 'config.json' configuration file.");
+
+  std::string buffer((std::istreambuf_iterator<char>(config_file)), std::istreambuf_iterator<char>());
+  config_file.close();
+
+  rapidjson::Document config_json;
+  config_json.Parse(buffer.c_str());
+
+  if (!config_json.IsObject())
+    throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
+
+  //gets game rules from 'config.json' (if no rules specified, default options are given)
+  {
+    game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
+    deadlock_flag_ = true;
+    goal_area_foul_flag_ = true;
+    penalty_area_foul_flag_ = true;
+
+    if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
+      if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
+        game_time_ms_ = static_cast<size_t>(config_json["rule"]["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
+
+      if (config_json["rule"].HasMember("deadlock") && config_json["rule"]["deadlock"].IsBool())
+        deadlock_flag_ = config_json["rule"]["deadlock"].GetBool();
+
+      if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
+        goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
+
+      if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
+        penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
+    }
+    else
+      std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
+
+    std::cout << "Rules:" << std::endl;
+    std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
+    std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
+    std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
+    std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl << std::endl;
+  }
+
+  const auto path_prefix = std::string("../../");
+
+  // gets the teams' information from 'config.json'
+  assert(config_json.HasMember("team_a") && config_json["team_a"].IsObject());
+  assert(config_json.HasMember("team_b") && config_json["team_b"].IsObject());
   for(const auto& team : {T_RED, T_BLUE}) {
-    const auto tup = sv_.get_team_info(team == T_RED);
-    const auto tup_op = sv_.get_team_info(team != T_RED);
+    const auto tc = ((team == T_RED) ? "team_a" : "team_b");
+    const auto tc_op = ((team != T_RED) ? "team_a" : "team_b");
 
     // my team
-    const std::string& name   = std::get<0>(tup);
-    const double&      rating = std::get<1>(tup);
-    const std::string& exe    = std::get<2>(tup);
-    const std::string& data   = std::get<3>(tup);
+    const std::string& name   = ((config_json[tc].HasMember("name") && config_json[tc]["name"].IsString()) ? config_json[tc]["name"].GetString() : "");
+    const double&      rating = 0; //rating is currently disabled
+    const std::string& exe    = ((config_json[tc].HasMember("executable") && config_json[tc]["executable"].IsString()) ? config_json[tc]["executable"].GetString() : "");
+    const std::string& data   = ((config_json[tc].HasMember("datapath") && config_json[tc]["datapath"].IsString()) ? config_json[tc]["datapath"].GetString() : "");
 
     // opponent
-    const std::string& name_op   = std::get<0>(tup_op);
-    const double&      rating_op = std::get<1>(tup_op);
+    const std::string& name_op   = ((config_json[tc_op].HasMember("name") && config_json[tc_op]["name"].IsString()) ? config_json[tc_op]["name"].GetString() : "");
+    const double&      rating_op = 0; //rating is currently disabled
 
     const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                 std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                std::make_tuple(name, rating, exe, data,
+                                                std::make_tuple(name, rating, path_prefix + exe, path_prefix + data,
                                                                 ROLE_PLAYER, team == T_RED)
                                                 );
 
     assert(ret.second);
+
+    std::cout << ((team == T_RED) ? "Team A: " : "Team B: ") << std::endl;
+    std::cout << "  team name - " << name << std::endl;
+    std::cout << " executable - " << exe << std::endl;
+    std::cout << "  data path - " << data << std::endl << std::endl;
 
     // create information for aiwc.get_info() in advance
     using map = msgpack::type::assoc_vector<std::string, msgpack::object>;
@@ -176,45 +228,59 @@ void game::run()
     info_[team] = msgpack::object(info, z_info_);
   }
 
-  // gets commentator information
-  {
-    const auto tup = sv_.get_commentator_info();
-
-    const std::string& name   = std::get<0>(tup);
-    const std::string& exe    = std::get<1>(tup);
-    const std::string& data   = std::get<2>(tup);
+  // gets commentator information from 'config.json' (commentator is optional)
+  if (config_json.HasMember("commentator") && config_json["commentator"].IsObject()) {
+    const std::string& name   = ((config_json["commentator"].HasMember("name") && config_json["commentator"]["name"].IsString()) ? config_json["commentator"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["commentator"].HasMember("executable") && config_json["commentator"]["executable"].IsString()) ? config_json["commentator"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["commentator"].HasMember("datapath") && config_json["commentator"]["datapath"].IsString()) ? config_json["commentator"]["datapath"].GetString() : "");
 
     if(!exe.empty()) {
       // commentator is treated as red team with rating 0
       const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                   std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, exe, data,
+                                                  std::make_tuple(name, 0, path_prefix + exe, data,
                                                                   ROLE_COMMENTATOR, true)
                                                   );
 
       assert(ret.second);
+
+      std::cout << "Commentator: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
     }
+    else
+      std::cout << "Commentator \"executable\" is missing: skipping commentator" << std::endl;
   }
+  else
+    std::cout << "\"commentator\" section of 'config.json' seems to be missing: skipping commentator" << std::endl;
 
-  // gets reporter information
-  {
-    const auto tup = sv_.get_reporter_info();
-
-    const std::string& name   = std::get<0>(tup);
-    const std::string& exe    = std::get<1>(tup);
-    const std::string& data   = std::get<2>(tup);
+  // gets reporter information from 'config.json' (reporter is optional)
+  if (config_json.HasMember("reporter") && config_json["reporter"].IsObject()) {
+    const std::string& name   = ((config_json["reporter"].HasMember("name") && config_json["reporter"]["name"].IsString()) ? config_json["reporter"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["reporter"].HasMember("executable") && config_json["reporter"]["executable"].IsString()) ? config_json["reporter"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["reporter"].HasMember("datapath") && config_json["reporter"]["datapath"].IsString()) ? config_json["reporter"]["datapath"].GetString() : "");
 
     if(!exe.empty()) {
       // reporter is treated as red team with rating 0
       const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                   std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, exe, data,
+                                                  std::make_tuple(name, 0, path_prefix + exe, data,
                                                                   ROLE_REPORTER, true)
                                                   );
 
       assert(ret.second);
+
+      std::cout << "Reporter: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
     }
+    else
+      std::cout << "Reporter \"executable\" is missing: skipping reporter" << std::endl;
   }
+  else
+    std::cout << "\"reporter\" section of 'config.json' seems to be missing: skipping reporter" << std::endl;
 
   // initialize promises and futures
   bootup_promise_ = {};
@@ -225,7 +291,7 @@ void game::run()
   connect_to_server();
 
   // bootup VMs & wait until app players boot up
-  bootup_vm();
+  run_participant();
   bootup_future.wait();
 
   // wait until 2 players are ready for c::WAIT_READY seconds
@@ -269,9 +335,17 @@ void game::run()
         }
       }
       catch(const webots_revert_exception& e) {
-        terminate_vm();
+        terminate_participant();
       }
     }
+  }
+
+  // save the report if anything has been written
+  if (report.size() > 0) {
+    std::ofstream rfile(std::string("../../reports/") + config_json["reporter"]["name"].GetString() + ".txt");
+    for (auto& line : report)
+      rfile << line << std::endl;
+    rfile.close();
   }
 
   // stop publishing and wait until publish thread stops
@@ -297,11 +371,11 @@ void game::connect_to_server()
 {
 
 #ifdef BOOST_ASIO_HAS_LOCAL_SOCKETS
-  boost::asio::local::stream_protocol::endpoint uds_endpoint(c::RS_PATH);
+  boost::asio::local::stream_protocol::endpoint uds_endpoint(uds_path_);
   transport_ = std::make_shared<autobahn::wamp_uds_transport>(io_, uds_endpoint);
 #else
-  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(constants::SERVER_IP),
-                                              constants::RS_PORT);
+  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(c::SERVER_IP),
+                                              rs_port_);
   transport_ = std::make_shared<autobahn::wamp_tcp_transport>(io_, tcp_endpoint);
 #endif
   session_   = std::make_shared<autobahn::wamp_session>(io_);
@@ -309,7 +383,7 @@ void game::connect_to_server()
 
   transport_->connect().get();
   session_->start().get();
-  session_->join(constants::REALM).get();
+  session_->join(c::REALM).get();
 
   // register calles
   session_->provide("aiwc.bootup",    [&](autobahn::wamp_invocation i) { return on_bootup(i); }).get();
@@ -320,11 +394,9 @@ void game::connect_to_server()
   session_->provide("aiwc.report",    [&](autobahn::wamp_invocation i) { return on_report(i); }).get();
 }
 
-void game::bootup_vm()
+void game::run_participant()
 {
-  // bootup VMs. replaced to process.
-
-  // send bootup signal. VM's startup script is supposed to do this.
+  // bootup PCs for participants. currently replaced by running a child process.
   std::vector<boost::future<autobahn::wamp_call_result> > bootup_futures;
   for(const auto& kv : player_team_infos_) {
     bootup_futures.emplace_back(session_->call("aiwc.bootup", std::make_tuple(kv.first)));
@@ -340,16 +412,33 @@ void game::bootup_vm()
       const auto& key = kv.first;
       auto& ti = kv.second;
 
-      // launch process
+      // launch participant process
       boost::filesystem::path p_exe = ti.executable;
-
+#ifdef _WIN32
+      // Windows needs an additional routine of directly calling 'python'
+      // and pass the script path as an argument to run python scripts
+      if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
+#endif
       ti.c = bp::child(bp::exe = ti.executable,
                        bp::args = {c::SERVER_IP,
-                           std::to_string(c::RS_PORT),
+                           std::to_string(rs_port_),
                            c::REALM,
                            key,
                            boost::filesystem::absolute(ti.datapath).string()},
                        bp::start_dir = p_exe.parent_path());
+#ifdef _WIN32
+      }
+      else { // if python script, enter special handler
+        ti.c = bp::child(bp::exe = bp::search_path("python").string(),
+                         bp::args = {ti.executable,
+                             c::SERVER_IP,
+                             std::to_string(rs_port_),
+                             c::REALM,
+                             key,
+                             boost::filesystem::absolute(ti.datapath).string()},
+                         bp::start_dir = p_exe.parent_path());
+      }
+#endif
     }
   }
   catch(const boost::process::process_error& err) {
@@ -360,11 +449,12 @@ void game::bootup_vm()
         ti.c.terminate();
       }
     }
+    std::cerr << err.what() << std::endl;
     throw std::runtime_error("one of the given executables does not exist, or cannot run");
   }
 }
 
-void game::terminate_vm()
+void game::terminate_participant()
 {
   for(auto& kv : player_team_infos_) {
     kv.second.c.terminate();
@@ -407,9 +497,7 @@ void game::step(std::size_t ms)
 
   for(std::size_t i = 0; i < ms / basic_time_step; ++i) {
     if(paused_.load()) {
-      // TEMPORARY_PATCH: Workaround for Webots R2018a's bug
-      // Calling setSFString() twice to same field in single step makes program fail
-      //stop_robots();
+      stop_robots();
     }
     else {
       send_speed();
@@ -444,6 +532,13 @@ void game::reset()
     }
   }
 
+  // reset in_opponent_penalty_area
+  for(auto& team_iopa : in_opponent_penalty_area_) {
+    for(auto& robot_iopa : team_iopa) {
+      robot_iopa = false;
+    }
+  }
+
   // reset in_goal_area
   for(auto& team_iga : in_goal_area_) {
     for(auto& robot_iga : team_iga) {
@@ -451,17 +546,30 @@ void game::reset()
     }
   }
 
+  // reset in_opponent_goal_area
+  for(auto& team_ioga : in_opponent_goal_area_) {
+    for(auto& robot_ioga : team_ioga) {
+      robot_ioga = false;
+    }
+  }
+
   stop_robots();
 
-  // reset foul counter
+  // reset foul counters
   for(auto& fc : foul_pa_counter_) {
     fc.clear();
   }
-
+  for(auto& fc : foul_opa_counter_) {
+    fc.clear();
+  }
   for(auto& fc : foul_ga_counter_) {
     fc.clear();
   }
+  for(auto& fc : foul_oga_counter_) {
+    fc.clear();
+  }
 
+  deadlock_reset_time_ = time_ms_;
   deadlock_time_ = time_ms_;
 }
 
@@ -538,6 +646,40 @@ std::size_t game::count_robots_in_goal_area(bool is_red)
   return ret;
 }
 
+std::size_t game::count_robots_in_opponent_goal_area(bool is_red)
+{
+  std::size_t ret = 0;
+
+  constexpr auto is_in_opponent_goal = [](double x, double y) {
+    return (x > c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
+  };
+
+  constexpr auto is_in_opponent_goal_area = [](double x, double y) {
+    return
+    (x <= c::FIELD_LENGTH / 2)
+    && (x > c::FIELD_LENGTH / 2 - c::GOAL_AREA_DEPTH)
+    && (std::abs(y) < c::GOAL_AREA_WIDTH / 2);
+  };
+
+  for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+    const auto pos = sv_.get_robot_posture(is_red, id);
+    const double sign = is_red ? 1 : -1;
+
+    const auto x = sign * std::get<0>(pos);
+    const auto y = sign * std::get<1>(pos);
+
+    if(is_in_opponent_goal(x, y) || is_in_opponent_goal_area(x, y)) {
+      in_opponent_goal_area_[is_red ? T_RED : T_BLUE][id] = true;
+      ++ret;
+    }
+    else {
+      in_opponent_goal_area_[is_red ? T_RED : T_BLUE][id] = false;
+    }
+  }
+
+  return ret;
+}
+
 std::size_t game::count_robots_in_penalty_area(bool is_red)
 {
   std::size_t ret = 0;
@@ -572,11 +714,46 @@ std::size_t game::count_robots_in_penalty_area(bool is_red)
   return ret;
 }
 
+std::size_t game::count_robots_in_opponent_penalty_area(bool is_red)
+{
+  std::size_t ret = 0;
+
+  constexpr auto is_in_opponent_goal = [](double x, double y) {
+    return (x > c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
+  };
+
+  constexpr auto is_in_opponent_penalty_area = [](double x, double y) {
+    return
+    (x <= c::FIELD_LENGTH / 2)
+    && (x > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH)
+    && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2);
+  };
+
+  for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+    const auto pos = sv_.get_robot_posture(is_red, id);
+    const double sign = is_red ? 1 : -1;
+
+    const auto x = sign * std::get<0>(pos);
+    const auto y = sign * std::get<1>(pos);
+
+    if(is_in_opponent_goal(x, y) || is_in_opponent_penalty_area(x, y)) {
+      in_opponent_penalty_area_[is_red ? T_RED : T_BLUE][id] = true;
+      ++ret;
+    }
+    else {
+      in_opponent_penalty_area_[is_red ? T_RED : T_BLUE][id] = false;
+    }
+  }
+
+  return ret;
+}
+
 void game::publish_current_frame(std::size_t reset_reason)
 {
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
-  std::array<std::array<std::tuple<double, double, double, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
+  const auto g_touch = sv_.get_robot_touch_ball();
+  std::array<std::array<std::tuple<double, double, double, bool, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       const auto r = sv_.get_robot_posture(team == T_RED, id);
@@ -584,6 +761,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<1>(g_robots[team][id]) = std::get<1>(r);
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
+      std::get<4>(g_robots[team][id]) = g_touch[team][id];
     }
   }
 
@@ -690,7 +868,19 @@ void game::run_game()
     }
   }
 
+  for(auto& team_ipa : in_opponent_penalty_area_) {
+    for(auto& robot_ipa : team_ipa) {
+      robot_ipa = false;
+    }
+  }
+
   for(auto& team_iga : in_goal_area_) {
+    for(auto& robot_iga : team_iga) {
+      robot_iga = false;
+    }
+  }
+
+  for(auto& team_iga : in_opponent_goal_area_) {
     for(auto& robot_iga : team_iga) {
       robot_iga = false;
     }
@@ -729,7 +919,8 @@ void game::run_game()
     // check rules
     { // if a team scored
       const auto ball_x = std::get<0>(sv_.get_ball_position());
-      if(std::abs(ball_x) > c::FIELD_LENGTH / 2) {
+      const auto ball_y = std::get<1>(sv_.get_ball_position());
+      if((std::abs(ball_x) > c::FIELD_LENGTH / 2) && (std::abs(ball_y) < c::GOAL_WIDTH /2)) {
         ++score_[(ball_x > 0) ? T_RED : T_BLUE];
         update_label();
 
@@ -747,16 +938,14 @@ void game::run_game()
       }
     }
 
-    // if the ball is not moved for c::DEADLOCK_THRESHOLD
-    if(reset_reason == c::NONE && deadlock_reset_flag_ == true) {
+    // if the ball is not moved fast enough for c::DEADLOCK_RESET_MS
+    if(reset_reason == c::NONE && deadlock_flag_ == true) {
       if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
-        deadlock_time_ = time_ms_;
+        deadlock_reset_time_ = time_ms_;
       }
-      else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
+      else if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
         pause();
-        // TEMPORARY_PATCH: Workaround for Webots R2018a's bug
-        // Calling setSFString() twice to same field in single step makes program fail
-        // stop_robots();
+        stop_robots();
         reset();
         step(c::WAIT_STABLE_MS);
         resume();
@@ -768,32 +957,61 @@ void game::run_game()
     // if a team is blocking the goal area
     if (goal_area_foul_flag_ == true) {
       for(const auto& team : {T_RED, T_BLUE}) {
-        auto cnt_rbts_iga = count_robots_in_goal_area(team == T_RED);
-        foul_ga_counter_[team].push_back(cnt_rbts_iga);
+        {
+          auto cnt_rbts_iga = count_robots_in_goal_area(team == T_RED);
+          foul_ga_counter_[team].push_back(cnt_rbts_iga);
 
-        const auto sum = std::accumulate(std::cbegin(foul_ga_counter_[team]), std::cend(foul_ga_counter_[team]), (std::size_t)0);
-        if((cnt_rbts_iga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_ga_counter_[team].capacity())) {
-          std::mt19937 rng{std::random_device{}()};
-          std::uniform_int_distribution<std::size_t> dist(0, 4);
+          const auto sum = std::accumulate(std::cbegin(foul_ga_counter_[team]), std::cend(foul_ga_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_iga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_ga_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
 
-          auto& team_activeness = activeness_[team];
+            auto& team_activeness = activeness_[team];
 
-          if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
-                         [](const auto& is_active) { return is_active; })) {
-            for(;;) {
-              std::size_t id = dist(rng);
-              auto& is_active = activeness_[team][id];
-              auto& is_iga = in_goal_area_[team][id];
-              if(is_active && is_iga) {
-                is_active = false;
-                is_iga = false;
-                sv_.send_to_foulzone(team == T_RED, id);
-                break;
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_iga = in_goal_area_[team][id];
+                if(is_active && is_iga) {
+                  is_active = false;
+                  is_iga = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
               }
             }
+            foul_ga_counter_[team].clear();
           }
+        }
+        {
+          auto cnt_rbts_ioga = count_robots_in_opponent_goal_area(team == T_RED);
+          foul_oga_counter_[team].push_back(cnt_rbts_ioga);
 
-          foul_ga_counter_[team].clear();
+          const auto sum = std::accumulate(std::cbegin(foul_oga_counter_[team]), std::cend(foul_oga_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_ioga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_oga_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
+
+            auto& team_activeness = activeness_[team];
+
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_ioga = in_opponent_goal_area_[team][id];
+                if(is_active && is_ioga) {
+                  is_active = false;
+                  is_ioga = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
+              }
+            }
+            foul_oga_counter_[team].clear();
+          }
         }
       }
     }
@@ -801,33 +1019,80 @@ void game::run_game()
     // if a team is blocking the penalty area
     if (penalty_area_foul_flag_ == true) {
       for(const auto& team : {T_RED, T_BLUE}) {
-        auto cnt_rbts_ipa = count_robots_in_penalty_area(team == T_RED);
-        foul_pa_counter_[team].push_back(cnt_rbts_ipa);
+        {
+          auto cnt_rbts_ipa = count_robots_in_penalty_area(team == T_RED);
+          foul_pa_counter_[team].push_back(cnt_rbts_ipa);
 
-        const auto sum = std::accumulate(std::cbegin(foul_pa_counter_[team]), std::cend(foul_pa_counter_[team]), (std::size_t)0);
-        if((cnt_rbts_ipa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_pa_counter_[team].capacity())) {
-          std::mt19937 rng{std::random_device{}()};
-          std::uniform_int_distribution<std::size_t> dist(0, 4);
+          const auto sum = std::accumulate(std::cbegin(foul_pa_counter_[team]), std::cend(foul_pa_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_ipa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_pa_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
 
-          auto& team_activeness = activeness_[team];
+            auto& team_activeness = activeness_[team];
 
-          if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
-                         [](const auto& is_active) { return is_active; })) {
-            for(;;) {
-              std::size_t id = dist(rng);
-              auto& is_active = activeness_[team][id];
-              auto& is_ipa = in_penalty_area_[team][id];
-              if(is_active && is_ipa) {
-                is_active = false;
-                is_ipa = false;
-                sv_.send_to_foulzone(team == T_RED, id);
-                break;
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_ipa = in_penalty_area_[team][id];
+                if(is_active && is_ipa) {
+                  is_active = false;
+                  is_ipa = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
               }
             }
+            foul_pa_counter_[team].clear();
           }
-
-          foul_pa_counter_[team].clear();
         }
+        {
+          auto cnt_rbts_iopa = count_robots_in_opponent_penalty_area(team == T_RED);
+          foul_opa_counter_[team].push_back(cnt_rbts_iopa);
+
+          const auto sum = std::accumulate(std::cbegin(foul_opa_counter_[team]), std::cend(foul_opa_counter_[team]), (std::size_t)0);
+          if((cnt_rbts_iopa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_opa_counter_[team].capacity())) {
+            std::mt19937 rng{std::random_device{}()};
+            std::uniform_int_distribution<std::size_t> dist(0, 4);
+
+            auto& team_activeness = activeness_[team];
+
+            if(std::any_of(std::begin(team_activeness), std::end(team_activeness),
+                           [](const auto& is_active) { return is_active; })) {
+              for(;;) {
+                std::size_t id = dist(rng);
+                auto& is_active = activeness_[team][id];
+                auto& is_iopa = in_opponent_penalty_area_[team][id];
+                if(is_active && is_iopa) {
+                  is_active = false;
+                  is_iopa = false;
+                  sv_.send_to_foulzone(team == T_RED, id);
+                  break;
+                }
+              }
+            }
+            foul_opa_counter_[team].clear();
+          }
+        }
+      }
+    }
+
+    // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
+    if(deadlock_flag_ == true) {
+      if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
+        deadlock_time_ = time_ms_;
+      }
+      else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
+        for(const auto& team : {T_RED, T_BLUE}) {
+          for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+            if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
+              activeness_[team][id] = false;
+              sv_.send_to_foulzone(team == T_RED, id);
+            }
+          }
+        }
+        deadlock_time_ = time_ms_;
       }
     }
   }
@@ -949,7 +1214,7 @@ void game::on_commentate(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
 
-  // if the caller is not a player, then error
+  // if the caller is not a commentator, then error
   auto it = player_team_infos_.find(caller);
   if((it == std::cend(player_team_infos_))
      || (it->second.role != ROLE_COMMENTATOR)
@@ -959,7 +1224,7 @@ void game::on_commentate(autobahn::wamp_invocation invocation)
   }
 
   std::unique_lock<std::mutex> lck(m_comments_);
-  comments_.push_back(invocation->argument<std::string>(1));
+  comments_.push_back((boost::format("[%.2f] ") % (time_ms_ / 1000.)).str() + invocation->argument<std::string>(1));
 
   invocation->empty_result();
 }
@@ -969,7 +1234,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
 {
   const auto caller      = invocation->argument<std::string>(0);
 
-  // if the caller is not a player, then error
+  // if the caller is not a reporter, then error
   auto it = player_team_infos_.find(caller);
   if((it == std::cend(player_team_infos_))
      || (it->second.role != ROLE_REPORTER)
@@ -978,7 +1243,7 @@ void game::on_report(autobahn::wamp_invocation invocation)
     return;
   }
 
-  const auto report = invocation->argument<std::vector<std::string>>(1);
+  report = invocation->argument<std::vector<std::string>>(1);
 
   // we will handle this report internally.
 
