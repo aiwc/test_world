@@ -1,6 +1,6 @@
 # AI World Cup Simulation
 
-The AI World Cup simulation environment for usage in local PCs. Participants of [AI World Cup](http://aiworldcup.org) can download the program to develop their own algorithm for AI Soccer, AI Commentator, or AI Reporter. After development, participants of [AI World Cup](http://aiworldcup.org) can upload their algorithm online and test against others' on server provided by us. The online simulation running on our server for test matches can be used through [AI World Cup Web Simulator page](http://aiworldcup.org/web-si).
+The AI World Cup simulation environment for usage in local PCs. Participants of [AI World Cup](http://aiworldcup.org) can download the program to develop their own algorithm for AI Soccer, AI Commentator, or AI Reporter. After development, participants of [AI World Cup](http://aiworldcup.org) can upload their algorithm online and test against others' on server provided by us. The online simulation running on our server for test matches can be used through [AI World Cup Web Simulator page](http://aiworldcup.org/web-si). As the qualifying/main rounds will be run in a same environment with the web simulation, please make sure that the developed program works in the web simulator.
 
 - There are two ways to download the AI World Cup simulation program.
 - AI World Cup simulation program requires Webots Robot Simulator. Please refer to Webots official website's [installation procedure](https://www.cyberbotics.com/doc/guide/installation-procedure) to install Webots.
