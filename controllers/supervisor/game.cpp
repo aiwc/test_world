@@ -463,6 +463,10 @@ void game::terminate_participant()
 
 void game::update_label()
 {
+  static int previous_update_time = 0;
+  if (time_ms_ - previous_update_time < 300)
+    return;
+  previous_update_time = time_ms_;
   sv_.setLabel(0,
                (boost::format("score %d:%d, time %.2f") % score_[0] % score_[1] % (time_ms_ / 1000.)).str(),
                0.4, 0.95, // x, y
