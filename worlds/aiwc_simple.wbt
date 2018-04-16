@@ -166,7 +166,6 @@ Referee {
       ]
     }
   ]
-  controller "supervisor"
 }
 SoccerField5v5 {
   height 0.2
@@ -191,7 +190,6 @@ DEF DEF_ROBOTR0 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "R0"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -214,7 +212,6 @@ DEF DEF_ROBOTR1 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "R1"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -239,7 +236,6 @@ DEF DEF_ROBOTR2 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "R2"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -264,7 +260,6 @@ DEF DEF_ROBOTR3 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "R3"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -288,7 +283,6 @@ DEF DEF_ROBOTR4 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "R4"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -313,7 +307,6 @@ DEF DEF_ROBOTB0 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "B0"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -336,7 +329,6 @@ DEF DEF_ROBOTB1 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "B1"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -361,7 +353,6 @@ DEF DEF_ROBOTB2 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "B2"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -386,7 +377,6 @@ DEF DEF_ROBOTB3 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "B3"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
@@ -411,7 +401,6 @@ DEF DEF_ROBOTB4 SoccerRobot {
   rwRotation 1 0 0 1.5708
   name "B4"
   customData "0 0"
-  controller "soccer_robot"
   maxSpeed 50
   slipNoise 0.05
   maxForce 0.1
