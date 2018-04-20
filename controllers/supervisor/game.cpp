@@ -15,6 +15,47 @@
 namespace c = constants;
 namespace bp = boost::process;
 
+#ifdef __linux__
+#include <ifaddrs.h>
+static void create_netfilter(std::size_t port, const std::string &filename, std::string &ip) {
+  // get ip address
+  struct ifaddrs *ifAddrStruct = NULL;
+  struct ifaddrs *ifa = NULL;
+  void * tmpAddrPtr = NULL;
+
+  getifaddrs(&ifAddrStruct);
+  for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+    if (!ifa->ifa_addr)
+      continue;
+    // check flags up and running but ignore loopback
+    if (!(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_RUNNING) || (ifa->ifa_flags & IFF_LOOPBACK))
+      continue;
+    if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
+      // is a valid IP4 Address
+      tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+      char addressBuffer[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+      ip = addressBuffer;
+      break;
+    }
+  }
+  if (ifAddrStruct != NULL)
+    freeifaddrs(ifAddrStruct);
+  
+  std::ofstream file(filename);
+  if (!file.is_open())
+    throw std::runtime_error("Could not write 'player.net' firejail netfiler.");
+  file << "*filter\n";
+  file << ":INPUT DROP [0:0]\n";
+  file << ":FORWARD DROP [0:0]\n";
+  file << ":OUTPUT DROP [0:0]\n\n";
+  file << "-I INPUT -p tcp -s " << ip << " --sport " << std::to_string(port) << " -j ACCEPT\n";
+  file << "-I OUTPUT -p tcp -d "<< ip << " --dport " << std::to_string(port) << " -j ACCEPT\n\n";
+  file << "COMMIT";
+  file.close();
+}
+#endif
+
 namespace /* anonymous */ {
 
   enum {
@@ -407,6 +448,16 @@ void game::run_participant()
     f.get();
   }
 
+  std::string firejail_command;
+  std::string ip = c::SERVER_IP;
+#ifdef __linux__
+  if (getenv("WEBOTS_FIREJAIL_CONTROLLERS") != NULL) {
+    // generate netfiler file and retrieve IP
+    create_netfilter(rs_port_, "player.net", ip);
+    firejail_command = "firejail --quiet --shell=none --nosound --net=br0 --netfilter=" + boost::filesystem::absolute("player.net").string() + " ";
+  }
+#endif
+
   try {
     for(auto& kv : player_team_infos_) {
       const auto& key = kv.first;
@@ -419,24 +470,26 @@ void game::run_participant()
       // and pass the script path as an argument to run python scripts
       if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
-      ti.c = bp::child(bp::exe = ti.executable,
-                       bp::args = {c::SERVER_IP,
-                           std::to_string(rs_port_),
-                           c::REALM,
-                           key,
-                           boost::filesystem::absolute(ti.datapath).string()},
-                       bp::start_dir = p_exe.parent_path());
+      std::string command = firejail_command +
+                            ti.executable + " " +
+                            ip + " " +
+                            std::to_string(rs_port_) + " " +
+                            c::REALM + " " +
+                            key + " " +
+                            boost::filesystem::absolute(ti.datapath).string();
+      ti.c = bp::child(command, bp::start_dir = p_exe.parent_path());
 #ifdef _WIN32
       }
       else { // if python script, enter special handler
-        ti.c = bp::child(bp::exe = bp::search_path("python").string(),
-                         bp::args = {ti.executable,
-                             c::SERVER_IP,
-                             std::to_string(rs_port_),
-                             c::REALM,
-                             key,
-                             boost::filesystem::absolute(ti.datapath).string()},
-                         bp::start_dir = p_exe.parent_path());
+        std::string command = firejail_command +
+                              bp::search_path("python").string() + " " +
+                              ti.executable + " " +
+                              ip + " " +
+                              std::to_string(rs_port_) + " " +
+                              c::REALM + " " +
+                              key + " " +
+                              boost::filesystem::absolute(ti.datapath).string();
+        ti.c = bp::child(command, bp::start_dir = p_exe.parent_path());
       }
 #endif
     }
