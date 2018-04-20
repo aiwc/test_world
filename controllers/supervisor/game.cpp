@@ -44,7 +44,7 @@ static void create_netfilter(std::size_t port, const std::string &filename, std:
   
   std::ofstream file(filename);
   if (!file.is_open())
-    throw std::runtime_error("Could not write 'player.net' firejail netfiler .");
+    throw std::runtime_error("Could not write 'player.net' firejail netfiler.");
   file << "*filter\n";
   file << ":INPUT DROP [0:0]\n";
   file << ":FORWARD DROP [0:0]\n";
