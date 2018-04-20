@@ -16,17 +16,45 @@ namespace c = constants;
 namespace bp = boost::process;
 
 #ifdef __linux__
-static void create_netfilter(const std::string &ip, std::size_t port, const std::string &filename) {
+#include <ifaddrs.h>
+static void create_netfilter(std::size_t port, const std::string &filename, std::string &ip) {
+  // get ip address
+  struct ifaddrs *ifAddrStruct = NULL;
+  struct ifaddrs *ifa = NULL;
+  void * tmpAddrPtr = NULL;
+
+  getifaddrs(&ifAddrStruct);
+  for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+    if (!ifa->ifa_addr) {
+      continue;
+    }
+    
+    // check flags up and running but ignore loopback
+    if (!(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_RUNNING) || (ifa->ifa_flags & IFF_LOOPBACK))
+      continue;
+    
+    if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
+      // is a valid IP4 Address
+      tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+      char addressBuffer[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+      ip = addressBuffer;
+      break;
+    }
+  }
+  if (ifAddrStruct != NULL)
+    freeifaddrs(ifAddrStruct);
+  
   std::ofstream file(filename);
   if (!file.is_open())
     throw std::runtime_error("Could not write 'player.net' firejail netfiler .");
   file << "*filter\n";
   file << ":INPUT DROP [0:0]\n";
   file << ":FORWARD DROP [0:0]\n";
-  file << ":OUTPUT ACCEPT [0:0]\n\n";
+  file << ":OUTPUT DROP [0:0]\n\n";
   std::string address = ip + ":" + std::to_string(port);
-  file << "-I INPUT -p tcp -s " << address << " -j ACCEPT\n";
-  file << "-I OUTPUT -p tcp -d " << address << " -j ACCEPT\n\n";
+  file << "-I INPUT -p tcp -s " << ip << " --sport " << std::to_string(port) << " -j ACCEPT\n";
+  file << "-I OUTPUT -p tcp -d "<< ip << " --dport " << std::to_string(port) << " -j ACCEPT\n\n";
   file << "COMMIT";
   file.close();
 }
@@ -81,7 +109,6 @@ namespace msgpack {
 
 game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
-  , rs_ip_("127.0.0.1")
   , rs_port_(rs_port)
   , uds_path_(uds_path)
 {
@@ -152,14 +179,6 @@ void game::run()
 
   if (!config_json.IsObject())
     throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
-  
-  //gets server ip from 'config.json'
-  if (config_json.HasMember("server") && config_json["server"].HasMember("ip")) {
-    if (config_json["server"]["ip"].IsString())
-      rs_ip_ = config_json["server"]["ip"].GetString();
-    else
-      std::cerr << "Value of 'server.ip' in config.json is invalid.\n"; 
-  }
 
   //gets game rules from 'config.json' (if no rules specified, default options are given)
   {
@@ -400,7 +419,7 @@ void game::connect_to_server()
   boost::asio::local::stream_protocol::endpoint uds_endpoint(uds_path_);
   transport_ = std::make_shared<autobahn::wamp_uds_transport>(io_, uds_endpoint);
 #else
-  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string("127.0.0.1"),
+  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(c::SERVER_IP),
                                               rs_port_);
   transport_ = std::make_shared<autobahn::wamp_tcp_transport>(io_, tcp_endpoint);
 #endif
@@ -434,9 +453,10 @@ void game::run_participant()
   }
 
   std::string firejail_command;
+  std::string ip = c::SERVER_IP;
 #ifdef __linux__
   if (getenv("WEBOTS_FIREJAIL_CONTROLLERS") != NULL) {
-    create_netfilter(rs_ip_, rs_port_, "player.net");
+    create_netfilter(rs_port_, "player.net", ip);
     firejail_command = "firejail --quiet --shell=none --nosound --net=br0 --netfilter=" + boost::filesystem::absolute("player.net").string() + " ";
   }
 #endif
@@ -456,7 +476,7 @@ void game::run_participant()
 
       std::string command = firejail_command +
                             ti.executable + " " +
-                            rs_ip_ + " " +
+                            ip + " " +
                             std::to_string(rs_port_) + " " +
                             c::REALM + " " +
                             key + " " +
@@ -468,7 +488,7 @@ void game::run_participant()
         std::string command = firejail_command +
                               bp::search_path("python").string() + " " +
                               ti.executable + " " +
-                              rs_ip_ + " " +
+                              ip + " " +
                               std::to_string(rs_port_) + " " +
                               c::REALM + " " +
                               key + " " +

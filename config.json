@@ -24,8 +24,5 @@
     "name": "reporter",
     "executable": "",
     "datapath": "../../examples/reporter_data"
-  },
-  "server": {
-    "ip": "127.0.0.1"
   }
 }

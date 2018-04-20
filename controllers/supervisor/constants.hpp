@@ -80,6 +80,7 @@ namespace constants {
   };
 
   // WAMP router settings
+  const std::string SERVER_IP = "127.0.0.1";
   const std::string REALM = "default";
 
   constexpr std::size_t KEY_LENGTH = 10;
