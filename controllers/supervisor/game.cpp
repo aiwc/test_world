@@ -15,6 +15,7 @@
 namespace c = constants;
 namespace bp = boost::process;
 
+#ifdef __linux__
 static void create_netfilter(const std::string &ip, std::size_t port, const std::string &filename) {
   std::ofstream file(filename);
   if (!file.is_open())
@@ -29,6 +30,7 @@ static void create_netfilter(const std::string &ip, std::size_t port, const std:
   file << "COMMIT";
   file.close();
 }
+#endif
 
 namespace /* anonymous */ {
 
@@ -428,10 +430,13 @@ void game::run_participant()
   }
 
   std::string firejail_command;
+#ifdef __linux__
+  std::cout << " WEBOTS_FIREJAIL_CONTROLLERS " << getenv("WEBOTS_FIREJAIL_CONTROLLERS");
   if (getenv("WEBOTS_FIREJAIL_CONTROLLERS") != NULL) {
     create_netfilter(rs_ip_, rs_port_, "player.net");
     firejail_command = "firejail --quiet --shell=none --nosound --net=br0 --netfilter=" + boost::filesystem::absolute("player.net").string() + " ";
   }
+#endif
 
   try {
     for(auto& kv : player_team_infos_) {
