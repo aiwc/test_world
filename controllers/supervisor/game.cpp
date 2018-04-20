@@ -154,8 +154,12 @@ void game::run()
     throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
   
   //gets server ip from 'config.json'
-  if (!config_json.HasMember("server") || !config_json["server"].HasMember("ip") || !config_json["server"]["ip"].IsString())
-    rs_ip_ = config_json["server"]["ip"].GetString();
+  if (config_json.HasMember("server") && config_json["server"].HasMember("ip")) {
+    if (config_json["server"]["ip"].IsString())
+      rs_ip_ = config_json["server"]["ip"].GetString();
+    else
+      std::cerr << "Value of 'server.ip' in config.json is invalid.\n"; 
+  }
 
   //gets game rules from 'config.json' (if no rules specified, default options are given)
   {
@@ -431,7 +435,6 @@ void game::run_participant()
 
   std::string firejail_command;
 #ifdef __linux__
-  std::cout << " WEBOTS_FIREJAIL_CONTROLLERS " << getenv("WEBOTS_FIREJAIL_CONTROLLERS");
   if (getenv("WEBOTS_FIREJAIL_CONTROLLERS") != NULL) {
     create_netfilter(rs_ip_, rs_port_, "player.net");
     firejail_command = "firejail --quiet --shell=none --nosound --net=br0 --netfilter=" + boost::filesystem::absolute("player.net").string() + " ";
