@@ -106,6 +106,7 @@ private:
 #endif
   std::shared_ptr<autobahn::wamp_session> session_;
 
+  std::string rs_ip_;
   std::size_t rs_port_;
   std::string uds_path_;
 

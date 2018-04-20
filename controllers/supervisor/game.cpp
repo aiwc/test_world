@@ -15,6 +15,21 @@
 namespace c = constants;
 namespace bp = boost::process;
 
+static void create_netfilter(const std::string &ip, std::size_t port, const std::string &filename) {
+  std::ofstream file(filename);
+  if (!file.is_open())
+    throw std::runtime_error("Could not write 'player.net' firejail netfiler .");
+  file << "*filter\n";
+  file << ":INPUT DROP [0:0]\n";
+  file << ":FORWARD DROP [0:0]\n";
+  file << ":OUTPUT ACCEPT [0:0]\n\n";
+  std::string address = ip + ":" + std::to_string(port);
+  file << "-I INPUT -p tcp -s " << address << " -j ACCEPT\n";
+  file << "-I OUTPUT -p tcp -d " << address << " -j ACCEPT\n\n";
+  file << "COMMIT";
+  file.close();
+}
+
 namespace /* anonymous */ {
 
   enum {
@@ -64,6 +79,7 @@ namespace msgpack {
 
 game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
+  , rs_ip_("127.0.0.1")
   , rs_port_(rs_port)
   , uds_path_(uds_path)
 {
@@ -134,6 +150,10 @@ void game::run()
 
   if (!config_json.IsObject())
     throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
+  
+  //gets server ip from 'config.json'
+  if (!config_json.HasMember("server") || !config_json["server"].HasMember("ip") || !config_json["server"]["ip"].IsString())
+    rs_ip_ = config_json["server"]["ip"].GetString();
 
   //gets game rules from 'config.json' (if no rules specified, default options are given)
   {
@@ -374,7 +394,7 @@ void game::connect_to_server()
   boost::asio::local::stream_protocol::endpoint uds_endpoint(uds_path_);
   transport_ = std::make_shared<autobahn::wamp_uds_transport>(io_, uds_endpoint);
 #else
-  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string(c::SERVER_IP),
+  boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address::from_string("127.0.0.1"),
                                               rs_port_);
   transport_ = std::make_shared<autobahn::wamp_tcp_transport>(io_, tcp_endpoint);
 #endif
@@ -407,6 +427,12 @@ void game::run_participant()
     f.get();
   }
 
+  std::string firejail_command;
+  if (getenv("WEBOTS_FIREJAIL_CONTROLLERS") != NULL) {
+    create_netfilter(rs_ip_, rs_port_, "player.net");
+    firejail_command = "firejail --quiet --shell=none --nosound --net=br0 --netfilter=" + boost::filesystem::absolute("player.net").string() + " ";
+  }
+
   try {
     for(auto& kv : player_team_infos_) {
       const auto& key = kv.first;
@@ -419,24 +445,27 @@ void game::run_participant()
       // and pass the script path as an argument to run python scripts
       if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
-      ti.c = bp::child(bp::exe = ti.executable,
-                       bp::args = {c::SERVER_IP,
-                           std::to_string(rs_port_),
-                           c::REALM,
-                           key,
-                           boost::filesystem::absolute(ti.datapath).string()},
-                       bp::start_dir = p_exe.parent_path());
+
+      std::string command = firejail_command +
+                            ti.executable + " " +
+                            rs_ip_ + " " +
+                            std::to_string(rs_port_) + " " +
+                            c::REALM + " " +
+                            key + " " +
+                            boost::filesystem::absolute(ti.datapath).string();
+      ti.c = bp::child(command, bp::start_dir = p_exe.parent_path());
 #ifdef _WIN32
       }
       else { // if python script, enter special handler
-        ti.c = bp::child(bp::exe = bp::search_path("python").string(),
-                         bp::args = {ti.executable,
-                             c::SERVER_IP,
-                             std::to_string(rs_port_),
-                             c::REALM,
-                             key,
-                             boost::filesystem::absolute(ti.datapath).string()},
-                         bp::start_dir = p_exe.parent_path());
+        std::string command = firejail_command +
+                              bp::search_path("python").string() + " " +
+                              ti.executable + " " +
+                              rs_ip_ + " " +
+                              std::to_string(rs_port_) + " " +
+                              c::REALM + " " +
+                              key + " " +
+                              boost::filesystem::absolute(ti.datapath).string();
+        ti.c = bp::child(command, bp::start_dir = p_exe.parent_path());
       }
 #endif
     }
