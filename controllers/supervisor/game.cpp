@@ -52,7 +52,6 @@ static void create_netfilter(std::size_t port, const std::string &filename, std:
   file << ":INPUT DROP [0:0]\n";
   file << ":FORWARD DROP [0:0]\n";
   file << ":OUTPUT DROP [0:0]\n\n";
-  std::string address = ip + ":" + std::to_string(port);
   file << "-I INPUT -p tcp -s " << ip << " --sport " << std::to_string(port) << " -j ACCEPT\n";
   file << "-I OUTPUT -p tcp -d "<< ip << " --dport " << std::to_string(port) << " -j ACCEPT\n\n";
   file << "COMMIT";
