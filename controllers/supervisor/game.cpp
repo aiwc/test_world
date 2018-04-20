@@ -25,14 +25,11 @@ static void create_netfilter(std::size_t port, const std::string &filename, std:
 
   getifaddrs(&ifAddrStruct);
   for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-    if (!ifa->ifa_addr) {
+    if (!ifa->ifa_addr)
       continue;
-    }
-    
     // check flags up and running but ignore loopback
     if (!(ifa->ifa_flags & IFF_UP) || !(ifa->ifa_flags & IFF_RUNNING) || (ifa->ifa_flags & IFF_LOOPBACK))
       continue;
-    
     if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
       // is a valid IP4 Address
       tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
@@ -455,6 +452,7 @@ void game::run_participant()
   std::string ip = c::SERVER_IP;
 #ifdef __linux__
   if (getenv("WEBOTS_FIREJAIL_CONTROLLERS") != NULL) {
+    // generate netfiler file and retrieve IP
     create_netfilter(rs_port_, "player.net", ip);
     firejail_command = "firejail --quiet --shell=none --nosound --net=br0 --netfilter=" + boost::filesystem::absolute("player.net").string() + " ";
   }
