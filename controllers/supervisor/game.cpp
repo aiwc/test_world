@@ -473,7 +473,6 @@ void game::run_participant()
       // and pass the script path as an argument to run python scripts
       if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
-
       std::string command = firejail_command +
                             ti.executable + " " +
                             ip + " " +
