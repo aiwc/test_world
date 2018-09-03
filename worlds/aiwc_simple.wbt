@@ -169,7 +169,8 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.2
+  height 0.8
+  robotCeiling 0.2
   grassSlot NULL
   floorContactMaterial "floor"
   wallContactMaterial "wall"
