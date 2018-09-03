@@ -1,9 +1,10 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2018b utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerField5v5 [
-  field SFFloat  height 0.12 # height of virtual ceiling
+  field SFFloat  height 0.24 # height of virtual ceiling
+  field SFFloat  robotCeiling 0.12 # height of virtual ceiling for the robots
   field SFFloat  floorLength 4.6
   field SFFloat  floorWidth 3.4
   field SFFloat  wallHeight 0.075
@@ -20,6 +21,7 @@ PROTO SoccerField5v5 [
     length 3.8
     width 2.7
     height IS height
+    robotCeiling IS robotCeiling
     cornerLength 0.1
     floorLength IS floorLength
     floorWidth IS floorWidth

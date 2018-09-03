@@ -1,4 +1,4 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2018b utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
@@ -171,7 +171,8 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.2
+  height 0.8
+  robotCeiling 0.2
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
   }
   floorContactMaterial "floor"
