@@ -101,7 +101,9 @@ namespace constants {
   constexpr std::size_t DEADLOCK_RESET_MS = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
   constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_RADIUS + BALL_RADIUS); // robots within this range near the ball are sent off
-  constexpr double      DEFAULT_MAX_METERS_RUN = 80.0; // maximum of 80 meters can be run by the robot
+  constexpr double      DEFAULT_MAX_METERS_ATTACK = 90.0; // maximum of 80 meters can be run by attackers
+  constexpr double      DEFAULT_MAX_METERS_DEFENSE = 70.0; // maximum of 80 meters can be run by defenders
+  constexpr double      DEFAULT_MAX_METERS_GOALIE = 50.0; // maximum of 80 meters can be run by the goalie
 
   constexpr std::size_t NUM_COMMENTS = 5;
 

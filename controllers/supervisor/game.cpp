@@ -141,7 +141,12 @@ void game::run()
     deadlock_flag_ = true;
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
-    max_meters_run_ = c::DEFAULT_MAX_METERS_RUN;
+
+    max_meters_run_[0] = c::DEFAULT_MAX_METERS_ATTACK;
+    max_meters_run_[1] = c::DEFAULT_MAX_METERS_ATTACK;
+    max_meters_run_[2] = c::DEFAULT_MAX_METERS_DEFENSE;
+    max_meters_run_[3] = c::DEFAULT_MAX_METERS_DEFENSE;
+    max_meters_run_[4] = c::DEFAULT_MAX_METERS_GOALIE;
 
     if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
@@ -156,8 +161,18 @@ void game::run()
       if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
         penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
 
-      if (config_json["rule"].HasMember("max_meters_run") && config_json["rule"]["max_meters_run"].IsNumber())
-        max_meters_run_ = config_json["rule"]["max_meters_run"].GetDouble();
+      if (config_json["rule"].HasMember("max_meters_attack") && config_json["rule"]["max_meters_attack"].IsNumber()) {
+        max_meters_run_[0] = config_json["rule"]["max_meters_attack"].GetDouble();
+        max_meters_run_[1] = config_json["rule"]["max_meters_attack"].GetDouble();
+      }
+
+      if (config_json["rule"].HasMember("max_meters_defense") && config_json["rule"]["max_meters_defense"].IsNumber()) {
+        max_meters_run_[2] = config_json["rule"]["max_meters_defense"].GetDouble();
+        max_meters_run_[3] = config_json["rule"]["max_meters_defense"].GetDouble();
+      }
+
+      if (config_json["rule"].HasMember("max_meters_goalie") && config_json["rule"]["max_meters_goalie"].IsNumber())
+        max_meters_run_[4] = config_json["rule"]["max_meters_goalie"].GetDouble();
     }
     else
       std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
@@ -167,7 +182,9 @@ void game::run()
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
     std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
     std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
-    std::cout << "    max meters run - " << max_meters_run_ << " seconds" << std::endl << std::endl;
+    std::cout << " max meters attack - " << max_meters_run_[0] << " seconds" << std::endl;
+    std::cout << "max meters defense - " << max_meters_run_[2] << " seconds" << std::endl;
+    std::cout << " max meters goalie - " << max_meters_run_[4] << " seconds" << std::endl << std::endl;
   }
 
   const auto path_prefix = std::string("../../");
@@ -518,14 +535,14 @@ void game::update_meters_run()
 
       if(activeness_[team][id] && stand) {
         meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
-        if(meters_run_[team][id] > max_meters_run_)
+        if(meters_run_[team][id] > max_meters_run_[id])
           activeness_[team][id] = false;
       }
     }
   }
 
   sv_.setLabel(25,
-               (boost::format("Max available: %.2f m\nRed 0: %.2f m\nRed 4: %.2f m") % max_meters_run_ % meters_run_[0][0] % meters_run_[0][4]).str(),
+               (boost::format("Max available: %.2f m, %.2f m, %.2f m\nRed 0: %.2f m\nRed 2: %.2f m\nRed 4: %.2f m") % max_meters_run_[0] % max_meters_run_[2] %max_meters_run_[4] % meters_run_[0][0] % meters_run_[0][2] % meters_run_[0][4]).str(),
                0, 0, // x, y
                0.08, 0x00000000, // size, color
                0, "Arial" // transparency, font

@@ -159,7 +159,7 @@ private:
   bool deadlock_flag_;
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
-  double max_meters_run_;
+  std::array<double, constants::NUMBER_OF_ROBOTS> max_meters_run_;
 
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
