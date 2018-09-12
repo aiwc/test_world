@@ -3,7 +3,8 @@
     "game_time": 300,
     "deadlock": true,
     "goal_area_foul": true,
-    "penalty_area_foul": true
+    "penalty_area_foul": true,
+    "max_meters_run": 30.0
   },
   "team_a": {
     "name": "teamA",

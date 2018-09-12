@@ -141,6 +141,7 @@ void game::run()
     deadlock_flag_ = true;
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
+    max_meters_run_ = c::DEFAULT_MAX_METERS_RUN;
 
     if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
@@ -154,6 +155,9 @@ void game::run()
 
       if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
         penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
+
+      if (config_json["rule"].HasMember("max_meters_run") && config_json["rule"]["max_meters_run"].IsNumber())
+        max_meters_run_ = config_json["rule"]["max_meters_run"].GetDouble();
     }
     else
       std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
@@ -162,7 +166,8 @@ void game::run()
     std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
     std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
-    std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl << std::endl;
+    std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
+    std::cout << "    max meters run - " << max_meters_run_ << " seconds" << std::endl << std::endl;
   }
 
   const auto path_prefix = std::string("../../");
@@ -217,6 +222,7 @@ void game::run()
     info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
     info.emplace_back("codewords",  msgpack::object(c::CODEWORDS, z_info_));
     info.emplace_back("game_time",   msgpack::object(game_time_ms_ / 1000., z_info_));
+    info.emplace_back("max_meters_run", msgpack::object(max_meters_run_, z_info_));
 
     info.emplace_back("team_info",
                       msgpack::object(std::make_tuple(map{std::make_pair("name",   msgpack::object(name, z_info_)),
@@ -483,8 +489,51 @@ void game::update_label()
   }
 }
 
+void game::save_current_pos()
+{
+  for(const auto& team : {T_RED, T_BLUE}) {
+    auto is_red = team == T_RED;
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      const auto pos = sv_.get_robot_posture(is_red, id);
+
+      prev_pos_[team][id] = pos;
+    }
+  }
+}
+
+void game::update_meters_run()
+{
+  for(const auto& team : {T_RED, T_BLUE}) {
+    auto is_red = team == T_RED;
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      const auto pos = sv_.get_robot_posture(is_red, id);
+
+      const auto x = std::get<0>(pos);
+      const auto y = std::get<1>(pos);
+
+      const auto stand = std::get<3>(pos);
+
+      const auto prev_x = std::get<0>(prev_pos_[team][id]);
+      const auto prev_y = std::get<1>(prev_pos_[team][id]);
+
+      if(activeness_[team][id] && stand) {
+        meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
+        if(meters_run_[team][id] > max_meters_run_)
+          activeness_[team][id] = false;
+      }
+    }
+  }
+
+  sv_.setLabel(25,
+               (boost::format("Max available: %.2f m\nRed 0: %.2f m\nRed 4: %.2f m") % max_meters_run_ % meters_run_[0][0] % meters_run_[0][4]).str(),
+               0, 0, // x, y
+               0.08, 0x00000000, // size, color
+               0, "Arial" // transparency, font
+               );
+}
+
 // game state control functions
-void game::step(std::size_t ms)
+void game::step(std::size_t ms, bool update)
 {
   // we assume that world.basicTimeStep doesn't change and the given 'ms' is multiple of the basic time step
   const std::size_t basic_time_step = static_cast<std::size_t>(sv_.getBasicTimeStep());
@@ -503,6 +552,10 @@ void game::step(std::size_t ms)
       send_speed();
       time_ms_ += basic_time_step;
     }
+
+    if(update)
+      update_meters_run();
+    save_current_pos();
 
     update_label();
     step_throw_if_revert(basic_time_step);
@@ -753,7 +806,7 @@ void game::publish_current_frame(std::size_t reset_reason)
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
   const auto g_touch = sv_.get_robot_touch_ball();
-  std::array<std::array<std::tuple<double, double, double, bool, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
+  std::array<std::array<std::tuple<double, double, double, bool, bool, double>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       const auto r = sv_.get_robot_posture(team == T_RED, id);
@@ -762,6 +815,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
       std::get<4>(g_robots[team][id]) = g_touch[team][id];
+      std::get<5>(g_robots[team][id]) = meters_run_[team][id];
     }
   }
 
@@ -886,12 +940,18 @@ void game::run_game()
     }
   }
 
+  for(auto& team_mr : meters_run_) {
+    for(auto& robot_mr : team_mr) {
+      robot_mr = 0.0;
+    }
+  }
+
   update_label();
 
   // reset and wait 1s for stabilizing
   pause();
   reset();
-  step(c::WAIT_STABLE_MS);
+  step(c::WAIT_STABLE_MS, false);
 
   resume();
   publish_current_frame(c::GAME_START);
@@ -900,7 +960,7 @@ void game::run_game()
   auto reset_reason = c::NONE;
 
   for(;;) {
-    step(c::PERIOD_MS);
+    step(c::PERIOD_MS, true);
     update_label();
 
     // special case: game ended. finish the game without checking game rules.
@@ -908,7 +968,7 @@ void game::run_game()
       publish_current_frame(c::GAME_END);
       pause();
       stop_robots();
-      step(c::WAIT_END_MS);
+      step(c::WAIT_END_MS, false);
       return;
     }
 
@@ -927,11 +987,11 @@ void game::run_game()
         // stop all and wait for c::WAIT_GOAL seconds
         pause();
         stop_robots();
-        step(c::WAIT_GOAL_MS);
+        step(c::WAIT_GOAL_MS, false);
 
         // reset and wait until stabilized
         reset();
-        step(c::WAIT_STABLE_MS);
+        step(c::WAIT_STABLE_MS, false);
         resume();
 
         reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
@@ -947,7 +1007,7 @@ void game::run_game()
         pause();
         stop_robots();
         reset();
-        step(c::WAIT_STABLE_MS);
+        step(c::WAIT_STABLE_MS, false);
         resume();
 
         reset_reason = c::DEADLOCK;
