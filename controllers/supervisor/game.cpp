@@ -148,6 +148,12 @@ void game::run()
     max_meters_run_[3] = c::DEFAULT_MAX_METERS_DEFENSE;
     max_meters_run_[4] = c::DEFAULT_MAX_METERS_GOALIE;
 
+    for (int i = 0; i < 2; i++)
+      for (unsigned int j = 0; j < c::NUMBER_OF_ROBOTS; j++) {
+        // stop_time_[i][j] = 0;
+        exhausted_[i][j] = false;
+    }
+
     if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
         game_time_ms_ = static_cast<size_t>(config_json["rule"]["game_time"].GetDouble() * 1000) / c::PERIOD_MS * c::PERIOD_MS;
@@ -535,18 +541,23 @@ void game::update_meters_run()
 
       if(activeness_[team][id] && stand) {
         meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
-        if(meters_run_[team][id] > max_meters_run_[id])
+        if(meters_run_[team][id] > max_meters_run_[id]) {
           activeness_[team][id] = false;
+          exhausted_[team][id] = true;
+          //sv_.send_to_foulzone(is_red, id);
+          // if(stop_time_[team][id] == 0)
+          //   stop_time_[team][id] = time_ms_ / 1000.;
+        }
       }
     }
   }
 
-  sv_.setLabel(25,
-               (boost::format("Max available: %.2f m, %.2f m, %.2f m\nRed 0: %.2f m\nRed 2: %.2f m\nRed 4: %.2f m") % max_meters_run_[0] % max_meters_run_[2] %max_meters_run_[4] % meters_run_[0][0] % meters_run_[0][2] % meters_run_[0][4]).str(),
-               0, 0, // x, y
-               0.08, 0x00000000, // size, color
-               0, "Arial" // transparency, font
-               );
+  // sv_.setLabel(25,
+  //              (boost::format("Max available: %.2f m, %.2f m, %.2f m\nRed 0[%.2f]: %.2f m\nRed 2[%.2f]: %.2f m\nRed 4[%.2f]: %.2f m") % max_meters_run_[0] % max_meters_run_[2] %max_meters_run_[4] % stop_time_[0][0] % meters_run_[0][0] % stop_time_[0][2] % meters_run_[0][2] % stop_time_[0][4] % meters_run_[0][4]).str(),
+  //              0, 0, // x, y
+  //              0.08, 0x00000000, // size, color
+  //              0, "Arial" // transparency, font
+  //              );
 }
 
 // game state control functions
@@ -592,6 +603,17 @@ void game::reset()
   for(auto& team_activeness : activeness_) {
     for(auto& robot_activeness : team_activeness) {
       robot_activeness = true;
+    }
+  }
+
+  // check stamina status and send exhausted robots out
+  for(const auto& team : {T_RED, T_BLUE}) {
+    auto is_red = team == T_RED;
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      if(exhausted_[team][id]) {
+        activeness_[team][id] = false;
+        sv_.send_to_foulzone(is_red, id);
+      }
     }
   }
 
@@ -982,6 +1004,16 @@ void game::run_game()
 
     // special case: game ended. finish the game without checking game rules.
     if(time_ms_ >= game_time_ms_) {
+      publish_current_frame(c::GAME_END);
+      pause();
+      stop_robots();
+      step(c::WAIT_END_MS, false);
+      return;
+    }
+
+    // special case 2: all robots are exhausted. finish the game without checking game rules.
+    if(std::all_of(std::begin(exhausted_[0]), std::end(exhausted_[0]), [](const auto& is_exhausted) { return is_exhausted; })
+     &&std::all_of(std::begin(exhausted_[1]), std::end(exhausted_[1]), [](const auto& is_exhausted) { return is_exhausted; })) {
       publish_current_frame(c::GAME_END);
       pause();
       stop_robots();
