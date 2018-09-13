@@ -541,7 +541,8 @@ void game::update_meters_run()
 
       if(activeness_[team][id] && stand) {
         meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
-        if(meters_run_[team][id] > max_meters_run_[id]) {
+        if(meters_run_[team][id] >= max_meters_run_[id]) {
+          meters_run_[team][id] = max_meters_run_[id];
           activeness_[team][id] = false;
           exhausted_[team][id] = true;
           //sv_.send_to_foulzone(is_red, id);
@@ -553,11 +554,43 @@ void game::update_meters_run()
   }
 
   // sv_.setLabel(25,
-  //              (boost::format("Max available: %.2f m, %.2f m, %.2f m\nRed 0[%.2f]: %.2f m\nRed 2[%.2f]: %.2f m\nRed 4[%.2f]: %.2f m") % max_meters_run_[0] % max_meters_run_[2] %max_meters_run_[4] % stop_time_[0][0] % meters_run_[0][0] % stop_time_[0][2] % meters_run_[0][2] % stop_time_[0][4] % meters_run_[0][4]).str(),
+  //              (boost::format("Max available: %.2f m, %.2f m, %.2f m") % max_meters_run_[0] % max_meters_run_[2] % max_meters_run_[4]).str(),
   //              0, 0, // x, y
   //              0.08, 0x00000000, // size, color
   //              0, "Arial" // transparency, font
   //              );
+  //
+  // sv_.setLabel(26,
+  //              (boost::format("Red 0[%.2f]: %.2f m\nRed 1[%.2f]: %.2f m\nRed 2[%.2f]: %.2f m\nRed 3[%.2f]: %.2f m\nRed 4[%.2f]: %.2f m") % stop_time_[0][0] % meters_run_[0][0] % stop_time_[0][1] % meters_run_[0][1] % stop_time_[0][2] % meters_run_[0][2] % stop_time_[0][3] % meters_run_[0][3] % stop_time_[0][4] % meters_run_[0][4]).str(),
+  //              0, 0.04, // x, y
+  //              0.08, 0x00000000, // size, color
+  //              0, "Arial" // transparency, font
+  //              );
+  //
+  // sv_.setLabel(27,
+  //             (boost::format("Blue 0[%.2f]: %.2f m\nBlue 1[%.2f]: %.2f m\nBlue 2[%.2f]: %.2f m\nBlue 3[%.2f]: %.2f m\nBlue 4[%.2f]: %.2f m") % stop_time_[1][0] % meters_run_[1][0] % stop_time_[1][1] % meters_run_[1][1] % stop_time_[1][2] % meters_run_[1][2] % stop_time_[1][3] % meters_run_[1][3] % stop_time_[1][4] % meters_run_[1][4]).str(),
+  //             0.77, 0.04, // x, y
+  //             0.08, 0x00000000, // size, color
+  //             0, "Arial" // transparency, font
+  //             );
+}
+
+// apply penalty to robots sent out
+void game::apply_penalty(bool is_red, std::size_t id)
+{
+  auto team = (is_red ? T_RED : T_BLUE);
+  if (!exhausted_[team][id]) {
+    meters_run_[team][id] += c::DEFAULT_PENALTY_RATIO * max_meters_run_[id];
+
+    if (meters_run_[team][id] >= max_meters_run_[id]) {
+      meters_run_[team][id] = max_meters_run_[id];
+      activeness_[team][id] = false;
+      exhausted_[team][id] = true;
+      //sv_.send_to_foulzone(is_red, id);
+      // if(stop_time_[team][id] == 0)
+      //   stop_time_[team][id] = time_ms_ / 1000.;
+    }
+  }
 }
 
 // game state control functions
@@ -1086,6 +1119,7 @@ void game::run_game()
                 if(is_active && is_iga) {
                   is_active = false;
                   is_iga = false;
+                  apply_penalty(team == T_RED, id);
                   sv_.send_to_foulzone(team == T_RED, id);
                   break;
                 }
@@ -1114,6 +1148,7 @@ void game::run_game()
                 if(is_active && is_ioga) {
                   is_active = false;
                   is_ioga = false;
+                  apply_penalty(team == T_RED, id);
                   sv_.send_to_foulzone(team == T_RED, id);
                   break;
                 }
@@ -1148,6 +1183,7 @@ void game::run_game()
                 if(is_active && is_ipa) {
                   is_active = false;
                   is_ipa = false;
+                  apply_penalty(team == T_RED, id);
                   sv_.send_to_foulzone(team == T_RED, id);
                   break;
                 }
@@ -1176,6 +1212,7 @@ void game::run_game()
                 if(is_active && is_iopa) {
                   is_active = false;
                   is_iopa = false;
+                  apply_penalty(team == T_RED, id);
                   sv_.send_to_foulzone(team == T_RED, id);
                   break;
                 }
@@ -1197,6 +1234,7 @@ void game::run_game()
           for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
             if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
               activeness_[team][id] = false;
+              apply_penalty(team == T_RED, id);
               sv_.send_to_foulzone(team == T_RED, id);
             }
           }

@@ -67,6 +67,7 @@ private:
   void save_current_pos();
   void update_meters_run();
   void update_label();
+  void apply_penalty(bool is_red, std::size_t id);
 
   // game state control functions
   void step(std::size_t ms, bool update); // throw webots_revert_exception when webots reverts
