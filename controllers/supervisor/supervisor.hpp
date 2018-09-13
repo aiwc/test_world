@@ -136,18 +136,20 @@ public:
   }
 
   //         x       y       th
-  std::tuple<double, double, double> get_robot_posture(bool is_red, std::size_t id) const
+  std::tuple<double, double, double, bool> get_robot_posture(bool is_red, std::size_t id) const
   {
     webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
 
     const double* position = pn_robot->getPosition();
     const double* orientation = pn_robot->getOrientation();
+    const double* rotation = pn_robot->getField("rotation")->getSFRotation();
 
     const double x = position[0];
     const double y = -position[2];
     const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
+    const double stand = rotation[1] > 0.8;
 
-    return std::make_tuple(x, y, th);
+    return std::make_tuple(x, y, th, stand);
   }
 
   double get_distance_from_ball(bool is_red, std::size_t id) const
