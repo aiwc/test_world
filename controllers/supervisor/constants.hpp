@@ -19,6 +19,7 @@ namespace constants {
   const std::string DEF_CAMB    = "DEF_CAMB";
   const std::string DEF_GRASS   = "DEF_GRASS";
   const std::string DEF_STADIUM = "DEF_STADIUM";
+  const std::string DEF_WALL    = "DEF_WALL";
   const std::string NAME_CAMA   = "cam_a";
   const std::string NAME_CAMB   = "cam_b";
   const std::string NAME_RECV  = "recv";

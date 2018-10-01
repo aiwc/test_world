@@ -3,34 +3,47 @@
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO SoccerField5v5 [
-  field SFFloat  height 0.24 # height of virtual ceiling
+  field SFFloat  fieldLength 3.8
+  field SFFloat  fieldWidth 2.7
   field SFFloat  robotCeiling 0.12 # height of virtual ceiling for the robots
+  field SFFloat  ballCeiling 0.24 # height of virtual ceiling for the ball
   field SFFloat  floorLength 4.6
   field SFFloat  floorWidth 3.4
-  field SFFloat  wallHeight 0.075
-  field SFFloat  wallThickness 0.025
   field SFNode   floorAppearance Black { }
-  field SFNode   wallAppearance Gray { }
   field SFFloat  lineThickness 0.01
+  field MFNode   soccerFieldWall [
+    DEF DEF_WALL Group {
+      children [
+        SoccerFieldWall {
+          length 3.8
+          width 2.7
+          height 0.24
+          cornerLength 0.1
+          goalWidth 0.6
+          goalDepth 0.15
+          wallHeight 0.075
+          wallThickness 0.025
+          wallAppearance Gray { }
+          wallContactMaterial "default"
+        }
+      ]
+    }
+  ]
   field SFNode   grassSlot SoccerFieldGrass { }
   field SFString floorContactMaterial "default"
-  field SFString wallContactMaterial  "default"
 ]
 {
   SoccerField {
-    length 3.8
-    width 2.7
-    height IS height
+    fieldLength IS fieldLength
+    fieldWidth IS fieldWidth
     robotCeiling IS robotCeiling
-    cornerLength 0.1
+    ballCeiling IS ballCeiling
+
     floorLength IS floorLength
     floorWidth IS floorWidth
-    goalWidth 0.6
-    goalDepth 0.15
-    wallHeight IS wallHeight
-    wallThickness IS wallThickness
+    floorThickness IS wallThickness
+
     floorAppearance IS floorAppearance
-    wallAppearance IS wallAppearance
 
     centerDotRadius 0.01
     centerCircleRadius 0.35
@@ -46,8 +59,9 @@ PROTO SoccerField5v5 [
     lineThickness IS lineThickness
     lineHeight 0.003
 
+    soccerFieldWall IS soccerFieldWall
+
     grassSlot IS grassSlot
     floorContactMaterial IS floorContactMaterial
-    wallContactMaterial IS wallContactMaterial
   }
 }

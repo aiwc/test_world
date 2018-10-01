@@ -169,11 +169,23 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.8
   robotCeiling 0.2
+  ballCeiling 0.8
+  soccerFieldWall Group {
+    children [
+      DEF DEF_WALL SoccerFieldWall {
+        length 3.8
+        width 2.7
+        cornerLength 0.1
+        goalWidth 0.6
+        wallHeight 0.075
+        wallAppearance Gray { }
+        wallContactMaterial "wall"
+      }
+    ]
+  }
   grassSlot NULL
   floorContactMaterial "floor"
-  wallContactMaterial "wall"
 }
 DEF DEF_BALL SoccerBall {
   translation 0 0.03 0

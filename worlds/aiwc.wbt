@@ -171,12 +171,24 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.8
   robotCeiling 0.2
+  ballCeiling 0.8
+  soccerFieldWall Group {
+    children [
+      DEF DEF_WALL SoccerFieldWall {
+        length 3.8
+        width 2.7
+        cornerLength 0.1
+        goalWidth 0.6
+        wallHeight 0.075
+        wallAppearance Gray { }
+        wallContactMaterial "wall"
+      }
+    ]
+  }
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
   }
   floorContactMaterial "floor"
-  wallContactMaterial "wall"
 }
 DEF DEF_STADIUM Stadium {
   scale 1.65 1.65 1.65
@@ -190,15 +202,15 @@ DEF DEF_STADIUM Stadium {
     DEF DEF_GOALPOST Group {
       children [
         Goalpost {
-          translation -1.24 0 0
-          scale 0.88 0.88 0.88
+          translation -1.22 0 0
+          scale 0.79 0.79 0.79
           castShadows IS castShadows
           name "goalpost_left"
         }
         Goalpost {
-          translation 1.24 0 0
+          translation 1.22 0 0
           rotation 0 1 0 3.141592635
-          scale 0.88 0.88 0.88
+          scale 0.79 0.79 0.79
           castShadows IS castShadows
           name "goalpost_right"
         }
