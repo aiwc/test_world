@@ -252,14 +252,23 @@ private: // private member functions
       if(pn_stadium) {
         pn_stadium->setVisibility(pn_cams_[N_CAMA], false);
         pn_stadium->setVisibility(pn_cams_[N_CAMB], false);
-
-        // Wall is visible only to robots
-        {
-          auto* pn_wall = getFromDef(DEF_WALL);
-          if (pn_wall) {
-            pn_wall->setVisibility(pn_cams_[N_VIEWPOINT], false);
-          }
-        }
+      }
+    }
+    
+    // Wall is visible only to robots
+    {
+      auto* pn_wall = getFromDef(DEF_WALL);
+      if (pn_wall) {
+        pn_wall->setVisibility(pn_cams_[N_VIEWPOINT], false);
+      }
+    }
+    
+    // VisualWall is visible only to viewpoint, optional
+    {
+      auto* pn_viswall = getFromDef(DEF_VISWALL);
+      if (pn_viswall) {
+        pn_viswall->setVisibility(pn_cams_[N_CAMA], false);
+        pn_viswall->setVisibility(pn_cams_[N_CAMB], false);
       }
     }
 

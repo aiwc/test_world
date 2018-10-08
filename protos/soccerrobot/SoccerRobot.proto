@@ -57,7 +57,7 @@ PROTO SoccerRobot [
   field SFFloat  wheelTireThickness 0.0
 
   field SFFloat  bodyRadius     0.0575
-  field SFFloat  bodySubdivision 24
+  field SFFloat  bodySubdivision 4
   field SFFloat  wheelVisibleRatio 0.75
 
   field SFFloat  weightThickness 0.01
@@ -463,7 +463,7 @@ PROTO SoccerRobot [
         }
       }
       DEF FRONTSUPPORT Solid {
-        translation 0 %{=-h/2 + df}% %{=-(br - 2*df)}%
+        translation 0 %{=-h/2 + df}% %{=-(0.5*math.sqrt(2)*br - 2*df)}%
         children [
           Shape {
             appearance IS bodyAppearance
@@ -482,7 +482,7 @@ PROTO SoccerRobot [
         }
       }
       DEF REARSUPPORT Solid {
-        translation 0 %{=-h/2 + df}% %{=br - 2*df}%
+        translation 0 %{=-h/2 + df}% %{=0.5*math.sqrt(2)*br - 2*df}%
         children [
           Shape {
             appearance IS bodyAppearance
@@ -522,13 +522,11 @@ PROTO SoccerRobot [
     contactMaterial     IS bodyContactMaterial
     immersionProperties IS immersionProperties
     boundingObject Transform {
-      translation 0 %{=df / 2}% 0
-      rotation 0 1 0 %{=math.pi / bs}%
+      translation 0 %{=df/2}% 0
+      rotation 0 1 0 0
       children [
-        Cylinder {
-          height %{=h - df}%
-          radius %{=br}%
-          subdivision %{=bs}%
+        Box {
+          size %{=math.sqrt(2)*br}% %{=h - df}% %{=math.sqrt(2)*br}%
         }
       ]
     }

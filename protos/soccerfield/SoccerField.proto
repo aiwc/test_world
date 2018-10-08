@@ -52,6 +52,11 @@ PROTO SoccerField [
         SoccerFieldWall { }
       ]
     }
+    DEF DEF_VISWALL Group {
+      children [
+        VisualWall { }
+      ]
+    }
   ]
 
   field SFNode   grassSlot NULL

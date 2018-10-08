@@ -132,7 +132,7 @@ WorldInfo {
 }
 DEF DEF_AUDVIEW Viewpoint {
   orientation -1 0 0 0.8910057735495215
-  position 0 6.839949869285961 5.658156540652288
+  position 0 4.34854 3.64432
 }
 Background {
   skyColor [
@@ -184,39 +184,20 @@ SoccerField5v5 {
         wallAppearance Gray { }
         wallContactMaterial "wall"
       }
+      DEF DEF_VISWALL VisualWall {
+        length 3.8
+        width 2.7
+        goalWidth 0.6
+        bannerBehind TRUE
+        cornerLength 0.1
+        gpTranslation 2.0082
+        gpScale 1.3157
+      }
     ]
   }
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
   }
   floorContactMaterial "floor"
-}
-DEF DEF_STADIUM Stadium {
-  scale 1.65 1.65 1.65
-  castShadows FALSE
-  bannerUrl [
-    "textures/cyberbotics.png"
-    "textures/hynix.png"
-    "textures/kaist.png"
-  ]
-  goalPost [
-    DEF DEF_GOALPOST Group {
-      children [
-        Goalpost {
-          translation -1.22 0 0
-          scale 0.79 0.79 0.79
-          castShadows IS castShadows
-          name "goalpost_left"
-        }
-        Goalpost {
-          translation 1.22 0 0
-          rotation 0 1 0 3.141592635
-          scale 0.79 0.79 0.79
-          castShadows IS castShadows
-          name "goalpost_right"
-        }
-      ]
-    }
-  ]
 }
 DEF DEF_BALL SoccerBall {
   translation 0 0.03 0

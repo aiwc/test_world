@@ -5,28 +5,33 @@
 PROTO SoccerField5v5 [
   field SFFloat  fieldLength 3.8
   field SFFloat  fieldWidth 2.7
-  field SFFloat  robotCeiling 0.12 # height of virtual ceiling for the robots
-  field SFFloat  ballCeiling 0.24 # height of virtual ceiling for the ball
+  field SFFloat  robotCeiling 0.2 # height of virtual ceiling for the robots
+  field SFFloat  ballCeiling 0.8 # height of virtual ceiling for the ball
   field SFFloat  floorLength 4.6
   field SFFloat  floorWidth 3.4
   field SFNode   floorAppearance Black { }
   field SFFloat  lineThickness 0.01
   field MFNode   soccerFieldWall [
-    DEF DEF_WALL Group {
-      children [
-        SoccerFieldWall {
-          length 3.8
-          width 2.7
-          height 0.24
-          cornerLength 0.1
-          goalWidth 0.6
-          goalDepth 0.15
-          wallHeight 0.075
-          wallThickness 0.025
-          wallAppearance Gray { }
-          wallContactMaterial "default"
-        }
-      ]
+    DEF DEF_WALL SoccerFieldWall {
+      length 3.8
+      width 2.7
+      height 0.24
+      cornerLength 0.1
+      goalWidth 0.6
+      goalDepth 0.15
+      wallHeight 0.075
+      wallThickness 0.025
+      wallAppearance Gray { }
+      wallContactMaterial "default"
+    }
+    DEF DEF_VISWALL VisualWall {
+      length 3.8
+      width 2.7
+      goalWidth 0.6
+      bannerBehind TRUE
+      cornerLength 0.1
+      gpTranslation 2.0082
+      gpScale 1.3157
     }
   ]
   field SFNode   grassSlot SoccerFieldGrass { }
