@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <string>
 
 namespace constants {
@@ -54,9 +55,9 @@ namespace constants {
   constexpr double BALL_RADIUS = 0.03;
 
   // Robot Dimensions
-  constexpr double ROBOT_SIZE = 0.115; //DEPRECATED: will be removed on future release
+  constexpr double ROBOT_SIZE = 0.115;
   constexpr double ROBOT_HEIGHT = 0.075;
-  constexpr double ROBOT_RADIUS = 0.0575;
+  // constexpr double ROBOT_RADIUS = 0.0575;
   constexpr double AXLE_LENGTH = 0.07;
   constexpr double WHEEL_RADIUS = 0.03;
 
@@ -102,7 +103,7 @@ namespace constants {
   constexpr std::size_t DEADLOCK_DURATION_MS  = 2 * 1000; // ms
   constexpr std::size_t DEADLOCK_RESET_MS = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
-  constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_RADIUS + BALL_RADIUS); // robots within this range near the ball are sent off
+  constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
   constexpr double      DEFAULT_MAX_METERS_ATTACK = 150.0; // maximum of 100 meters can be run by attackers
   constexpr double      DEFAULT_MAX_METERS_DEFENSE = 120.0; // maximum of 80 meters can be run by defenders
   constexpr double      DEFAULT_MAX_METERS_GOALIE = 90.0; // maximum of 60 meters can be run by the goalie

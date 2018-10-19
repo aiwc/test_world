@@ -40,8 +40,8 @@ PROTO SoccerRobot [
 
   # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
-  # SFFloat    axleLength          0.1         # (0,inf)
-  # SFFloat    wheelRadius         0.01        # (0,inf)
+  field SFFloat    axleLength     0.07
+  field SFFloat    wheelRadius    0.03
   field SFFloat    maxSpeed            10          # (0,inf)
   field SFFloat    maxAcceleration     10
   field SFFloat    slipNoise           0.1         # [0,inf)
@@ -51,12 +51,12 @@ PROTO SoccerRobot [
   field SFFloat  height 0.075
 
   field SFBool   kinematic FALSE # If TRUE, Physics' are ignored
-  field SFFloat  axleLength     0.07
-  field SFFloat  wheelRadius    0.03
+
   field SFFloat  wheelThickness 0.004
   field SFFloat  wheelTireThickness 0.0
 
-  field SFFloat  bodyRadius     0.0575
+  field SFFloat  bodySize       0.115
+  # field SFFloat  bodyRadius     0.0575
   field SFFloat  bodySubdivision 4
   field SFFloat  wheelVisibleRatio 0.75
 
@@ -106,8 +106,13 @@ PROTO SoccerRobot [
     local wr = fields.wheelRadius.value
     local wt = fields.wheelThickness.value
     local wtt = fields.wheelTireThickness.value
-    local br = fields.bodyRadius.value
     local bs = fields.bodySubdivision.value
+    local br = 0
+    if bs == 4 then
+      br = fields.bodySize.value / math.sqrt(2)
+    else
+      br = fields.bodyRadius.value
+    end
     local wvr = math.min(math.max(0, fields.wheelVisibleRatio.value), 1)
     local wht = fields.weightThickness.value
     local tc = fields.topCover.value
