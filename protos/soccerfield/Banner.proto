@@ -1,4 +1,4 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2018b utf8
 #Author(s):         Seung-Jae Lee, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static
@@ -8,21 +8,32 @@ PROTO Banner [
   field SFRotation rotation 0 1 0 0
   field SFFloat    length 0.5
   field SFFloat    height 0.1
-  field SFVec3f    scale 1 1 1
-  field SFNode     frameAppearance LightGray { }
-  field SFBool     castShadows TRUE
+  field SFFloat    bannerThickness 0.025
   field SFFloat    frameThickness 0.01
-  field SFBool     bannerBehind FALSE
-  field SFString   url ""
+  field SFVec3f    scale 1 1 1
+  field SFNode     frameAppearance White { }
+  field SFBool     castShadows TRUE
+  field SFBool     bannerBehind TRUE
+  field SFString   url "textures/kaist.png"
   field SFString   name "banner"
 ]
 {
   %{
     local l  = fields.length.value
     local h  = fields.height.value
-    local th = fields.frameThickness.value
+    local bt = fields.bannerThickness.value
+    if bt <= 0 then
+      bt = 0.01
+    end
+    local ft = fields.frameThickness.value
     local url = fields.url.value
     local bb = fields.bannerBehind.value
+    
+    local bl = math.min(l-ft, l)
+    local bh = math.min(h-2*ft, h)
+    
+    local fvt = math.min(ft, h/2)
+    local fht = math.min(ft/2, l/2)
   }%
   Solid {
     translation IS translation
@@ -30,11 +41,12 @@ PROTO Banner [
     scale IS scale
     name IS name
     children [
+      %{if bl > 0 and bh > 0 then}%
       DEF PANEL Group {
         children [
           Transform {
             rotation 1 0 0 1.57
-            translation %{=th/3}% %{=h/2}% %{=th/2}%
+            translation %{=bt/2}% %{=h/2}% 0
             children [
               Transform {
                 rotation 0 0 1 -1.57
@@ -48,7 +60,7 @@ PROTO Banner [
                       }
                     }
                     geometry Plane {
-                      size %{=l-th}% %{=h-2*th}%
+                      size %{=bl}% %{=bh}%
                     }
                     castShadows IS castShadows
                   }
@@ -58,7 +70,7 @@ PROTO Banner [
           }
           Transform {
             rotation 1 0 0 1.57
-            translation %{=-th/3}% %{=h/2}% %{=th/2}%
+            translation %{=-bt/2}% %{=h/2}% 0
             children [
               Transform {
                 rotation 0 0 1 1.57
@@ -76,7 +88,7 @@ PROTO Banner [
                       appearance IS frameAppearance
                     %{end}%
                     geometry Plane {
-                      size %{=l-th}% %{=h-2*th}%
+                      size %{=bl}% %{=bh}%
                     }
                     castShadows IS castShadows
                   }
@@ -86,46 +98,63 @@ PROTO Banner [
           }
         ]
       }
+      %{end}%
+      %{if ft > 0 then}%
       DEF FRAME Group {
         children [
+          %{if l - ft > 0 then}%
           Transform {
-            translation 0 %{=th/2}% %{=th/2}%
+            translation 0 %{=fvt/2}% 0
             children [
               Shape {
                 appearance IS frameAppearance
                 geometry Box {
-	          size %{=th}% %{=th}% %{=l-th}%
-	        }
+  	       size %{=bt}% %{=fvt}% %{=l-ft}%
+  	     }
                 castShadows IS castShadows
-	      }
-	    ]
+  	   }
+  	 ]
           }
           Transform {
-	    translation 0 %{=h-th/2}% %{=th/2}%
-	    children [
-	      Shape {
+            translation 0 %{=h-fvt/2}% 0
+	 children [
+	   Shape {
                 appearance IS frameAppearance
-	        geometry Box {
-	          size %{=th}% %{=th}% %{=l-th}%
-	        }
+	     geometry Box {
+	       size %{=bt}% %{=fvt}% %{=l-ft}%
+	     }
                 castShadows IS castShadows
-	      }
-	    ]
+	   }
+	 ]
+          }
+          %{end}%
+          Transform {
+	 translation 0 %{=h/2}% %{=l/2-fht/2}%
+	 children [
+	   Shape {
+                appearance IS frameAppearance
+	     geometry Box {
+	       size %{=bt}% %{=h}% %{=fht}%
+	     }
+                castShadows IS castShadows
+	   }
+	 ]
           }
           Transform {
-	    translation 0 %{=h/2}% %{=l/2+th/2}%
-	    children [
-	      Shape {
+	 translation 0 %{=h/2}% %{=-l/2+fht/2}%
+	 children [
+	   Shape {
                 appearance IS frameAppearance
-	        geometry Box {
-	          size %{=th}% %{=h}% %{=th}%
-	        }
+	     geometry Box {
+	       size %{=bt}% %{=h}% %{=fht}%
+	     }
                 castShadows IS castShadows
-	      }
-	    ]
+	   }
+	 ]
           }
         ]
       }
+      %{end}%
     ]
   }
 }

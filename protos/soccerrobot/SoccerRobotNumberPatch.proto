@@ -44,7 +44,7 @@ PROTO SoccerRobotNumberPatch [
               }
             }
             geometry Plane {
-              size %{=2*radius}% %{=2*radius}%
+              size %{=math.sqrt(2)*radius}% %{=math.sqrt(2)*radius}%
             }
           }
         ]
