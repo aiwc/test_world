@@ -207,11 +207,8 @@ public:
 
     webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
 
-    const auto left = std::max(std::min(speed[0], c::MAX_LINEAR_VELOCITY), -c::MAX_LINEAR_VELOCITY);
-    const auto right = std::max(std::min(speed[1], c::MAX_LINEAR_VELOCITY), -c::MAX_LINEAR_VELOCITY);
-
-    pn_robot->getField("customData")->setSFString(std::to_string(left / c::WHEEL_RADIUS) + " " +
-                                            std::to_string(right / c::WHEEL_RADIUS));
+    pn_robot->getField("customData")->setSFString(std::to_string(speed[0] / c::WHEEL_RADIUS) + " " +
+                                            std::to_string(speed[1] / c::WHEEL_RADIUS));
   }
 
 private: // private member functions

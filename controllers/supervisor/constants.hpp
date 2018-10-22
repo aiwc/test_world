@@ -63,7 +63,9 @@ namespace constants {
 
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr double MAX_LINEAR_VELOCITY = 1.5;
+  constexpr double MAX_LINEAR_VELOCITY_ATTACK = 1.8;
+  constexpr double MAX_LINEAR_VELOCITY_DEFENSE = 1.5;
+  constexpr double MAX_LINEAR_VELOCITY_GOALIE = 1.2;
 
   constexpr double ROBOT_INIT_POSTURE[NUMBER_OF_ROBOTS][3] = {
     // x, y, th

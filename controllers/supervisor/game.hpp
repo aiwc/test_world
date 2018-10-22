@@ -160,6 +160,7 @@ private:
   bool deadlock_flag_;
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
+  std::array<double, constants::NUMBER_OF_ROBOTS> max_velocity_;
   std::array<double, constants::NUMBER_OF_ROBOTS> max_meters_run_;
   // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> stop_time_;
 

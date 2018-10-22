@@ -142,6 +142,12 @@ void game::run()
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
 
+    max_velocity_[0] = c::MAX_LINEAR_VELOCITY_ATTACK;
+    max_velocity_[1] = c::MAX_LINEAR_VELOCITY_ATTACK;
+    max_velocity_[2] = c::MAX_LINEAR_VELOCITY_DEFENSE;
+    max_velocity_[3] = c::MAX_LINEAR_VELOCITY_DEFENSE;
+    max_velocity_[4] = c::MAX_LINEAR_VELOCITY_GOALIE;
+
     max_meters_run_[0] = c::DEFAULT_MAX_METERS_ATTACK;
     max_meters_run_[1] = c::DEFAULT_MAX_METERS_ATTACK;
     max_meters_run_[2] = c::DEFAULT_MAX_METERS_DEFENSE;
@@ -239,7 +245,7 @@ void game::run()
     info.emplace_back("robot_height",           msgpack::object(c::ROBOT_HEIGHT, z_info_));
     // info.emplace_back("robot_radius",           msgpack::object(c::ROBOT_RADIUS, z_info_));
     info.emplace_back("axle_length",          msgpack::object(c::AXLE_LENGTH, z_info_));
-    info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
+    info.emplace_back("max_linear_velocity",  msgpack::object(max_velocity_, z_info_));
 
     info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), z_info_));
     info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
@@ -728,7 +734,10 @@ void game::send_speed()
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       if(activeness_[team][id]) {
-        sv_.set_linear_wheel_speed(team == T_RED, id, ws[team][id]);
+        auto speed = ws[team][id];
+        speed[0] = std::max(std::min(speed[0], max_velocity_[id]), -max_velocity_[id]);
+        speed[1] = std::max(std::min(speed[1], max_velocity_[id]), -max_velocity_[id]);
+        sv_.set_linear_wheel_speed(team == T_RED, id, speed);
       }
       else {
         sv_.set_linear_wheel_speed(team == T_RED, id, stop);
