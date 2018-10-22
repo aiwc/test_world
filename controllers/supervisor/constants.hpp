@@ -42,8 +42,8 @@ namespace constants {
   constexpr std::size_t ESTIMATED_SUBIMAGE_SIZE = (RESOLUTION_X / SUBIMAGE_NX) * (RESOLUTION_Y / SUBIMAGE_NY) * 4 + 100;
 
   // Field Dimensions
-  constexpr double FIELD_LENGTH = 3.8;
-  constexpr double FIELD_WIDTH  = 2.7;
+  constexpr double FIELD_LENGTH = 4.6;
+  constexpr double FIELD_WIDTH  = 3.4;
   constexpr double GOAL_DEPTH   = 0.15;
   constexpr double GOAL_WIDTH   = 0.6;
   constexpr double PENALTY_AREA_DEPTH = 0.5;
@@ -69,17 +69,17 @@ namespace constants {
     // x, y, th
     {-0.4,  0.3, 0},
     {-0.4, -0.3, 0},
-    {-1.0,  0.6, 0},
-    {-1.0, -0.6, 0},
-    {-1.8,  0.0, PI / 2},
+    {-1.2,  0.8, 0},
+    {-1.2, -0.8, 0},
+    {-2.2,  0.0, PI / 2},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    {-1.99, 0.55, 0},
-    {-1.99, 0.70, 0},
-    {-1.99, 0.85, 0},
-    {-1.99, 1.00, 0},
-    {-1.99, 1.15, 0},
+    {-2.45, 0.65, 0},
+    {-2.45, 0.85, 0},
+    {-2.45, 1.05, 0},
+    {-2.45, 1.25, 0},
+    {-2.45, 1.45, 0},
   };
 
   // WAMP router settings

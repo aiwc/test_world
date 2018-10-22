@@ -1,7 +1,4 @@
 #VRML_SIM R2018b utf8
-#Author(s):         Inbae Jeong, Chansol Hong
-#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
-
 WorldInfo {
   ERP 0.15
   physics "collision_detector"
@@ -71,7 +68,6 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      bounce 0.5
       softERP 0.8
       softCFM 1e-9
       bumpSound ""
@@ -101,7 +97,6 @@ WorldInfo {
     DEF body-ball ContactProperties {
       material1 "body"
       material2 "ball"
-      bounce 0.5
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -132,7 +127,7 @@ WorldInfo {
 }
 DEF DEF_AUDVIEW Viewpoint {
   orientation -1 0 0 0.8910057735495215
-  position 0 4.34854 3.64432
+  position 0 5.7488940639208455 4.776247227182551
 }
 Background {
   skyColor [
@@ -144,7 +139,7 @@ DirectionalLight {
   direction 0 -1 0
 }
 Referee {
-  translation 0 12.72 0
+  translation 0 15.7 0
   children [
     DEF DEF_RECV Receiver {
       name "recv"
@@ -171,31 +166,38 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  robotCeiling 0.2
-  ballCeiling 0.8
-  soccerFieldWall Group {
-    children [
-      DEF DEF_WALL SoccerFieldWall {
-        length 3.8
-        width 2.7
-        cornerLength 0.1
-        goalWidth 0.6
-        wallHeight 0.075
-        wallAppearance Gray { }
-        wallContactMaterial "wall"
-      }
-      DEF DEF_VISWALL VisualWall {
-        length 3.8
-        width 2.7
-        goalWidth 0.6
-        bannerBehind TRUE
-        cornerLength 0.1
-        gpTranslation 2.0082
-        gpScale 1.3157
-      }
-    ]
-  }
+  fieldLength 4.6
+  fieldWidth 3.4
+  floorLength 5.2
+  floorWidth 3.6
+  soccerFieldWall [
+    Group {
+      children [
+        DEF DEF_WALL SoccerFieldWall {
+          length 4.6
+          width 3.4
+          cornerLength 0.1
+          goalWidth 0.6
+          wallHeight 0.075
+          wallAppearance Gray {
+          }
+          wallContactMaterial "wall"
+        }
+        DEF DEF_VISWALL VisualWall {
+          length 4.6
+          width 3.4
+          goalWidth 0.6
+          gpTranslation 2.4082000000000003
+          gpScale 1.3157
+          bannerBehind TRUE
+          cornerLength 0.1
+        }
+      ]
+    }
+  ]
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
+    length 5.2
+    width 3.6
   }
   floorContactMaterial "floor"
 }
@@ -255,7 +257,7 @@ DEF DEF_ROBOTR1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR2 SoccerRobot {
-  translation -1 0.0375 0.6
+  translation -1.2 0.0375 0.8
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -283,7 +285,7 @@ DEF DEF_ROBOTR2 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR3 SoccerRobot {
-  translation -1 0.0375 -0.6
+  translation -1.2000000000000002 0.0375 -0.7999999999999999
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -311,7 +313,7 @@ DEF DEF_ROBOTR3 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR4 SoccerRobot {
-  translation -1.8 0.0375 0
+  translation -2.2 0.0375 0
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
   name "R4"
@@ -393,7 +395,7 @@ DEF DEF_ROBOTB1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB2 SoccerRobot {
-  translation 1 0.0375 -0.6
+  translation 1.2 0.0375 -0.8
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -422,7 +424,7 @@ DEF DEF_ROBOTB2 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB3 SoccerRobot {
-  translation 1 0.0375 0.6
+  translation 1.2 0.0375 0.8
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -451,7 +453,7 @@ DEF DEF_ROBOTB3 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB4 SoccerRobot {
-  translation 1.8 0.0375 0
+  translation 2.2 0.0375 0
   rotation 0 1 0 3.14159
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
