@@ -222,9 +222,9 @@ DEF DEF_ROBOTR0 SoccerRobot {
   name "R0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 60
+  maxAcceleration 1200
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
 }
@@ -236,9 +236,9 @@ DEF DEF_ROBOTR1 SoccerRobot {
   name "R1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 60
+  maxAcceleration 1200
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -265,8 +265,8 @@ DEF DEF_ROBOTR2 SoccerRobot {
   customData "0 0"
   controller "soccer_robot"
   maxSpeed 50
+  maxAcceleration 1000
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -293,8 +293,8 @@ DEF DEF_ROBOTR3 SoccerRobot {
   customData "0 0"
   controller "soccer_robot"
   maxSpeed 50
+  maxAcceleration 1000
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -319,9 +319,9 @@ DEF DEF_ROBOTR4 SoccerRobot {
   name "R4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 40
+  maxAcceleration 800
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -347,9 +347,9 @@ DEF DEF_ROBOTB0 SoccerRobot {
   name "B0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 60
+  maxAcceleration 1200
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -373,9 +373,9 @@ DEF DEF_ROBOTB1 SoccerRobot {
   name "B1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 60
+  maxAcceleration 1200
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -403,8 +403,8 @@ DEF DEF_ROBOTB2 SoccerRobot {
   customData "0 0"
   controller "soccer_robot"
   maxSpeed 50
+  maxAcceleration 1000
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -432,8 +432,8 @@ DEF DEF_ROBOTB3 SoccerRobot {
   customData "0 0"
   controller "soccer_robot"
   maxSpeed 50
+  maxAcceleration 1000
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [
@@ -460,9 +460,9 @@ DEF DEF_ROBOTB4 SoccerRobot {
   name "B4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 40
+  maxAcceleration 800
   slipNoise 0.05
-  maxForce 0.1
   bodyContactMaterial "body"
   wheelContactMaterial "wheel"
   patches [

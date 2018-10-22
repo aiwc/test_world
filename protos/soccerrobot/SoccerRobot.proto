@@ -40,12 +40,12 @@ PROTO SoccerRobot [
 
   # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
-  field SFFloat    axleLength     0.07
-  field SFFloat    wheelRadius    0.03
-  field SFFloat    maxSpeed            10          # (0,inf)
+  field SFFloat    axleLength          0.07
+  field SFFloat    wheelRadius         0.03
+  field SFFloat    maxSpeed            50          # (0,inf)
   field SFFloat    maxAcceleration     10
   field SFFloat    slipNoise           0.1         # [0,inf)
-  field SFFloat    maxForce            0.3         # (0,inf)
+  field SFFloat    maxTorque           0.1         # (0,inf)
 
   # fields specific to SoccerRobot
   field SFFloat  height 0.075
@@ -376,10 +376,10 @@ PROTO SoccerRobot [
         device [
           RotationalMotor {
             name "left wheel motor"
-            acceleration IS acceleration
+            acceleration IS maxAcceleration
             consumptionFactor IS motorConsumption
             maxVelocity %{=mv*(1 + sn)}%
-            maxTorque IS maxForce
+            maxTorque IS maxTorque
             sound ""
           }
         ]
@@ -434,10 +434,10 @@ PROTO SoccerRobot [
         device [
           RotationalMotor {
             name "right wheel motor"
-            acceleration IS acceleration
+            acceleration IS maxAcceleration
             consumptionFactor IS motorConsumption
             maxVelocity %{=mv*(1 + sn)}%
-            maxTorque IS maxForce
+            maxTorque IS maxTorque
             sound ""
           }
         ]
