@@ -142,17 +142,17 @@ void game::run()
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
 
-    max_velocity_[0] = c::MAX_LINEAR_VELOCITY_ATTACK;
-    max_velocity_[1] = c::MAX_LINEAR_VELOCITY_ATTACK;
+    max_velocity_[0] = c::MAX_LINEAR_VELOCITY_GOALIE;
+    max_velocity_[1] = c::MAX_LINEAR_VELOCITY_DEFENSE;
     max_velocity_[2] = c::MAX_LINEAR_VELOCITY_DEFENSE;
-    max_velocity_[3] = c::MAX_LINEAR_VELOCITY_DEFENSE;
-    max_velocity_[4] = c::MAX_LINEAR_VELOCITY_GOALIE;
+    max_velocity_[3] = c::MAX_LINEAR_VELOCITY_ATTACK;
+    max_velocity_[4] = c::MAX_LINEAR_VELOCITY_ATTACK;
 
-    max_meters_run_[0] = c::DEFAULT_MAX_METERS_ATTACK;
-    max_meters_run_[1] = c::DEFAULT_MAX_METERS_ATTACK;
+    max_meters_run_[0] = c::DEFAULT_MAX_METERS_GOALIE;
+    max_meters_run_[1] = c::DEFAULT_MAX_METERS_DEFENSE;
     max_meters_run_[2] = c::DEFAULT_MAX_METERS_DEFENSE;
-    max_meters_run_[3] = c::DEFAULT_MAX_METERS_DEFENSE;
-    max_meters_run_[4] = c::DEFAULT_MAX_METERS_GOALIE;
+    max_meters_run_[3] = c::DEFAULT_MAX_METERS_ATTACK;
+    max_meters_run_[4] = c::DEFAULT_MAX_METERS_ATTACK;
 
     for (int i = 0; i < 2; i++)
       for (unsigned int j = 0; j < c::NUMBER_OF_ROBOTS; j++) {
@@ -173,18 +173,18 @@ void game::run()
       if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
         penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
 
-      if (config_json["rule"].HasMember("max_meters_attack") && config_json["rule"]["max_meters_attack"].IsNumber()) {
-        max_meters_run_[0] = config_json["rule"]["max_meters_attack"].GetDouble();
-        max_meters_run_[1] = config_json["rule"]["max_meters_attack"].GetDouble();
-      }
+      if (config_json["rule"].HasMember("max_meters_goalie") && config_json["rule"]["max_meters_goalie"].IsNumber())
+        max_meters_run_[0] = config_json["rule"]["max_meters_goalie"].GetDouble();
 
       if (config_json["rule"].HasMember("max_meters_defense") && config_json["rule"]["max_meters_defense"].IsNumber()) {
+        max_meters_run_[1] = config_json["rule"]["max_meters_defense"].GetDouble();
         max_meters_run_[2] = config_json["rule"]["max_meters_defense"].GetDouble();
-        max_meters_run_[3] = config_json["rule"]["max_meters_defense"].GetDouble();
       }
 
-      if (config_json["rule"].HasMember("max_meters_goalie") && config_json["rule"]["max_meters_goalie"].IsNumber())
-        max_meters_run_[4] = config_json["rule"]["max_meters_goalie"].GetDouble();
+      if (config_json["rule"].HasMember("max_meters_attack") && config_json["rule"]["max_meters_attack"].IsNumber()) {
+        max_meters_run_[3] = config_json["rule"]["max_meters_attack"].GetDouble();
+        max_meters_run_[4] = config_json["rule"]["max_meters_attack"].GetDouble();
+      }
     }
     else
       std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
@@ -194,9 +194,9 @@ void game::run()
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
     std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
     std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
-    std::cout << " max meters attack - " << max_meters_run_[0] << " seconds" << std::endl;
-    std::cout << "max meters defense - " << max_meters_run_[2] << " seconds" << std::endl;
-    std::cout << " max meters goalie - " << max_meters_run_[4] << " seconds" << std::endl << std::endl;
+    std::cout << " max meters goalie - " << max_meters_run_[0] << " seconds" << std::endl;
+    std::cout << "max meters defense - " << max_meters_run_[1] << " seconds" << std::endl;
+    std::cout << " max meters attack - " << max_meters_run_[3] << " seconds" << std::endl << std::endl;
   }
 
   const auto path_prefix = std::string("../../");
@@ -551,9 +551,6 @@ void game::update_meters_run()
           meters_run_[team][id] = max_meters_run_[id];
           activeness_[team][id] = false;
           exhausted_[team][id] = true;
-          //sv_.send_to_foulzone(is_red, id);
-          // if(stop_time_[team][id] == 0)
-          //   stop_time_[team][id] = time_ms_ / 1000.;
         }
       }
     }
