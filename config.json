@@ -4,9 +4,9 @@
     "deadlock": true,
     "goal_area_foul": true,
     "penalty_area_foul": true,
-    "max_meters_attack": 150.0,
+    "max_meters_goalie": 90.0,
     "max_meters_defense": 120.0,
-    "max_meters_goalie": 90.0
+    "max_meters_attack": 150.0
   },
   "team_a": {
     "name": "teamA",

@@ -63,17 +63,17 @@ namespace constants {
 
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr double MAX_LINEAR_VELOCITY_ATTACK = 1.8;
-  constexpr double MAX_LINEAR_VELOCITY_DEFENSE = 1.5;
   constexpr double MAX_LINEAR_VELOCITY_GOALIE = 1.2;
+  constexpr double MAX_LINEAR_VELOCITY_DEFENSE = 1.5;
+  constexpr double MAX_LINEAR_VELOCITY_ATTACK = 1.8;
 
   constexpr double ROBOT_INIT_POSTURE[NUMBER_OF_ROBOTS][3] = {
     // x, y, th
-    {-0.4,  0.3, 0},
-    {-0.4, -0.3, 0},
+    {-2.2,  0.0, PI / 2},
     {-1.2,  0.8, 0},
     {-1.2, -0.8, 0},
-    {-2.2,  0.0, PI / 2},
+    {-0.4,  0.3, 0},
+    {-0.4, -0.3, 0},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
@@ -106,9 +106,9 @@ namespace constants {
   constexpr std::size_t DEADLOCK_RESET_MS = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
   constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
-  constexpr double      DEFAULT_MAX_METERS_ATTACK = 150.0; // maximum of 100 meters can be run by attackers
-  constexpr double      DEFAULT_MAX_METERS_DEFENSE = 120.0; // maximum of 80 meters can be run by defenders
   constexpr double      DEFAULT_MAX_METERS_GOALIE = 90.0; // maximum of 60 meters can be run by the goalie
+  constexpr double      DEFAULT_MAX_METERS_DEFENSE = 120.0; // maximum of 80 meters can be run by defenders
+  constexpr double      DEFAULT_MAX_METERS_ATTACK = 150.0; // maximum of 100 meters can be run by attackers
   constexpr double      DEFAULT_PENALTY_RATIO = 0.1; // when a robot is sent out, it loses 0.1*max_meters
 
   constexpr std::size_t NUM_COMMENTS = 5;

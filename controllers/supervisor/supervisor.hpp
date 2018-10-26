@@ -79,7 +79,7 @@ public:
     };
 
     const auto reset_robot_node = [&](webots::Node* pn, double x, double y, double z, double th) {
-      const double translation[] = {x, y, z};
+      const double translation[] = {x, y, -z};
       const double rotation[] = {0, 1, 0, th - c::PI / 2};
       const double lwTranslation[] = {-c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
       const double rwTranslation[] = {c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
