@@ -66,7 +66,7 @@ public:
     return pc_cams_[is_red ? C_CAMA : C_CAMB]->getImage();
   }
 
-  void reset_position()
+  void reset_position(constants::robot_formation red_formation, constants::robot_formation blue_formation)
   {
     namespace c = constants;
 
@@ -101,12 +101,13 @@ public:
 
     for(const auto& is_red : {true, false}) {
       const auto s = is_red ? 1 : -1;
+      auto formation = is_red ? red_formation : blue_formation;
       for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
         reset_robot_node(getFromDef(robot_name(is_red, id)),
-                   c::ROBOT_INIT_POSTURE[id][0] * s,
+                   c::ROBOT_FORMATION[formation][id][0] * s,
                    c::ROBOT_HEIGHT / 2,
-                   c::ROBOT_INIT_POSTURE[id][1] * s,
-                   c::ROBOT_INIT_POSTURE[id][2] + (is_red ? 0. : c::PI));
+                   c::ROBOT_FORMATION[formation][id][1] * s,
+                   c::ROBOT_FORMATION[formation][id][2] + (is_red ? 0. : c::PI));
       }
     }
   }

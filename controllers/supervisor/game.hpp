@@ -72,7 +72,7 @@ private:
   // game state control functions
   void step(std::size_t ms, bool update); // throw webots_revert_exception when webots reverts
   void pause();
-  void reset();
+  void reset(constants::robot_formation red_formation, constants::robot_formation blue_formation);
   void resume();
   void stop_robots();
 
@@ -160,6 +160,8 @@ private:
   bool deadlock_flag_;
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
+  bool ball_ownership_;
+  bool backpass_foul_flag_;
   std::array<double, constants::NUMBER_OF_ROBOTS> max_velocity_;
   std::array<double, constants::NUMBER_OF_ROBOTS> max_meters_run_;
   // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> stop_time_;
@@ -175,6 +177,7 @@ private:
   std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> meters_run_;
   std::array<std::array<std::tuple<double, double, double, bool>, constants::NUMBER_OF_ROBOTS>, 2> prev_pos_;
   std::atomic<bool> paused_{true};
+  constants::game_state game_state_;
 
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
 
@@ -185,6 +188,7 @@ private:
 
   std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
+  std::size_t backpass_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
 
