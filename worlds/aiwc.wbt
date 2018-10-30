@@ -127,7 +127,7 @@ WorldInfo {
 }
 DEF DEF_AUDVIEW Viewpoint {
   orientation -1 0 0 0.8910057735495215
-  position 0 5.7488940639208455 4.776247227182551
+  position 0 6.016472079196641 4.992534556715559
 }
 Background {
   skyColor [
@@ -139,7 +139,7 @@ DirectionalLight {
   direction 0 -1 0
 }
 Referee {
-  translation 0 15.7 0
+  translation 0 17.6 0
   children [
     DEF DEF_RECV Receiver {
       name "recv"
@@ -166,28 +166,29 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  fieldLength 4.6
-  fieldWidth 3.4
-  floorLength 5.2
-  floorWidth 3.6
+  fieldLength 5.2
+  fieldWidth 3.1
+  floorLength 5.8
+  floorWidth 3.3
   soccerFieldWall [
     Group {
       children [
         DEF DEF_WALL SoccerFieldWall {
-          length 4.6
-          width 3.4
+          length 5.2
+          width 3.1
           cornerLength 0.1
           goalWidth 0.6
+          goalDepth 0.25
           wallHeight 0.075
           wallAppearance Gray {
           }
           wallContactMaterial "wall"
         }
         DEF DEF_VISWALL VisualWall {
-          length 4.6
-          width 3.4
+          length 5.2
+          width 3.1
           goalWidth 0.6
-          gpTranslation 2.4082000000000003
+          gpTranslation 2.7084
           gpScale 1.3157
           bannerBehind TRUE
           cornerLength 0.1
@@ -196,8 +197,8 @@ SoccerField5v5 {
     }
   ]
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
-    length 5.2
-    width 3.6
+    length 5.8
+    width 3.3
   }
   floorContactMaterial "floor"
 }
@@ -215,7 +216,7 @@ DEF DEF_BALL SoccerBall {
   ]
 }
 DEF DEF_ROBOTR0 SoccerRobot {
-  translation -2.2 0.0375 0.0
+  translation -2.5 0.0375 0
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
   name "R0"
@@ -239,7 +240,7 @@ DEF DEF_ROBOTR0 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR1 SoccerRobot {
-  translation -1.2 0.0375 -0.8
+  translation -1.45 0.0375 -0.8
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -265,7 +266,7 @@ DEF DEF_ROBOTR1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR2 SoccerRobot {
-  translation -1.2 0.0375 0.8
+  translation -1.45 0.0375 0.8
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -345,7 +346,7 @@ DEF DEF_ROBOTR4 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB0 SoccerRobot {
-  translation 2.2 0.0375 0
+  translation 2.5 0.0375 0
   rotation 0 1 0 3.1415926
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -371,7 +372,7 @@ DEF DEF_ROBOTB0 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB1 SoccerRobot {
-  translation 1.2 0.0375 0.8
+  translation 1.45 0.0375 0.8
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -398,7 +399,7 @@ DEF DEF_ROBOTB1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB2 SoccerRobot {
-  translation 1.2 0.0375 -0.8
+  translation 1.45 0.0375 -0.8
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
