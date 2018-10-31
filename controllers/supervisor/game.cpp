@@ -1319,6 +1319,8 @@ void game::run_game()
               std::cout << "Two bad backpass in a row!" << std::endl;
               game_state_ = c::STATE_DEFAULT;
 
+              pause();
+              stop_robots();
               reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
 
               step(c::WAIT_STABLE_MS, false);
@@ -1329,7 +1331,9 @@ void game::run_game()
               ball_ownership_ = !ball_ownership_;
               backpass_time_ = time_ms_;
               backpass_foul_flag_ = true;
-
+              
+              pause();
+              stop_robots();
               reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
 
               lock_all_robots();
