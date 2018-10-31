@@ -908,6 +908,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       auto robots = g_robots;
       auto score = score_;
       auto reason = reset_reason;
+      std::size_t game_state = game_state_;
 
       if(!ti.is_red) { // blue team sees red as blue, blue as red
         for(auto& e : ball) { e *= -1; }
@@ -931,6 +932,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       msg.emplace_back("time", msgpack::object(time_ms_ / 1000., z));
       msg.emplace_back("score", msgpack::object(score, z));
       msg.emplace_back("reset_reason", msgpack::object(reason, z));
+      msg.emplace_back("game_state", msgpack::object(game_state, z));
 
       auto subimages = ti.imbuf.update_image(sv_.get_image(ti.is_red));
       constexpr std::size_t n_max_subimages = c::MSG_MAX_SIZE / c::ESTIMATED_SUBIMAGE_SIZE;
