@@ -78,8 +78,8 @@ namespace constants {
    {{-2.5,  0.0, PI / 2},
     {-1.45,  0.8, 0},
     {-1.45, -0.8, 0},
-    { 0.4,  0,   PI},
-    {-0.65, 0,   0},}
+    {-0.65,  0,   0},
+    { 0.4,   0,   PI},}
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {

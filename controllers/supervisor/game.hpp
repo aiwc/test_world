@@ -78,6 +78,9 @@ private:
 
   // simulator-related functions
   void send_speed(); // send wheel speed to the simulator
+  void lock_all_robots(); // block sending wheel speed to the simulator
+  void unlock_all_robots(); // unblock sending wheel speed to the simulator
+  void unlock_robot(bool is_red, std::size_t id); // unblock sending wheel speed to the simulator (one specific robot)
 
   std::size_t count_robots_in_goal_area(bool is_red);
   std::size_t count_robots_in_opponent_goal_area(bool is_red);
