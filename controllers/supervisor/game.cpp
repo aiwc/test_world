@@ -1117,6 +1117,7 @@ void game::run_game()
           step(c::WAIT_GOAL_MS, false);
 
           game_state_ = c::STATE_BACKPASS;
+          backpass_foul_flag_ = false;
 
           ball_ownership_ = (ball_x > 0) ? T_BLUE : T_RED;
           backpass_time_ = time_ms_;
@@ -1307,42 +1308,42 @@ void game::run_game()
         const auto ball_x = std::get<0>(sv_.get_ball_position());
         const auto ball_y = std::get<1>(sv_.get_ball_position());
         if (ball_x*ball_x + ball_y*ball_y > c::BACKPASS_BORDER*c::BACKPASS_BORDER) {
-          if ((ball_ownership_ == T_RED) ? (ball_x < 0) : (ball_x > 0)) { // good backpass
-            backpass_foul_flag_ = false;
+          // if ((ball_ownership_ == T_RED) ? (ball_x < 0) : (ball_x > 0)) { // good backpass
+          backpass_foul_flag_ = false;
 
-            unlock_all_robots();
+          unlock_all_robots();
 
-            game_state_ = c::STATE_DEFAULT;
-          }
-          else { // bad backpass
-            if (backpass_foul_flag_) { // both teams made bad backpasses
-              std::cout << "Two bad backpass in a row!" << std::endl;
-              game_state_ = c::STATE_DEFAULT;
+          game_state_ = c::STATE_DEFAULT;
+          // }
+          // else { // bad backpass
+            // if (backpass_foul_flag_) { // both teams made bad backpasses
+              // std::cout << "Two bad backpass in a row!" << std::endl;
+              // game_state_ = c::STATE_DEFAULT;
 
-              pause();
-              stop_robots();
-              reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
+              // pause();
+              // stop_robots();
+              // reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
 
-              step(c::WAIT_STABLE_MS, false);
-              resume();
-            }
-            else { // the team made a bad backpass => ownership is changed
-              std::cout << "Wrong backpass!" << std::endl;
-              ball_ownership_ = !ball_ownership_;
-              backpass_time_ = time_ms_;
-              backpass_foul_flag_ = true;
+              // step(c::WAIT_STABLE_MS, false);
+              // resume();
+            // }
+            // else { // the team made a bad backpass => ownership is changed
+              // std::cout << "Wrong backpass!" << std::endl;
+              // ball_ownership_ = !ball_ownership_;
+              // backpass_time_ = time_ms_;
+              // backpass_foul_flag_ = true;
               
-              pause();
-              stop_robots();
-              reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
+              // pause();
+              // stop_robots();
+              // reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
 
-              lock_all_robots();
-              unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
+              // lock_all_robots();
+              // unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
 
-              step(c::WAIT_STABLE_MS, false);
-              resume();
-            }
-          }
+              // step(c::WAIT_STABLE_MS, false);
+              // resume();
+            // }
+          // }
         }
       }
       break;
