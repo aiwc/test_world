@@ -213,17 +213,25 @@ void game::run()
     info.emplace_back("goal_area", msgpack::object(std::make_tuple(c::GOAL_AREA_DEPTH,
                                                                    c::GOAL_AREA_WIDTH), z_info_));
     info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, z_info_));
+    info.emplace_back("ball_mass",            msgpack::object(c::BALL_MASS, z_info_));
+
     info.emplace_back("robot_size",           msgpack::object(c::ROBOT_SIZE, z_info_));
-    info.emplace_back("robot_height",           msgpack::object(c::ROBOT_HEIGHT, z_info_));
-    // info.emplace_back("robot_radius",           msgpack::object(c::ROBOT_RADIUS, z_info_));
+    info.emplace_back("robot_height",         msgpack::object(c::ROBOT_HEIGHT, z_info_));
     info.emplace_back("axle_length",          msgpack::object(c::AXLE_LENGTH, z_info_));
+    info.emplace_back("robot_body_mass",      msgpack::object(c::ROBOT_BODY_MASS, z_info_));
+
+    info.emplace_back("wheel_radius",         msgpack::object(c::WHEEL_RADIUS, z_info_));
+    info.emplace_back("wheel_mass",           msgpack::object(c::WHEEL_MASS, z_info_));
+
     info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
+    info.emplace_back("max_torque",           msgpack::object(c::MAX_TORQUE, z_info_));
+    info.emplace_back("max_meters_run", msgpack::object(c::MAX_METERS_RUN, z_info_));
 
     info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), z_info_));
     info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
     info.emplace_back("codewords",  msgpack::object(c::CODEWORDS, z_info_));
     info.emplace_back("game_time",   msgpack::object(game_time_ms_ / 1000., z_info_));
-    info.emplace_back("max_meters_run", msgpack::object(c::MAX_METERS_RUN, z_info_));
+
 
     info.emplace_back("team_info",
                       msgpack::object(std::make_tuple(map{std::make_pair("name",   msgpack::object(name, z_info_)),
@@ -1304,7 +1312,7 @@ void game::run_game()
               // ball_ownership_ = !ball_ownership_;
               // backpass_time_ = time_ms_;
               // backpass_foul_flag_ = true;
-              
+
               // pause();
               // stop_robots();
               // reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));

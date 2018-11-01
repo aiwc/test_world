@@ -53,16 +53,20 @@ namespace constants {
 
   // Ball Dimension
   constexpr double BALL_RADIUS = 0.03;
+  constexpr double BALL_MASS = 0.0184;
 
-  // Robot Dimensions
+  // Robot Specifications
+  constexpr std::size_t NUMBER_OF_ROBOTS = 5;
   constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.105, 0.105};
   constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
   constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.095, 0.095};
-  constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
+  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.0, 0.75, 0.75, 0.65, 0.65};
 
-  // robot
-  constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.2, 1.5, 1.5, 1.8, 1.8};
+  constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
+  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.05, 0.05};
+
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.125, 1.5, 1.5, 2.1, 2.1};
+  constexpr std::array<double, 5> MAX_TORQUE = {0.1, 0.1, 0.1, 0.1, 0.1};
   constexpr std::array<double, 5> MAX_METERS_RUN = {99999, 99999, 99999, 99999, 99999};
 
   constexpr double ROBOT_FORMATION[2][NUMBER_OF_ROBOTS][3] = {
@@ -126,13 +130,13 @@ namespace constants {
     GAME_END = 4,
     DEADLOCK = 5,
   };
-  
+
   enum game_state {
     STATE_DEFAULT = 0,
     STATE_BACKPASS = 1,
     STATE_FREEKICK = 2,
   };
-  
+
   enum robot_formation {
     FORMATION_DEFAULT = 0,
     FORMATION_BACKPASS = 1,
