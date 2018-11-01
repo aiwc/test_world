@@ -292,7 +292,7 @@ DEF DEF_ROBOTR2 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR3 SoccerRobot {
-  translation -0.4 0.0375 -0.3
+  translation -0.65 0.0375 -0.3
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -319,7 +319,7 @@ DEF DEF_ROBOTR3 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR4 SoccerRobot {
-  translation -0.4 0.0375 0.3
+  translation -0.65 0.0375 0.3
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -426,7 +426,7 @@ DEF DEF_ROBOTB2 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB3 SoccerRobot {
-  translation 0.4 0.0375 0.3
+  translation 0.65 0.0375 0.3
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -454,7 +454,7 @@ DEF DEF_ROBOTB3 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB4 SoccerRobot {
-  translation 0.4 0.0375 -0.3
+  translation 0.65 0.0375 -0.3
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708

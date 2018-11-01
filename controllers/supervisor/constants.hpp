@@ -67,13 +67,19 @@ namespace constants {
   constexpr double MAX_LINEAR_VELOCITY_DEFENSE = 1.5;
   constexpr double MAX_LINEAR_VELOCITY_ATTACK = 1.8;
 
-  constexpr double ROBOT_INIT_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    // x, y, th
-    {-2.5,  0.0, PI / 2},
+  constexpr double ROBOT_FORMATION[2][NUMBER_OF_ROBOTS][3] = {
+    // x, y, th - Default Formation
+   {{-2.5,   0.0, PI / 2},
+    {-1.45,   0.8, 0},
+    {-1.45,  -0.8, 0},
+    {-0.65,  0.3, 0},
+    {-0.65, -0.3, 0},},
+    // x, y, th - Backpass Formation
+   {{-2.5,  0.0, PI / 2},
     {-1.45,  0.8, 0},
     {-1.45, -0.8, 0},
-    {-0.4,  0.3, 0},
-    {-0.4, -0.3, 0},
+    {-0.65,  0,   0},
+    { 0.4,   0,   PI},}
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
@@ -106,9 +112,11 @@ namespace constants {
   constexpr std::size_t DEADLOCK_RESET_MS = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
   constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
-  constexpr double      DEFAULT_MAX_METERS_GOALIE = 90.0; // maximum of 60 meters can be run by the goalie
-  constexpr double      DEFAULT_MAX_METERS_DEFENSE = 120.0; // maximum of 80 meters can be run by defenders
-  constexpr double      DEFAULT_MAX_METERS_ATTACK = 150.0; // maximum of 100 meters can be run by attackers
+  constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
+  constexpr double      BACKPASS_BORDER = 0.35; // m
+  constexpr double      DEFAULT_MAX_METERS_GOALIE = 90.0; // maximum of 90 meters can be run by the goalie
+  constexpr double      DEFAULT_MAX_METERS_DEFENSE = 120.0; // maximum of 120 meters can be run by defenders
+  constexpr double      DEFAULT_MAX_METERS_ATTACK = 150.0; // maximum of 150 meters can be run by attackers
   constexpr double      DEFAULT_PENALTY_RATIO = 0.1; // when a robot is sent out, it loses 0.1*max_meters
 
   constexpr std::size_t NUM_COMMENTS = 5;
@@ -122,6 +130,17 @@ namespace constants {
     SCORE_BLUE_TEAM = 3,
     GAME_END = 4,
     DEADLOCK = 5,
+  };
+  
+  enum game_state {
+    STATE_DEFAULT = 0,
+    STATE_BACKPASS = 1,
+    STATE_FREEKICK = 2,
+  };
+  
+  enum robot_formation {
+    FORMATION_DEFAULT = 0,
+    FORMATION_BACKPASS = 1,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {
