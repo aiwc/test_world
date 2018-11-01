@@ -24,7 +24,7 @@ namespace constants {
   const std::string DEF_VISWALL = "DEF_VISWALL";
   const std::string NAME_CAMA   = "cam_a";
   const std::string NAME_CAMB   = "cam_b";
-  const std::string NAME_RECV  = "recv";
+  const std::string NAME_RECV   = "recv";
 
   // these DEF names are for dynamically created node such as ball and robots
   const std::string DEF_BALL         = "DEF_BALL";
