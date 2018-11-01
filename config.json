@@ -3,10 +3,7 @@
     "game_time": 300,
     "deadlock": true,
     "goal_area_foul": true,
-    "penalty_area_foul": true,
-    "max_meters_goalie": 99999.0,
-    "max_meters_defense": 99999.0,
-    "max_meters_attack": 99999.0
+    "penalty_area_foul": true
   },
   "team_a": {
     "name": "teamA",

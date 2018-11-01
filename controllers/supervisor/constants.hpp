@@ -55,17 +55,15 @@ namespace constants {
   constexpr double BALL_RADIUS = 0.03;
 
   // Robot Dimensions
-  constexpr double ROBOT_SIZE = 0.115;
-  constexpr double ROBOT_HEIGHT = 0.075;
-  // constexpr double ROBOT_RADIUS = 0.0575;
-  constexpr double AXLE_LENGTH = 0.105;
-  constexpr double WHEEL_RADIUS = 0.03;
+  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.105, 0.105};
+  constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
+  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.095, 0.095};
+  constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
 
   // robot
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr double MAX_LINEAR_VELOCITY_GOALIE = 1.2;
-  constexpr double MAX_LINEAR_VELOCITY_DEFENSE = 1.5;
-  constexpr double MAX_LINEAR_VELOCITY_ATTACK = 1.8;
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.2, 1.5, 1.5, 1.8, 1.8};
+  constexpr std::array<double, 5> MAX_METERS_RUN = {99999, 99999, 99999, 99999, 99999};
 
   constexpr double ROBOT_FORMATION[2][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
@@ -111,12 +109,9 @@ namespace constants {
   constexpr std::size_t DEADLOCK_DURATION_MS  = 2 * 1000; // ms
   constexpr std::size_t DEADLOCK_RESET_MS = 5 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
-  constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
+  constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE[0] / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
   constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr double      BACKPASS_BORDER = 0.35; // m
-  constexpr double      DEFAULT_MAX_METERS_GOALIE = 90.0; // maximum of 90 meters can be run by the goalie
-  constexpr double      DEFAULT_MAX_METERS_DEFENSE = 120.0; // maximum of 120 meters can be run by defenders
-  constexpr double      DEFAULT_MAX_METERS_ATTACK = 150.0; // maximum of 150 meters can be run by attackers
   constexpr double      DEFAULT_PENALTY_RATIO = 0.1; // when a robot is sent out, it loses 0.1*max_meters
 
   constexpr std::size_t NUM_COMMENTS = 5;

@@ -110,7 +110,7 @@ public:
       for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
         reset_robot_node(getFromDef(robot_name(is_red, id)),
                    c::ROBOT_FORMATION[formation][id][0] * s,
-                   c::ROBOT_HEIGHT / 2,
+                   c::ROBOT_HEIGHT[id] / 2,
                    c::ROBOT_FORMATION[formation][id][1] * s,
                    c::ROBOT_FORMATION[formation][id][2] + (is_red ? 0. : c::PI));
       }
@@ -197,7 +197,7 @@ public:
 
     const auto s = is_red ? 1 : -1;
     const double translation[] = {c::ROBOT_FOUL_POSTURE[id][0] * s,
-                                  c::ROBOT_HEIGHT / 2,
+                                  c::ROBOT_HEIGHT[id] / 2,
                                   c::ROBOT_FOUL_POSTURE[id][1] * s};
     const double rotation[] = { 0, 1, 0,
                                 c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
@@ -213,8 +213,8 @@ public:
 
     webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
 
-    pn_robot->getField("customData")->setSFString(std::to_string(speed[0] / c::WHEEL_RADIUS) + " " +
-                                            std::to_string(speed[1] / c::WHEEL_RADIUS));
+    pn_robot->getField("customData")->setSFString(std::to_string(speed[0] / c::WHEEL_RADIUS[id]) + " " +
+                                            std::to_string(speed[1] / c::WHEEL_RADIUS[id]));
   }
 
 private: // private member functions

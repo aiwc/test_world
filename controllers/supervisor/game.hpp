@@ -165,8 +165,6 @@ private:
   bool penalty_area_foul_flag_;
   bool ball_ownership_;
   bool backpass_foul_flag_;
-  std::array<double, constants::NUMBER_OF_ROBOTS> max_velocity_;
-  std::array<double, constants::NUMBER_OF_ROBOTS> max_meters_run_;
   // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> stop_time_;
 
   std::size_t time_ms_ = 0;
