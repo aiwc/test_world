@@ -10,9 +10,9 @@ PROTO SoccerRobot [
   field SFVec3f    scale               1 1 1
 
   # fields for left and right wheels
-  field SFVec3f    lwTranslation       -0.035 -0.0075 0
+  field SFVec3f    lwTranslation       -0.0525 -0.0075 0
   field SFRotation lwRotation          1 0 0 1.570796
-  field SFVec3f    rwTranslation       0.035 -0.0075 0
+  field SFVec3f    rwTranslation       0.0525 -0.0075 0
   field SFRotation rwRotation          1 0 0 1.570796
 
   # children
@@ -40,7 +40,7 @@ PROTO SoccerRobot [
 
   # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
-  field SFFloat    axleLength          0.07
+  field SFFloat    axleLength          0.105
   field SFFloat    wheelRadius         0.03
   field SFFloat    maxSpeed            50          # (0,inf)
   field SFFloat    slipNoise           0.1         # [0,inf)

@@ -58,7 +58,7 @@ namespace constants {
   constexpr double ROBOT_SIZE = 0.115;
   constexpr double ROBOT_HEIGHT = 0.075;
   // constexpr double ROBOT_RADIUS = 0.0575;
-  constexpr double AXLE_LENGTH = 0.07;
+  constexpr double AXLE_LENGTH = 0.105;
   constexpr double WHEEL_RADIUS = 0.03;
 
   // robot

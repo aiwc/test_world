@@ -81,8 +81,13 @@ public:
     const auto reset_robot_node = [&](webots::Node* pn, double x, double y, double z, double th) {
       const double translation[] = {x, y, -z};
       const double rotation[] = {0, 1, 0, th - c::PI / 2};
-      const double lwTranslation[] = {-c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
-      const double rwTranslation[] = {c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
+
+      const double al = pn->getField("axleLength")->getSFFloat();
+      const double h = pn->getField("height")->getSFFloat();
+      const double wr = pn->getField("wheelRadius")->getSFFloat();
+
+      const double lwTranslation[] = {-al / 2, (-h + 2 * wr) / 2, 0};
+      const double rwTranslation[] = {al / 2, (-h + 2 * wr) / 2, 0};
       const double wheelRotation[] = {1, 0, 0, c::PI / 2};
 
       pn->getField("translation")->setSFVec3f(translation);
