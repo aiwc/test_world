@@ -142,18 +142,6 @@ void game::run()
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
 
-    max_velocity_[0] = c::MAX_LINEAR_VELOCITY_GOALIE;
-    max_velocity_[1] = c::MAX_LINEAR_VELOCITY_DEFENSE;
-    max_velocity_[2] = c::MAX_LINEAR_VELOCITY_DEFENSE;
-    max_velocity_[3] = c::MAX_LINEAR_VELOCITY_ATTACK;
-    max_velocity_[4] = c::MAX_LINEAR_VELOCITY_ATTACK;
-
-    max_meters_run_[0] = c::DEFAULT_MAX_METERS_GOALIE;
-    max_meters_run_[1] = c::DEFAULT_MAX_METERS_DEFENSE;
-    max_meters_run_[2] = c::DEFAULT_MAX_METERS_DEFENSE;
-    max_meters_run_[3] = c::DEFAULT_MAX_METERS_ATTACK;
-    max_meters_run_[4] = c::DEFAULT_MAX_METERS_ATTACK;
-
     for (int i = 0; i < 2; i++)
       for (unsigned int j = 0; j < c::NUMBER_OF_ROBOTS; j++) {
         // stop_time_[i][j] = 0;
@@ -172,19 +160,6 @@ void game::run()
 
       if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
         penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
-
-      if (config_json["rule"].HasMember("max_meters_goalie") && config_json["rule"]["max_meters_goalie"].IsNumber())
-        max_meters_run_[0] = config_json["rule"]["max_meters_goalie"].GetDouble();
-
-      if (config_json["rule"].HasMember("max_meters_defense") && config_json["rule"]["max_meters_defense"].IsNumber()) {
-        max_meters_run_[1] = config_json["rule"]["max_meters_defense"].GetDouble();
-        max_meters_run_[2] = config_json["rule"]["max_meters_defense"].GetDouble();
-      }
-
-      if (config_json["rule"].HasMember("max_meters_attack") && config_json["rule"]["max_meters_attack"].IsNumber()) {
-        max_meters_run_[3] = config_json["rule"]["max_meters_attack"].GetDouble();
-        max_meters_run_[4] = config_json["rule"]["max_meters_attack"].GetDouble();
-      }
     }
     else
       std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
@@ -194,9 +169,6 @@ void game::run()
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
     std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
     std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
-    std::cout << " max meters goalie - " << max_meters_run_[0] << " seconds" << std::endl;
-    std::cout << "max meters defense - " << max_meters_run_[1] << " seconds" << std::endl;
-    std::cout << " max meters attack - " << max_meters_run_[3] << " seconds" << std::endl << std::endl;
   }
 
   const auto path_prefix = std::string("../../");
@@ -241,17 +213,25 @@ void game::run()
     info.emplace_back("goal_area", msgpack::object(std::make_tuple(c::GOAL_AREA_DEPTH,
                                                                    c::GOAL_AREA_WIDTH), z_info_));
     info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, z_info_));
+    info.emplace_back("ball_mass",            msgpack::object(c::BALL_MASS, z_info_));
+
     info.emplace_back("robot_size",           msgpack::object(c::ROBOT_SIZE, z_info_));
-    info.emplace_back("robot_height",           msgpack::object(c::ROBOT_HEIGHT, z_info_));
-    // info.emplace_back("robot_radius",           msgpack::object(c::ROBOT_RADIUS, z_info_));
+    info.emplace_back("robot_height",         msgpack::object(c::ROBOT_HEIGHT, z_info_));
     info.emplace_back("axle_length",          msgpack::object(c::AXLE_LENGTH, z_info_));
-    info.emplace_back("max_linear_velocity",  msgpack::object(max_velocity_, z_info_));
+    info.emplace_back("robot_body_mass",      msgpack::object(c::ROBOT_BODY_MASS, z_info_));
+
+    info.emplace_back("wheel_radius",         msgpack::object(c::WHEEL_RADIUS, z_info_));
+    info.emplace_back("wheel_mass",           msgpack::object(c::WHEEL_MASS, z_info_));
+
+    info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
+    info.emplace_back("max_torque",           msgpack::object(c::MAX_TORQUE, z_info_));
+    info.emplace_back("max_meters_run", msgpack::object(c::MAX_METERS_RUN, z_info_));
 
     info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), z_info_));
     info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
     info.emplace_back("codewords",  msgpack::object(c::CODEWORDS, z_info_));
     info.emplace_back("game_time",   msgpack::object(game_time_ms_ / 1000., z_info_));
-    info.emplace_back("max_meters_run", msgpack::object(max_meters_run_, z_info_));
+
 
     info.emplace_back("team_info",
                       msgpack::object(std::make_tuple(map{std::make_pair("name",   msgpack::object(name, z_info_)),
@@ -547,8 +527,8 @@ void game::update_meters_run()
 
       if(activeness_[team][id] && stand) {
         meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
-        if(meters_run_[team][id] >= max_meters_run_[id]) {
-          meters_run_[team][id] = max_meters_run_[id];
+        if(meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
+          meters_run_[team][id] = c::MAX_METERS_RUN[id];
           activeness_[team][id] = false;
           exhausted_[team][id] = true;
         }
@@ -557,7 +537,7 @@ void game::update_meters_run()
   }
 
   // sv_.setLabel(25,
-  //              (boost::format("Max available: %.2f m, %.2f m, %.2f m") % max_meters_run_[0] % max_meters_run_[2] % max_meters_run_[4]).str(),
+  //              (boost::format("Max available: %.2f m, %.2f m, %.2f m") % c::MAX_METERS_RUN[0] % c::MAX_METERS_RUN[2] % c::MAX_METERS_RUN[4]).str(),
   //              0, 0, // x, y
   //              0.08, 0x00000000, // size, color
   //              0, "Arial" // transparency, font
@@ -583,10 +563,10 @@ void game::apply_penalty(bool is_red, std::size_t id)
 {
   auto team = (is_red ? T_RED : T_BLUE);
   if (!exhausted_[team][id]) {
-    meters_run_[team][id] += c::DEFAULT_PENALTY_RATIO * max_meters_run_[id];
+    meters_run_[team][id] += c::DEFAULT_PENALTY_RATIO * c::MAX_METERS_RUN[id];
 
-    if (meters_run_[team][id] >= max_meters_run_[id]) {
-      meters_run_[team][id] = max_meters_run_[id];
+    if (meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
+      meters_run_[team][id] = c::MAX_METERS_RUN[id];
       activeness_[team][id] = false;
       exhausted_[team][id] = true;
       //sv_.send_to_foulzone(is_red, id);
@@ -732,8 +712,8 @@ void game::send_speed()
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       if(activeness_[team][id]) {
         auto speed = ws[team][id];
-        speed[0] = std::max(std::min(speed[0], max_velocity_[id]), -max_velocity_[id]);
-        speed[1] = std::max(std::min(speed[1], max_velocity_[id]), -max_velocity_[id]);
+        speed[0] = std::max(std::min(speed[0], c::MAX_LINEAR_VELOCITY[id]), -c::MAX_LINEAR_VELOCITY[id]);
+        speed[1] = std::max(std::min(speed[1], c::MAX_LINEAR_VELOCITY[id]), -c::MAX_LINEAR_VELOCITY[id]);
         sv_.set_linear_wheel_speed(team == T_RED, id, speed);
       }
       else {
@@ -1332,7 +1312,7 @@ void game::run_game()
               // ball_ownership_ = !ball_ownership_;
               // backpass_time_ = time_ms_;
               // backpass_foul_flag_ = true;
-              
+
               // pause();
               // stop_robots();
               // reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
