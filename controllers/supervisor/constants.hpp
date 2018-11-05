@@ -67,7 +67,9 @@ namespace constants {
 
   constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.125, 1.5, 1.5, 2.1, 2.1};
   constexpr std::array<double, 5> MAX_TORQUE = {0.1, 0.1, 0.1, 0.1, 0.1};
-  constexpr std::array<double, 5> MAX_METERS_RUN = {99999, 99999, 99999, 99999, 99999};
+
+  // Unused
+  // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
   constexpr double ROBOT_FORMATION[2][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
