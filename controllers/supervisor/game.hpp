@@ -64,10 +64,10 @@ private:
   void run_participant();
   void terminate_participant();
 
-  void save_current_pos();
-  void update_meters_run();
   void update_label();
-  void apply_penalty(bool is_red, std::size_t id);
+  void save_current_pos();
+  // void update_meters_run();
+  // void apply_penalty(bool is_red, std::size_t id);
 
   // game state control functions
   void step(std::size_t ms, bool update); // throw webots_revert_exception when webots reverts
@@ -175,8 +175,8 @@ private:
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_goal_area_;
-  std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> meters_run_;
-  std::array<std::array<std::tuple<double, double, double, bool>, constants::NUMBER_OF_ROBOTS>, 2> prev_pos_;
+  // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> meters_run_;
+  // std::array<std::array<std::tuple<double, double, double, bool>, constants::NUMBER_OF_ROBOTS>, 2> prev_pos_;
   std::atomic<bool> paused_{true};
   constants::game_state game_state_;
 

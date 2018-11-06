@@ -182,13 +182,13 @@ void game::run()
 
     // my team
     const std::string& name   = ((config_json[tc].HasMember("name") && config_json[tc]["name"].IsString()) ? config_json[tc]["name"].GetString() : "");
-    const double&      rating = 0; //rating is currently disabled
+    const double&      rating = 0; //rating is disabled
     const std::string& exe    = ((config_json[tc].HasMember("executable") && config_json[tc]["executable"].IsString()) ? config_json[tc]["executable"].GetString() : "");
     const std::string& data   = ((config_json[tc].HasMember("datapath") && config_json[tc]["datapath"].IsString()) ? config_json[tc]["datapath"].GetString() : "");
 
     // opponent
     const std::string& name_op   = ((config_json[tc_op].HasMember("name") && config_json[tc_op]["name"].IsString()) ? config_json[tc_op]["name"].GetString() : "");
-    const double&      rating_op = 0; //rating is currently disabled
+    const double&      rating_op = 0; //rating is disabled
 
     const auto ret = player_team_infos_.emplace(std::piecewise_construct,
                                                 std::make_tuple(random_string(c::KEY_LENGTH)),
@@ -212,6 +212,7 @@ void game::run()
                                                                       c::PENALTY_AREA_WIDTH), z_info_));
     info.emplace_back("goal_area", msgpack::object(std::make_tuple(c::GOAL_AREA_DEPTH,
                                                                    c::GOAL_AREA_WIDTH), z_info_));
+
     info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, z_info_));
     info.emplace_back("ball_mass",            msgpack::object(c::BALL_MASS, z_info_));
 
@@ -225,7 +226,7 @@ void game::run()
 
     info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
     info.emplace_back("max_torque",           msgpack::object(c::MAX_TORQUE, z_info_));
-    info.emplace_back("max_meters_run", msgpack::object(c::MAX_METERS_RUN, z_info_));
+    // info.emplace_back("max_meters_run", msgpack::object(c::MAX_METERS_RUN, z_info_));
 
     info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), z_info_));
     info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
@@ -498,83 +499,62 @@ void game::update_label()
   }
 }
 
-void game::save_current_pos()
-{
-  for(const auto& team : {T_RED, T_BLUE}) {
-    auto is_red = team == T_RED;
-    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      const auto pos = sv_.get_robot_posture(is_red, id);
+// Unused
+// void game::save_current_pos()
+// {
+  // for(const auto& team : {T_RED, T_BLUE}) {
+    // auto is_red = team == T_RED;
+    // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      // const auto pos = sv_.get_robot_posture(is_red, id);
 
-      prev_pos_[team][id] = pos;
-    }
-  }
-}
+      // prev_pos_[team][id] = pos;
+    // }
+  // }
+// }
 
-void game::update_meters_run()
-{
-  for(const auto& team : {T_RED, T_BLUE}) {
-    auto is_red = team == T_RED;
-    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      const auto pos = sv_.get_robot_posture(is_red, id);
+// Unused
+// void game::update_meters_run()
+// {
+  // for(const auto& team : {T_RED, T_BLUE}) {
+    // auto is_red = team == T_RED;
+    // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      // const auto pos = sv_.get_robot_posture(is_red, id);
 
-      const auto x = std::get<0>(pos);
-      const auto y = std::get<1>(pos);
+      // const auto x = std::get<0>(pos);
+      // const auto y = std::get<1>(pos);
 
-      const auto stand = std::get<3>(pos);
+      // const auto stand = std::get<3>(pos);
 
-      const auto prev_x = std::get<0>(prev_pos_[team][id]);
-      const auto prev_y = std::get<1>(prev_pos_[team][id]);
+      // const auto prev_x = std::get<0>(prev_pos_[team][id]);
+      // const auto prev_y = std::get<1>(prev_pos_[team][id]);
 
-      if(activeness_[team][id] && stand) {
-        meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
-        if(meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
-          meters_run_[team][id] = c::MAX_METERS_RUN[id];
-          activeness_[team][id] = false;
-          exhausted_[team][id] = true;
-        }
-      }
-    }
-  }
+      // if(activeness_[team][id] && stand) {
+        // meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
+        // if(meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
+          // meters_run_[team][id] = c::MAX_METERS_RUN[id];
+          // activeness_[team][id] = false;
+          // exhausted_[team][id] = true;
+        // }
+      // }
+    // }
+  // }
+// }
 
-  // sv_.setLabel(25,
-  //              (boost::format("Max available: %.2f m, %.2f m, %.2f m") % c::MAX_METERS_RUN[0] % c::MAX_METERS_RUN[2] % c::MAX_METERS_RUN[4]).str(),
-  //              0, 0, // x, y
-  //              0.08, 0x00000000, // size, color
-  //              0, "Arial" // transparency, font
-  //              );
-  //
-  // sv_.setLabel(26,
-  //              (boost::format("Red 0[%.2f]: %.2f m\nRed 1[%.2f]: %.2f m\nRed 2[%.2f]: %.2f m\nRed 3[%.2f]: %.2f m\nRed 4[%.2f]: %.2f m") % stop_time_[0][0] % meters_run_[0][0] % stop_time_[0][1] % meters_run_[0][1] % stop_time_[0][2] % meters_run_[0][2] % stop_time_[0][3] % meters_run_[0][3] % stop_time_[0][4] % meters_run_[0][4]).str(),
-  //              0, 0.04, // x, y
-  //              0.08, 0x00000000, // size, color
-  //              0, "Arial" // transparency, font
-  //              );
-  //
-  // sv_.setLabel(27,
-  //             (boost::format("Blue 0[%.2f]: %.2f m\nBlue 1[%.2f]: %.2f m\nBlue 2[%.2f]: %.2f m\nBlue 3[%.2f]: %.2f m\nBlue 4[%.2f]: %.2f m") % stop_time_[1][0] % meters_run_[1][0] % stop_time_[1][1] % meters_run_[1][1] % stop_time_[1][2] % meters_run_[1][2] % stop_time_[1][3] % meters_run_[1][3] % stop_time_[1][4] % meters_run_[1][4]).str(),
-  //             0.77, 0.04, // x, y
-  //             0.08, 0x00000000, // size, color
-  //             0, "Arial" // transparency, font
-  //             );
-}
-
+// Unused
 // apply penalty to robots sent out
-void game::apply_penalty(bool is_red, std::size_t id)
-{
-  auto team = (is_red ? T_RED : T_BLUE);
-  if (!exhausted_[team][id]) {
-    meters_run_[team][id] += c::DEFAULT_PENALTY_RATIO * c::MAX_METERS_RUN[id];
+// void game::apply_penalty(bool is_red, std::size_t id)
+// {
+  // auto team = (is_red ? T_RED : T_BLUE);
+  // if (!exhausted_[team][id]) {
+    // meters_run_[team][id] += c::DEFAULT_PENALTY_RATIO * c::MAX_METERS_RUN[id];
 
-    if (meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
-      meters_run_[team][id] = c::MAX_METERS_RUN[id];
-      activeness_[team][id] = false;
-      exhausted_[team][id] = true;
-      //sv_.send_to_foulzone(is_red, id);
-      // if(stop_time_[team][id] == 0)
-      //   stop_time_[team][id] = time_ms_ / 1000.;
-    }
-  }
-}
+    // if (meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
+      // meters_run_[team][id] = c::MAX_METERS_RUN[id];
+      // activeness_[team][id] = false;
+      // exhausted_[team][id] = true;
+    // }
+  // }
+// }
 
 // game state control functions
 void game::step(std::size_t ms, bool update)
@@ -597,9 +577,9 @@ void game::step(std::size_t ms, bool update)
       time_ms_ += basic_time_step;
     }
 
-    if(update)
-      update_meters_run();
-    save_current_pos();
+    // if(update)
+      // update_meters_run();
+    // save_current_pos();
 
     update_label();
     step_throw_if_revert(basic_time_step);
@@ -892,7 +872,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
       std::get<4>(g_robots[team][id]) = g_touch[team][id];
-      std::get<5>(g_robots[team][id]) = meters_run_[team][id];
+      // std::get<5>(g_robots[team][id]) = meters_run_[team][id];
     }
   }
 
@@ -1024,11 +1004,11 @@ void game::run_game()
     }
   }
 
-  for(auto& team_mr : meters_run_) {
-    for(auto& robot_mr : team_mr) {
-      robot_mr = 0.0;
-    }
-  }
+  // for(auto& team_mr : meters_run_) {
+    // for(auto& robot_mr : team_mr) {
+      // robot_mr = 0.0;
+    // }
+  // }
 
   update_label();
 
@@ -1154,7 +1134,7 @@ void game::run_game()
                   if(is_active && is_iga) {
                     is_active = false;
                     is_iga = false;
-                    apply_penalty(team == T_RED, id);
+                    // apply_penalty(team == T_RED, id);
                     sv_.send_to_foulzone(team == T_RED, id);
                     break;
                   }
@@ -1183,7 +1163,7 @@ void game::run_game()
                   if(is_active && is_ioga) {
                     is_active = false;
                     is_ioga = false;
-                    apply_penalty(team == T_RED, id);
+                    // apply_penalty(team == T_RED, id);
                     sv_.send_to_foulzone(team == T_RED, id);
                     break;
                   }
@@ -1218,7 +1198,7 @@ void game::run_game()
                   if(is_active && is_ipa) {
                     is_active = false;
                     is_ipa = false;
-                    apply_penalty(team == T_RED, id);
+                    // apply_penalty(team == T_RED, id);
                     sv_.send_to_foulzone(team == T_RED, id);
                     break;
                   }
@@ -1247,7 +1227,7 @@ void game::run_game()
                   if(is_active && is_iopa) {
                     is_active = false;
                     is_iopa = false;
-                    apply_penalty(team == T_RED, id);
+                    // apply_penalty(team == T_RED, id);
                     sv_.send_to_foulzone(team == T_RED, id);
                     break;
                   }
@@ -1269,7 +1249,7 @@ void game::run_game()
             for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
               if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
                 activeness_[team][id] = false;
-                apply_penalty(team == T_RED, id);
+                // apply_penalty(team == T_RED, id);
                 sv_.send_to_foulzone(team == T_RED, id);
               }
             }
