@@ -142,11 +142,11 @@ void game::run()
     goal_area_foul_flag_ = true;
     penalty_area_foul_flag_ = true;
 
-    for (int i = 0; i < 2; i++)
-      for (unsigned int j = 0; j < c::NUMBER_OF_ROBOTS; j++) {
+    // for (int i = 0; i < 2; i++)
+      // for (unsigned int j = 0; j < c::NUMBER_OF_ROBOTS; j++) {
         // stop_time_[i][j] = 0;
-        exhausted_[i][j] = false;
-    }
+        // exhausted_[i][j] = false;
+    // }
 
     if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
@@ -603,15 +603,15 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
   }
 
   // check stamina status and send exhausted robots out
-  for(const auto& team : {T_RED, T_BLUE}) {
-    auto is_red = team == T_RED;
-    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      if(exhausted_[team][id]) {
-        activeness_[team][id] = false;
-        sv_.send_to_foulzone(is_red, id);
-      }
-    }
-  }
+  // for(const auto& team : {T_RED, T_BLUE}) {
+    // auto is_red = team == T_RED;
+    // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      // if(exhausted_[team][id]) {
+        // activeness_[team][id] = false;
+        // sv_.send_to_foulzone(is_red, id);
+      // }
+    // }
+  // }
 
   // reset in_penalty_area
   for(auto& team_ipa : in_penalty_area_) {
@@ -1048,14 +1048,14 @@ void game::run_game()
     }
 
     // special case 2: all robots are exhausted. finish the game without checking game rules.
-    if(std::all_of(std::begin(exhausted_[0]), std::end(exhausted_[0]), [](const auto& is_exhausted) { return is_exhausted; })
-     &&std::all_of(std::begin(exhausted_[1]), std::end(exhausted_[1]), [](const auto& is_exhausted) { return is_exhausted; })) {
-      publish_current_frame(c::GAME_END);
-      pause();
-      stop_robots();
-      step(c::WAIT_END_MS, false);
-      return;
-    }
+    // if(std::all_of(std::begin(exhausted_[0]), std::end(exhausted_[0]), [](const auto& is_exhausted) { return is_exhausted; })
+     // &&std::all_of(std::begin(exhausted_[1]), std::end(exhausted_[1]), [](const auto& is_exhausted) { return is_exhausted; })) {
+      // publish_current_frame(c::GAME_END);
+      // pause();
+      // stop_robots();
+      // step(c::WAIT_END_MS, false);
+      // return;
+    // }
 
     // publish current frame
     publish_current_frame(reset_reason);
