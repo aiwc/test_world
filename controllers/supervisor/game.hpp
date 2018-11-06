@@ -170,7 +170,7 @@ private:
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> exhausted_;
+  // std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> exhausted_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
