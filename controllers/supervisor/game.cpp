@@ -212,6 +212,7 @@ void game::run()
                                                                       c::PENALTY_AREA_WIDTH), z_info_));
     info.emplace_back("goal_area", msgpack::object(std::make_tuple(c::GOAL_AREA_DEPTH,
                                                                    c::GOAL_AREA_WIDTH), z_info_));
+
     info.emplace_back("ball_radius",          msgpack::object(c::BALL_RADIUS, z_info_));
     info.emplace_back("ball_mass",            msgpack::object(c::BALL_MASS, z_info_));
 
