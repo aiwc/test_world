@@ -71,19 +71,43 @@ namespace constants {
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
-  constexpr double ROBOT_FORMATION[2][NUMBER_OF_ROBOTS][3] = {
+  constexpr double ROBOT_FORMATION[6][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
    {{-2.5,   0.0, PI / 2},
-    {-1.45,   0.8, 0},
-    {-1.45,  -0.8, 0},
+    {-1.45,  0.8, 0},
+    {-1.45, -0.8, 0},
     {-0.65,  0.3, 0},
     {-0.65, -0.3, 0},},
     // x, y, th - Backpass Formation
-   {{-2.5,  0.0, PI / 2},
+   {{-2.5,   0.0, PI / 2},
     {-1.45,  0.8, 0},
     {-1.45, -0.8, 0},
     {-0.65,  0,   0},
-    { 0.4,   0,   PI},}
+    { 0.4,   0,   PI},},
+    // x, y, th - Freekick_Attack-Attack Formation
+   {{-2.5,  0.0,  PI / 2},
+    {1,     0.8,  0},
+    {1,    -0.8,  0},
+    {0.5,   0.3,  0},
+    {0.5,  -0.3,  0},},
+    // x, y, th - Freekick_Attack-Defense Formation
+   {{-2.5,  0.0,  PI / 2},
+    {-2.1,  0.3,  0},
+    {-2.1, -0.3,  0},
+    {-2.1,  0.65, 0},
+    {-2.1, -0.65, 0},},
+    // x, y, th - Freekick_Defense-Attack Formation
+   {{-2.5,  0.0,  PI / 2},
+    {-2.1,  0.3,  0},
+    {-2.1, -0.3,  0},
+    {-1.75, 0.65, 0},
+    {-1.75,-0.65, 0},},
+    // x, y, th - Freekick_Defense-Defense Formation
+   {{-2.5,  0.0,  PI / 2},
+    {0.5,   0.65,  0},
+    {0.5,  -0.65,  0},
+    {0.5,   0.2,  0},
+    {0.5,  -0.2,  0},},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
@@ -93,6 +117,8 @@ namespace constants {
     {-2.75, 1.25, 0},
     {-2.75, 1.45, 0},
   };
+  
+  constexpr double BALL_POSTURE[3] = {0, 1, -1.75};
 
   // WAMP router settings
   const std::string SERVER_IP = "127.0.0.1";
@@ -142,6 +168,16 @@ namespace constants {
   enum robot_formation {
     FORMATION_DEFAULT = 0,
     FORMATION_BACKPASS = 1,
+    FORMATION_FREEKICK_AA = 2,
+    FORMATION_FREEKICK_AD = 3,
+    FORMATION_FREEKICK_DA = 4,
+    FORMATION_FREEKICK_DD = 5,
+  };
+  
+  enum ball_posture {
+    BALL_DEFAULT = 0,
+    BALL_FREEKICK_ATTACK = 1,
+    BALL_FREEKICK_DEFENSE = 2,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {
