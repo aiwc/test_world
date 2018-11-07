@@ -1019,7 +1019,7 @@ void game::run_game()
   ball_ownership_ = T_RED;
   game_state_ = c::STATE_BACKPASS;
   backpass_time_ = time_ms_;
-  backpass_foul_flag_ = false;
+  // backpass_foul_flag_ = false;
 
   reset(c::FORMATION_BACKPASS, c::FORMATION_DEFAULT);
 
@@ -1077,7 +1077,7 @@ void game::run_game()
           step(c::WAIT_GOAL_MS, false);
 
           game_state_ = c::STATE_BACKPASS;
-          backpass_foul_flag_ = false;
+          // backpass_foul_flag_ = false;
 
           ball_ownership_ = (ball_x > 0) ? T_BLUE : T_RED;
           backpass_time_ = time_ms_;
@@ -1269,7 +1269,7 @@ void game::run_game()
         const auto ball_y = std::get<1>(sv_.get_ball_position());
         if (ball_x*ball_x + ball_y*ball_y > c::BACKPASS_BORDER*c::BACKPASS_BORDER) {
           // if ((ball_ownership_ == T_RED) ? (ball_x < 0) : (ball_x > 0)) { // good backpass
-          backpass_foul_flag_ = false;
+          // backpass_foul_flag_ = false;
 
           unlock_all_robots();
 
