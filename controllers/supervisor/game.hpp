@@ -87,6 +87,8 @@ private:
   std::size_t count_robots_in_penalty_area(bool is_red);
   std::size_t count_robots_in_opponent_penalty_area(bool is_red);
 
+  bool is_deadlock_in_freekick_region();
+
   void publish_current_frame(std::size_t reset_reason);
 
   // main runner
@@ -170,6 +172,7 @@ private:
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> touch_;
   // std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> exhausted_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
@@ -190,6 +193,7 @@ private:
   std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
   std::size_t backpass_time_ = 0;
+  std::size_t freekick_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
 

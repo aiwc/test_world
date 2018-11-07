@@ -144,6 +144,7 @@ namespace constants {
   constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE[0] / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
   constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr double      BACKPASS_BORDER = 0.35; // m
+  constexpr std::size_t FREEKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr double      DEFAULT_PENALTY_RATIO = 0.1; // when a robot is sent out, it loses 0.1*max_meters
 
   constexpr std::size_t NUM_COMMENTS = 5;
