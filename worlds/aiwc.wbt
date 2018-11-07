@@ -360,7 +360,7 @@ DEF DEF_ROBOTR0 SoccerRobot {
   controller "soccer_robot"
   axleLength 0.12
   wheelRadius 0.0375
-  maxSpeed 30
+  maxSpeed 24
   slipNoise 0.05
   height 0.09
   bodySize 0.13
@@ -550,7 +550,7 @@ DEF DEF_ROBOTB0 SoccerRobot {
   controller "soccer_robot"
   axleLength 0.12
   wheelRadius 0.0375
-  maxSpeed 30
+  maxSpeed 24
   slipNoise 0.05
   height 0.09
   bodySize 0.13

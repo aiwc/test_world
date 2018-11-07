@@ -65,7 +65,7 @@ namespace constants {
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
   constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.05, 0.05};
 
-  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.125, 1.5, 1.5, 2.1, 2.1};
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {0.9, 1.5, 1.5, 2.1, 2.1};
   constexpr std::array<double, 5> MAX_TORQUE = {0.1, 0.1, 0.1, 0.1, 0.1};
 
   // Unused
