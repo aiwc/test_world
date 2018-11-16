@@ -4,7 +4,7 @@ WorldInfo {
   physics "collision_detector"
   basicTimeStep 10
   FPS 20
-  optimalThreadCount 8
+  optimalThreadCount 1
   defaultDamping Damping {
   }
   lineScale 0.01
