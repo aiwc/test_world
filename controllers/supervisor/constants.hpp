@@ -57,16 +57,16 @@ namespace constants {
 
   // Robot Specifications
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.105, 0.105};
+  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.1, 0.1};
   constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
-  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.095, 0.095};
-  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.0, 0.75, 0.75, 0.65, 0.65};
+  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.09, 0.09};
+  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.1, 0.75, 0.75, 0.4, 0.4};
 
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
-  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.05, 0.05};
+  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.03, 0.03};
 
   constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {0.9, 1.5, 1.5, 2.1, 2.1};
-  constexpr std::array<double, 5> MAX_TORQUE = {0.1, 0.1, 0.1, 0.1, 0.1};
+  constexpr std::array<double, 5> MAX_TORQUE = {0.08, 0.1, 0.1, 0.15, 0.15};
 
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
