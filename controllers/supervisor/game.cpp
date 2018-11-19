@@ -763,6 +763,53 @@ std::size_t game::count_robots_in_goal_area(bool is_red)
   return ret;
 }
 
+bool game::get_freekick_ownership()
+{
+  std::cout << "Freekick Checker" << std::endl;
+  const auto ball_x = std::get<0>(sv_.get_ball_position());
+  const auto ball_y = std::get<1>(sv_.get_ball_position());
+  bool is_robot_near_ball[2][c::NUMBER_OF_ROBOTS];
+  int robot_count[2] = {0, 0};
+
+  std::cout << "Border: " << c::FREEKICK_BORDER * c::FREEKICK_BORDER << std::endl;
+
+  // count the robots near the ball
+  for(const auto& team : {T_RED, T_BLUE}) {
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      const auto robot_pos = sv_.get_robot_posture(team == T_RED, id);
+      const auto x = std::get<0>(robot_pos);
+      const auto y = std::get<1>(robot_pos);
+
+      if(!activeness_[team][id])
+        continue;
+
+      const auto ball_distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
+
+      std::cout << "Team " << ((team == T_RED) ? "Red" : "Blue") << " Robot " << id << ": " << ball_distance_squared << std::endl;
+
+      if(ball_distance_squared <= c::FREEKICK_BORDER * c::FREEKICK_BORDER) {
+        robot_count[team] += 1;
+        is_robot_near_ball[team][id] = true;
+      }
+      else
+        is_robot_near_ball[team][id] = false;
+    }
+  }
+
+  if(robot_count[T_RED] > robot_count[T_BLUE]) {
+    std::cout << "Red has more robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+    return T_RED;
+  }
+  else if(robot_count[T_BLUE] > robot_count[T_RED]) {
+    std::cout << "Blue has more robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+    return T_BLUE;
+  }
+  else {
+    std::cout << "Both sides have same number of robots" << std::endl;
+    return false;
+  }
+}
+
 std::size_t game::count_robots_in_opponent_goal_area(bool is_red)
 {
   std::size_t ret = 0;
@@ -1269,18 +1316,24 @@ void game::run_game()
             stop_robots();
 
             game_state_ = c::STATE_FREEKICK;
+            freekick_time_ = time_ms_;
 
             const auto deadlock_side = (ball_x > 0) ? T_BLUE : T_RED;
 
             // set the ball ownership
-            ball_ownership_ = T_RED;
-
-            freekick_time_ = time_ms_;
+            ball_ownership_ = get_freekick_ownership();
 
             // determine the formation based on the ownership
-
-            // reset and wait until stabilized
-            reset(c::FORMATION_FREEKICK_AA, c::FORMATION_FREEKICK_AD);
+            if (ball_ownership_ == T_RED && deadlock_side == T_RED)
+              reset(c::FORMATION_FREEKICK_DA, c::FORMATION_FREEKICK_DD);
+            else if (ball_ownership_ == T_RED && deadlock_side == T_BLUE)
+              reset(c::FORMATION_FREEKICK_AA, c::FORMATION_FREEKICK_AD);
+            else if (ball_ownership_ == T_BLUE && deadlock_side == T_RED)
+              reset(c::FORMATION_FREEKICK_AD, c::FORMATION_FREEKICK_AA);
+            else if (ball_ownership_ == T_BLUE && deadlock_side == T_BLUE)
+              reset(c::FORMATION_FREEKICK_DD, c::FORMATION_FREEKICK_DA);
+            else
+              std::cout << "This message should never appear!" << std::endl;
 
             lock_all_robots();
             for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
@@ -1370,8 +1423,10 @@ void game::run_game()
           // a robot has touched the ball
           for (std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
             if (touch_[ball_ownership_][id]) {
-              unlock_all_robots();
+              std::cout << "Robot " << id << " has touched the ball" << std::endl;
               game_state_ = c::STATE_DEFAULT;
+              unlock_all_robots();
+              break;
             }
           }
         }

@@ -104,22 +104,22 @@ public:
 
     switch(red_formation) {
       case c::FORMATION_DEFAULT:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT], c::BALL_RADIUS, 0);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT], 1.5*c::BALL_RADIUS, 0);
         break;
       case c::FORMATION_BACKPASS:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT], c::BALL_RADIUS, 0);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT], 1.5*c::BALL_RADIUS, 0);
         break;
       case c::FORMATION_FREEKICK_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK], c::BALL_RADIUS, 0);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK], 1.5*c::BALL_RADIUS, 0);
         break;
       case c::FORMATION_FREEKICK_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK], c::BALL_RADIUS, 0);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK], 1.5*c::BALL_RADIUS, 0);
         break;
       case c::FORMATION_FREEKICK_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE], c::BALL_RADIUS, 0);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE], 1.5*c::BALL_RADIUS, 0);
         break;
       case c::FORMATION_FREEKICK_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE], c::BALL_RADIUS, 0);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE], 1.5*c::BALL_RADIUS, 0);
         break;
       default:
         break;
