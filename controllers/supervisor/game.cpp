@@ -1172,7 +1172,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_ga_counter_[team]), std::cend(foul_ga_counter_[team]), (std::size_t)0);
             if((cnt_rbts_iga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_ga_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1201,7 +1201,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_oga_counter_[team]), std::cend(foul_oga_counter_[team]), (std::size_t)0);
             if((cnt_rbts_ioga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_oga_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1236,7 +1236,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_pa_counter_[team]), std::cend(foul_pa_counter_[team]), (std::size_t)0);
             if((cnt_rbts_ipa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_pa_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1265,7 +1265,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_opa_counter_[team]), std::cend(foul_opa_counter_[team]), (std::size_t)0);
             if((cnt_rbts_iopa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_opa_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1347,7 +1347,7 @@ void game::run_game()
           // otherwise, send some robots out and continue the game
           else {
             for(const auto& team : {T_RED, T_BLUE}) {
-              for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+              for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
                 if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
                   activeness_[team][id] = false;
                   // apply_penalty(team == T_RED, id);
