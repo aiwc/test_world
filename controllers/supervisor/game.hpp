@@ -167,6 +167,11 @@ private:
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
   bool ball_ownership_;
+
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  bool SPECIAL_TIE_PARAMETER = false;
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
   // bool backpass_foul_flag_;
   // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> stop_time_;
 

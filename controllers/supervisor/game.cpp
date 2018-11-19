@@ -768,45 +768,57 @@ bool game::get_freekick_ownership()
   std::cout << "Freekick Checker" << std::endl;
   const auto ball_x = std::get<0>(sv_.get_ball_position());
   const auto ball_y = std::get<1>(sv_.get_ball_position());
-  bool is_robot_near_ball[2][c::NUMBER_OF_ROBOTS];
   int robot_count[2] = {0, 0};
+  double robot_distance[2] = {0, 0};
 
   std::cout << "Border: " << c::FREEKICK_BORDER * c::FREEKICK_BORDER << std::endl;
 
   // count the robots near the ball
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      if(!activeness_[team][id])
+        continue;
+
       const auto robot_pos = sv_.get_robot_posture(team == T_RED, id);
       const auto x = std::get<0>(robot_pos);
       const auto y = std::get<1>(robot_pos);
 
-      if(!activeness_[team][id])
-        continue;
+      const auto distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
 
-      const auto ball_distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
+      std::cout << "Team " << ((team == T_RED) ? "Red" : "Blue") << " Robot " << id << ": " << distance_squared << std::endl;
 
-      std::cout << "Team " << ((team == T_RED) ? "Red" : "Blue") << " Robot " << id << ": " << ball_distance_squared << std::endl;
-
-      if(ball_distance_squared <= c::FREEKICK_BORDER * c::FREEKICK_BORDER) {
+      if(distance_squared <= c::FREEKICK_BORDER * c::FREEKICK_BORDER) {
         robot_count[team] += 1;
-        is_robot_near_ball[team][id] = true;
+        robot_distance[team] += sqrt(distance_squared);
       }
-      else
-        is_robot_near_ball[team][id] = false;
     }
   }
 
-  if(robot_count[T_RED] > robot_count[T_BLUE]) {
-    std::cout << "Red has more robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+  // decision - team with less robots near the ball gets the ownership
+  if(robot_count[T_RED] < robot_count[T_BLUE]) {
+    std::cout << "Red has less robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
     return T_RED;
   }
-  else if(robot_count[T_BLUE] > robot_count[T_RED]) {
-    std::cout << "Blue has more robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+  else if(robot_count[T_BLUE] < robot_count[T_RED]) {
+    std::cout << "Blue has less robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
     return T_BLUE;
   }
+  // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
   else {
     std::cout << "Both sides have same number of robots" << std::endl;
-    return false;
+    // both teams have no robot near the ball
+    if(robot_count[T_RED] == 0) {
+      SPECIAL_TIE_PARAMETER = true;
+      return false;
+    }
+    else if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
+      std::cout << "Red is farther to the ball on average" << std::endl;
+      return T_RED;
+    }
+    else  {
+      std::cout << "Blue is farther to the ball on average" << std::endl;
+      return T_BLUE;
+    }
   }
 }
 
@@ -1310,6 +1322,25 @@ void game::run_game()
         else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
           // if the deadlock happened in the freekick region, go into freekick state
           if (is_deadlock_in_freekick_region()) {
+            // set the ball ownership
+            ball_ownership_ = get_freekick_ownership();
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (SPECIAL_TIE_PARAMETER) {
+              SPECIAL_TIE_PARAMETER = false;
+              for(const auto& team : {T_RED, T_BLUE}) {
+                for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
+                  if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
+                    activeness_[team][id] = false;
+                    // apply_penalty(team == T_RED, id);
+                    sv_.send_to_foulzone(team == T_RED, id);
+                  }
+                }
+              }
+              deadlock_time_ = time_ms_;
+            }
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@
+
             const auto ball_x = std::get<0>(sv_.get_ball_position());
 
             pause();
@@ -1319,9 +1350,6 @@ void game::run_game()
             freekick_time_ = time_ms_;
 
             const auto deadlock_side = (ball_x > 0) ? T_BLUE : T_RED;
-
-            // set the ball ownership
-            ball_ownership_ = get_freekick_ownership();
 
             // determine the formation based on the ownership
             if (ball_ownership_ == T_RED && deadlock_side == T_RED)
