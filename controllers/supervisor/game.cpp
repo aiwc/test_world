@@ -602,6 +602,13 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
     }
   }
 
+  // reset touch
+  for(auto& team_touch : touch_) {
+    for(auto& robot_touch : team_touch) {
+      robot_touch = false;
+    }
+  }
+
   // check stamina status and send exhausted robots out
   // for(const auto& team : {T_RED, T_BLUE}) {
     // auto is_red = team == T_RED;
@@ -756,6 +763,65 @@ std::size_t game::count_robots_in_goal_area(bool is_red)
   return ret;
 }
 
+bool game::get_freekick_ownership()
+{
+  std::cout << "Freekick Checker" << std::endl;
+  const auto ball_x = std::get<0>(sv_.get_ball_position());
+  const auto ball_y = std::get<1>(sv_.get_ball_position());
+  int robot_count[2] = {0, 0};
+  double robot_distance[2] = {0, 0};
+
+  std::cout << "Border: " << c::FREEKICK_BORDER * c::FREEKICK_BORDER << std::endl;
+
+  // count the robots near the ball
+  for(const auto& team : {T_RED, T_BLUE}) {
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      if(!activeness_[team][id])
+        continue;
+
+      const auto robot_pos = sv_.get_robot_posture(team == T_RED, id);
+      const auto x = std::get<0>(robot_pos);
+      const auto y = std::get<1>(robot_pos);
+
+      const auto distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
+
+      std::cout << "Team " << ((team == T_RED) ? "Red" : "Blue") << " Robot " << id << ": " << distance_squared << std::endl;
+
+      if(distance_squared <= c::FREEKICK_BORDER * c::FREEKICK_BORDER) {
+        robot_count[team] += 1;
+        robot_distance[team] += sqrt(distance_squared);
+      }
+    }
+  }
+
+  // decision - team with less robots near the ball gets the ownership
+  if(robot_count[T_RED] < robot_count[T_BLUE]) {
+    std::cout << "Red has less robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+    return T_RED;
+  }
+  else if(robot_count[T_BLUE] < robot_count[T_RED]) {
+    std::cout << "Blue has less robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+    return T_BLUE;
+  }
+  // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
+  else {
+    std::cout << "Both sides have same number of robots" << std::endl;
+    // both teams have no robot near the ball
+    if(robot_count[T_RED] == 0) {
+      SPECIAL_TIE_PARAMETER = true;
+      return false;
+    }
+    else if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
+      std::cout << "Red is farther to the ball on average" << std::endl;
+      return T_RED;
+    }
+    else  {
+      std::cout << "Blue is farther to the ball on average" << std::endl;
+      return T_BLUE;
+    }
+  }
+}
+
 std::size_t game::count_robots_in_opponent_goal_area(bool is_red)
 {
   std::size_t ret = 0;
@@ -858,11 +924,17 @@ std::size_t game::count_robots_in_opponent_penalty_area(bool is_red)
   return ret;
 }
 
+bool game::is_deadlock_in_freekick_region()
+{
+  const auto pos = sv_.get_ball_position();
+
+  return (std::abs(std::get<0>(pos)) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH);
+}
+
 void game::publish_current_frame(std::size_t reset_reason)
 {
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
-  const auto g_touch = sv_.get_robot_touch_ball();
   std::array<std::array<std::tuple<double, double, double, bool, bool, double>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
@@ -871,7 +943,7 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<1>(g_robots[team][id]) = std::get<1>(r);
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
-      std::get<4>(g_robots[team][id]) = g_touch[team][id];
+      std::get<4>(g_robots[team][id]) = touch_[team][id];
       // std::get<5>(g_robots[team][id]) = meters_run_[team][id];
     }
   }
@@ -980,6 +1052,12 @@ void game::run_game()
     }
   }
 
+  for(auto& team_touch : touch_) {
+    for(auto& robot_touch : team_touch) {
+      robot_touch = false;
+    }
+  }
+
   for(auto& team_ipa : in_penalty_area_) {
     for(auto& robot_ipa : team_ipa) {
       robot_ipa = false;
@@ -1059,6 +1137,7 @@ void game::run_game()
 
     // publish current frame
     publish_current_frame(reset_reason);
+    touch_ = sv_.get_robot_touch_ball();
     reset_reason = c::NONE;
 
     // check rules based on game states
@@ -1095,22 +1174,6 @@ void game::run_game()
         }
       }
 
-      // if the ball is not moved fast enough for c::DEADLOCK_RESET_MS
-      if(reset_reason == c::NONE && deadlock_flag_ == true) {
-        if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
-          deadlock_reset_time_ = time_ms_;
-        }
-        else if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
-          pause();
-          stop_robots();
-          reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
-          step(c::WAIT_STABLE_MS, false);
-          resume();
-
-          reset_reason = c::DEADLOCK;
-        }
-      }
-
       // if a team is blocking the goal area
       if (goal_area_foul_flag_ == true) {
         for(const auto& team : {T_RED, T_BLUE}) {
@@ -1121,7 +1184,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_ga_counter_[team]), std::cend(foul_ga_counter_[team]), (std::size_t)0);
             if((cnt_rbts_iga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_ga_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1150,7 +1213,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_oga_counter_[team]), std::cend(foul_oga_counter_[team]), (std::size_t)0);
             if((cnt_rbts_ioga >= c::FOUL_GA_THRESHOLD) && (sum >= c::FOUL_GA_THRESHOLD * foul_oga_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1185,7 +1248,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_pa_counter_[team]), std::cend(foul_pa_counter_[team]), (std::size_t)0);
             if((cnt_rbts_ipa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_pa_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1214,7 +1277,7 @@ void game::run_game()
             const auto sum = std::accumulate(std::cbegin(foul_opa_counter_[team]), std::cend(foul_opa_counter_[team]), (std::size_t)0);
             if((cnt_rbts_iopa >= c::FOUL_PA_THRESHOLD) && (sum >= c::FOUL_PA_THRESHOLD * foul_opa_counter_[team].capacity())) {
               std::mt19937 rng{std::random_device{}()};
-              std::uniform_int_distribution<std::size_t> dist(0, 4);
+              std::uniform_int_distribution<std::size_t> dist(1, 4);
 
               auto& team_activeness = activeness_[team];
 
@@ -1239,22 +1302,89 @@ void game::run_game()
         }
       }
 
-      // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
-      if(deadlock_flag_ == true) {
+      if(reset_reason == c::NONE && deadlock_flag_ == true) {
         if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
+          deadlock_reset_time_ = time_ms_;
           deadlock_time_ = time_ms_;
         }
+
+        // if the ball is not moved fast enough for c::DEADLOCK_RESET_MS
+        if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
+          pause();
+          stop_robots();
+          reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
+          step(c::WAIT_STABLE_MS, false);
+          resume();
+
+          reset_reason = c::DEADLOCK;
+        }
+        // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
         else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
-          for(const auto& team : {T_RED, T_BLUE}) {
-            for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
-              if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
-                activeness_[team][id] = false;
-                // apply_penalty(team == T_RED, id);
-                sv_.send_to_foulzone(team == T_RED, id);
+          // if the deadlock happened in the freekick region, go into freekick state
+          if (is_deadlock_in_freekick_region()) {
+            // set the ball ownership
+            ball_ownership_ = get_freekick_ownership();
+
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if (SPECIAL_TIE_PARAMETER) {
+              SPECIAL_TIE_PARAMETER = false;
+              deadlock_time_ = time_ms_;
+              
+              pause();
+              stop_robots();
+              reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
+              step(c::WAIT_STABLE_MS, false);
+              resume();
+    
+              reset_reason = c::DEADLOCK;
+              continue;
+            }
+            //@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+            const auto ball_x = std::get<0>(sv_.get_ball_position());
+
+            pause();
+            stop_robots();
+
+            game_state_ = c::STATE_FREEKICK;
+            freekick_time_ = time_ms_;
+
+            const auto deadlock_side = (ball_x > 0) ? T_BLUE : T_RED;
+
+            // determine the formation based on the ownership
+            if (ball_ownership_ == T_RED && deadlock_side == T_RED)
+              reset(c::FORMATION_FREEKICK_DA, c::FORMATION_FREEKICK_DD);
+            else if (ball_ownership_ == T_RED && deadlock_side == T_BLUE)
+              reset(c::FORMATION_FREEKICK_AA, c::FORMATION_FREEKICK_AD);
+            else if (ball_ownership_ == T_BLUE && deadlock_side == T_RED)
+              reset(c::FORMATION_FREEKICK_AD, c::FORMATION_FREEKICK_AA);
+            else if (ball_ownership_ == T_BLUE && deadlock_side == T_BLUE)
+              reset(c::FORMATION_FREEKICK_DD, c::FORMATION_FREEKICK_DA);
+            else
+              std::cout << "This message should never appear!" << std::endl;
+
+            lock_all_robots();
+            for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
+              unlock_robot(ball_ownership_, id);
+
+            step(c::WAIT_STABLE_MS, false);
+            resume();
+
+            reset_reason = c::DEADLOCK;
+          }
+          // otherwise, send some robots out and continue the game
+          else {
+            for(const auto& team : {T_RED, T_BLUE}) {
+              for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
+                if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
+                  activeness_[team][id] = false;
+                  // apply_penalty(team == T_RED, id);
+                  sv_.send_to_foulzone(team == T_RED, id);
+                }
               }
             }
+            deadlock_time_ = time_ms_;
           }
-          deadlock_time_ = time_ms_;
         }
       }
       break;
@@ -1311,6 +1441,24 @@ void game::run_game()
       }
       break;
     case c::STATE_FREEKICK:
+      {
+        // time limit has passed
+        if (time_ms_ - freekick_time_ >= c::FREEKICK_TIME_LIMIT_MS) {
+          game_state_ = c::STATE_DEFAULT;
+          unlock_all_robots();
+        }
+        else {
+          // a robot has touched the ball
+          for (std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+            if (touch_[ball_ownership_][id]) {
+              std::cout << "Robot " << id << " has touched the ball" << std::endl;
+              game_state_ = c::STATE_DEFAULT;
+              unlock_all_robots();
+              break;
+            }
+          }
+        }
+      }
       break;
     default:
       break;

@@ -57,33 +57,57 @@ namespace constants {
 
   // Robot Specifications
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.105, 0.105};
+  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.1, 0.1};
   constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
-  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.095, 0.095};
-  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.0, 0.75, 0.75, 0.65, 0.65};
+  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.09, 0.09};
+  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.1, 0.75, 0.75, 0.4, 0.4};
 
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
-  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.05, 0.05};
+  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.03, 0.03};
 
   constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {0.9, 1.5, 1.5, 2.1, 2.1};
-  constexpr std::array<double, 5> MAX_TORQUE = {0.1, 0.1, 0.1, 0.1, 0.1};
+  constexpr std::array<double, 5> MAX_TORQUE = {0.08, 0.1, 0.1, 0.15, 0.15};
 
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
-  constexpr double ROBOT_FORMATION[2][NUMBER_OF_ROBOTS][3] = {
+  constexpr double ROBOT_FORMATION[6][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
    {{-2.5,   0.0, PI / 2},
-    {-1.45,   0.8, 0},
-    {-1.45,  -0.8, 0},
+    {-1.45,  0.8, 0},
+    {-1.45, -0.8, 0},
     {-0.65,  0.3, 0},
     {-0.65, -0.3, 0},},
     // x, y, th - Backpass Formation
-   {{-2.5,  0.0, PI / 2},
+   {{-2.5,   0.0, PI / 2},
     {-1.45,  0.8, 0},
     {-1.45, -0.8, 0},
     {-0.65,  0,   0},
-    { 0.4,   0,   PI},}
+    { 0.4,   0,   PI},},
+    // x, y, th - Freekick_Attack-Attack Formation
+   {{-2.5,  0.0,  PI / 2},
+    {1,     0.8,  0},
+    {1,    -0.8,  0},
+    {0.5,   0.3,  0},
+    {0.5,  -0.3,  0},},
+    // x, y, th - Freekick_Attack-Defense Formation
+   {{-2.5,  0.0,  PI / 2},
+    {-2.1,  0.3,  0},
+    {-2.1, -0.3,  0},
+    {-2.1,  0.65, 0},
+    {-2.1, -0.65, 0},},
+    // x, y, th - Freekick_Defense-Attack Formation
+   {{-2.5,  0.0,  PI / 2},
+    {-2.1,  0.3,  0},
+    {-2.1, -0.3,  0},
+    {-1.75, 0.65, 0},
+    {-1.75,-0.65, 0},},
+    // x, y, th - Freekick_Defense-Defense Formation
+   {{-2.5,  0.0,  PI / 2},
+    {0.5,   0.65,  0},
+    {0.5,  -0.65,  0},
+    {0.5,   0.2,  0},
+    {0.5,  -0.2,  0},},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
@@ -93,6 +117,8 @@ namespace constants {
     {-2.75, 1.25, 0},
     {-2.75, 1.45, 0},
   };
+  
+  constexpr double BALL_POSTURE[3] = {0, 1, -1.75};
 
   // WAMP router settings
   const std::string SERVER_IP = "127.0.0.1";
@@ -118,6 +144,8 @@ namespace constants {
   constexpr double      DEADLOCK_RANGE = 1.5 * (ROBOT_SIZE[0] / sqrt(2) + BALL_RADIUS); // robots within this range near the ball are sent off
   constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr double      BACKPASS_BORDER = 0.35; // m
+  constexpr std::size_t FREEKICK_TIME_LIMIT_MS = 3 * 1000; // ms
+  constexpr double      FREEKICK_BORDER = 0.35; // m
   constexpr double      DEFAULT_PENALTY_RATIO = 0.1; // when a robot is sent out, it loses 0.1*max_meters
 
   constexpr std::size_t NUM_COMMENTS = 5;
@@ -142,6 +170,16 @@ namespace constants {
   enum robot_formation {
     FORMATION_DEFAULT = 0,
     FORMATION_BACKPASS = 1,
+    FORMATION_FREEKICK_AA = 2,
+    FORMATION_FREEKICK_AD = 3,
+    FORMATION_FREEKICK_DA = 4,
+    FORMATION_FREEKICK_DD = 5,
+  };
+  
+  enum ball_posture {
+    BALL_DEFAULT = 0,
+    BALL_FREEKICK_ATTACK = 1,
+    BALL_FREEKICK_DEFENSE = 2,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {

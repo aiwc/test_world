@@ -65,7 +65,7 @@ private:
   void terminate_participant();
 
   void update_label();
-  void save_current_pos();
+  // void save_current_pos();
   // void update_meters_run();
   // void apply_penalty(bool is_red, std::size_t id);
 
@@ -81,11 +81,14 @@ private:
   void lock_all_robots(); // block sending wheel speed to the simulator
   void unlock_all_robots(); // unblock sending wheel speed to the simulator
   void unlock_robot(bool is_red, std::size_t id); // unblock sending wheel speed to the simulator (one specific robot)
+  bool get_freekick_ownership(); // find which team should get the ball ownership for freekick
 
   std::size_t count_robots_in_goal_area(bool is_red);
   std::size_t count_robots_in_opponent_goal_area(bool is_red);
   std::size_t count_robots_in_penalty_area(bool is_red);
   std::size_t count_robots_in_opponent_penalty_area(bool is_red);
+
+  bool is_deadlock_in_freekick_region();
 
   void publish_current_frame(std::size_t reset_reason);
 
@@ -164,12 +167,18 @@ private:
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
   bool ball_ownership_;
+
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  bool SPECIAL_TIE_PARAMETER = false;
+  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
   // bool backpass_foul_flag_;
   // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> stop_time_;
 
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> touch_;
   // std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> exhausted_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
@@ -190,6 +199,7 @@ private:
   std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
   std::size_t backpass_time_ = 0;
+  std::size_t freekick_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
 
