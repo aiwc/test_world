@@ -609,6 +609,13 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
     }
   }
 
+  // reset fall time
+  for(auto& team_ft : fall_time_) {
+    for(auto& robot_ft : team_ft) {
+      robot_ft = time_ms_;
+    }
+  }
+
   // check stamina status and send exhausted robots out
   // for(const auto& team : {T_RED, T_BLUE}) {
     // auto is_red = team == T_RED;
@@ -1139,6 +1146,26 @@ void game::run_game()
     publish_current_frame(reset_reason);
     touch_ = sv_.get_robot_touch_ball();
     reset_reason = c::NONE;
+
+    // check if any of robots has fallen
+    {
+      for(const auto& team : {T_RED, T_BLUE}) {
+        for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+          if(activeness_[team][id]) {
+            // if a robot has fallen and could not recover for c::FALL_TIME_MS, send the robot to foulzone
+            if(time_ms_ - fall_time_[team][id] >= c::FALL_TIME_MS) {
+              activeness_[team][id] = false;
+              sv_.send_to_foulzone(team == T_RED, id);
+            }
+            else {
+              // if robot is standing properly
+              if (std::get<3>(sv_.get_robot_posture(team == T_RED, id)))
+                fall_time_[team][id] = time_ms_;
+            }
+          }
+        }
+      }
+    }
 
     // check rules based on game states
     switch(game_state_) {
