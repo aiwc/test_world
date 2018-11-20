@@ -174,7 +174,7 @@ public:
     const double x = position[0];
     const double y = -position[2];
     const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
-    const double stand = rotation[1] > 0.8;
+    const double stand = std::abs(rotation[1] > 0.7);
 
     return std::make_tuple(x, y, th, stand);
   }
