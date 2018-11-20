@@ -1328,16 +1328,16 @@ void game::run_game()
             //@@@@@@@@@@@@@@@@@@@@@@@@@@
             if (SPECIAL_TIE_PARAMETER) {
               SPECIAL_TIE_PARAMETER = false;
-              for(const auto& team : {T_RED, T_BLUE}) {
-                for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
-                  if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
-                    activeness_[team][id] = false;
-                    // apply_penalty(team == T_RED, id);
-                    sv_.send_to_foulzone(team == T_RED, id);
-                  }
-                }
-              }
               deadlock_time_ = time_ms_;
+              
+              pause();
+              stop_robots();
+              reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
+              step(c::WAIT_STABLE_MS, false);
+              resume();
+    
+              reset_reason = c::DEADLOCK;
+              continue;
             }
             //@@@@@@@@@@@@@@@@@@@@@@@@@@
 
