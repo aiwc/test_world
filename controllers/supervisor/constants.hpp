@@ -42,8 +42,8 @@ namespace constants {
   constexpr std::size_t ESTIMATED_SUBIMAGE_SIZE = (RESOLUTION_X / SUBIMAGE_NX) * (RESOLUTION_Y / SUBIMAGE_NY) * 4 + 100;
 
   // Field Dimensions
-  constexpr double FIELD_LENGTH = 5.2;
-  constexpr double FIELD_WIDTH  = 3.1;
+  constexpr double FIELD_LENGTH = 7.8;
+  constexpr double FIELD_WIDTH  = 4.65;
   constexpr double GOAL_DEPTH   = 0.25;
   constexpr double GOAL_WIDTH   = 0.6;
   constexpr double PENALTY_AREA_DEPTH = 0.5;
@@ -73,37 +73,37 @@ namespace constants {
 
   constexpr double ROBOT_FORMATION[6][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
-   {{-2.5,   0.0, PI / 2},
-    {-1.45,  0.8, 0},
-    {-1.45, -0.8, 0},
+   {{-3.8,   0.0, PI / 2},
+    {-2.25,  1.0, 0},
+    {-2.25, -1.0, 0},
     {-0.65,  0.3, 0},
     {-0.65, -0.3, 0},},
     // x, y, th - Backpass Formation
-   {{-2.5,   0.0, PI / 2},
-    {-1.45,  0.8, 0},
-    {-1.45, -0.8, 0},
+   {{-3.8,   0.0, PI / 2},
+    {-2.25,  1.0, 0},
+    {-2.25, -1.0, 0},
     {-0.65,  0,   0},
     { 0.4,   0,   PI},},
     // x, y, th - Freekick_Attack-Attack Formation
-   {{-2.5,  0.0,  PI / 2},
+   {{-3.8,  0.0,  PI / 2},
     {1,     0.8,  0},
     {1,    -0.8,  0},
-    {0.5,   0.3,  0},
-    {0.5,  -0.3,  0},},
+    {0.5,   0.2,  0},
+    {0.5,  -0.2,  0},},
     // x, y, th - Freekick_Attack-Defense Formation
-   {{-2.5,  0.0,  PI / 2},
-    {-2.1,  0.3,  0},
-    {-2.1, -0.3,  0},
-    {-2.1,  0.65, 0},
-    {-2.1, -0.65, 0},},
+   {{-3.8,  0.0,  PI / 2},
+    {-2.4,  0.3,  0},
+    {-2.4, -0.3,  0},
+    {-2.4,  0.65, 0},
+    {-2.4, -0.65, 0},},
     // x, y, th - Freekick_Defense-Attack Formation
-   {{-2.5,  0.0,  PI / 2},
-    {-2.1,  0.3,  0},
-    {-2.1, -0.3,  0},
+   {{-3.8,  0.0,  PI / 2},
+    {-2.4,  0.2,  0},
+    {-2.4, -0.2,  0},
     {-1.75, 0.65, 0},
     {-1.75,-0.65, 0},},
     // x, y, th - Freekick_Defense-Defense Formation
-   {{-2.5,  0.0,  PI / 2},
+   {{-3.8,  0.0,  PI / 2},
     {0.5,   0.65,  0},
     {0.5,  -0.65,  0},
     {0.5,   0.2,  0},
@@ -111,11 +111,11 @@ namespace constants {
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    {-2.75, 0.65, 0},
-    {-2.75, 0.85, 0},
-    {-2.75, 1.05, 0},
-    {-2.75, 1.25, 0},
-    {-2.75, 1.45, 0},
+    {-4.05, 0.85, 0},
+    {-4.05, 1.15, 0},
+    {-4.05, 1.45, 0},
+    {-4.05, 1.75, 0},
+    {-4.05, 2.05, 0},
   };
 
   constexpr double BALL_POSTURE[3] = {0, 1, -1.75};
