@@ -1151,17 +1151,15 @@ void game::run_game()
     {
       for(const auto& team : {T_RED, T_BLUE}) {
         for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
-          if(activeness_[team][id]) {
-            // if a robot has fallen and could not recover for c::FALL_TIME_MS, send the robot to foulzone
-            if(time_ms_ - fall_time_[team][id] >= c::FALL_TIME_MS) {
-              activeness_[team][id] = false;
-              sv_.send_to_foulzone(team == T_RED, id);
-            }
-            else {
-              // if robot is standing properly
-              if (std::get<3>(sv_.get_robot_posture(team == T_RED, id)))
-                fall_time_[team][id] = time_ms_;
-            }
+          // if a robot has fallen and could not recover for c::FALL_TIME_MS, send the robot to foulzone
+          if(time_ms_ - fall_time_[team][id] >= c::FALL_TIME_MS) {
+            activeness_[team][id] = false;
+            sv_.send_to_foulzone(team == T_RED, id);
+          }
+          else {
+            // if robot is standing properly
+            if (std::get<3>(sv_.get_robot_posture(team == T_RED, id)))
+              fall_time_[team][id] = time_ms_;
           }
         }
       }
@@ -1356,13 +1354,13 @@ void game::run_game()
             if (SPECIAL_TIE_PARAMETER) {
               SPECIAL_TIE_PARAMETER = false;
               deadlock_time_ = time_ms_;
-              
+
               pause();
               stop_robots();
               reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
               step(c::WAIT_STABLE_MS, false);
               resume();
-    
+
               reset_reason = c::DEADLOCK;
               continue;
             }
