@@ -42,9 +42,9 @@ PROTO SoccerRobot [
   field SFFloat    motorConsumption    0           # [0,inf)
   field SFFloat    axleLength          0.105
   field SFFloat    wheelRadius         0.03
-  field SFFloat    maxSpeed            50          # (0,inf)
+  field SFFloat    maxSpeed            60          # (0,inf)
   field SFFloat    slipNoise           0.1         # [0,inf)
-  field SFFloat    maxTorque           0.1         # (0,inf)
+  field SFFloat    maxTorque           1.2         # (0,inf)
 
   # fields specific to SoccerRobot
   field SFFloat  height 0.075
@@ -73,12 +73,12 @@ PROTO SoccerRobot [
   field SFNode   wheelAppearance White { }
   field SFNode bodyPhysics Physics {
     density -1
-    mass 0.75
-    centerOfMass [0 -0.025 0]
+    mass 2.0
+    centerOfMass [0 -0.03 0]
   }
   field SFNode wheelPhysics Physics {
     density -1
-    mass 0.05
+    mass 0.10
   }
   field SFNode weightPhysics Physics {
     density -1

@@ -116,9 +116,9 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      bounce 0.9
-      softERP 0.8
-      softCFM 1e-9
+      bounce 0.75
+      softERP 1
+      softCFM 0
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -225,7 +225,7 @@ WorldInfo {
     DEF defense_body-ball ContactProperties {
       material1 "defense_body"
       material2 "ball"
-      bounce 0.7
+      bounce 0.8
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -371,21 +371,21 @@ DEF DEF_ROBOTR0 SoccerRobot {
   controller "soccer_robot"
   axleLength 0.12
   wheelRadius 0.0375
-  maxSpeed 24
+  maxSpeed 40
   slipNoise 0.05
-  maxTorque 0.08
+  maxTorque 0.8
   height 0.09
   bodySize 0.13
   bodyPhysics Physics {
     density -1
-    mass 1.1
+    mass 2.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
   }
   wheelPhysics Physics {
     density -1
-    mass 0.07
+    mass 0.15
   }
   bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
@@ -473,19 +473,15 @@ DEF DEF_ROBOTR3 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
@@ -523,19 +519,15 @@ DEF DEF_ROBOTR4 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
@@ -572,21 +564,21 @@ DEF DEF_ROBOTB0 SoccerRobot {
   controller "soccer_robot"
   axleLength 0.12
   wheelRadius 0.0375
-  maxSpeed 24
+  maxSpeed 40
   slipNoise 0.05
-  maxTorque 0.08
+  maxTorque 0.8
   height 0.09
   bodySize 0.13
   bodyPhysics Physics {
     density -1
-    mass 1.1
+    mass 2.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
   }
   wheelPhysics Physics {
     density -1
-    mass 0.07
+    mass 0.15
   }
   bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
@@ -677,19 +669,15 @@ DEF DEF_ROBOTB3 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
@@ -728,19 +716,15 @@ DEF DEF_ROBOTB4 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"

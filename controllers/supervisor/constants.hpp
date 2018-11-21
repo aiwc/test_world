@@ -60,13 +60,13 @@ namespace constants {
   constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.1, 0.1};
   constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
   constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.09, 0.09};
-  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.1, 0.75, 0.75, 0.4, 0.4};
+  constexpr std::array<double, 5> ROBOT_BODY_MASS = {2.5, 2.0, 2.0, 1.5, 1.5};
 
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
-  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.03, 0.03};
+  constexpr std::array<double, 5> WHEEL_MASS = {0.15, 0.10, 0.10, 0.10, 0.10};
 
-  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {0.9, 1.5, 1.5, 2.1, 2.1};
-  constexpr std::array<double, 5> MAX_TORQUE = {0.08, 0.1, 0.1, 0.15, 0.15};
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.5, 1.8, 1.8, 2.1, 2.1};
+  constexpr std::array<double, 5> MAX_TORQUE = {0.8, 1.2, 1.2, 0.4, 0.4};
 
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
@@ -88,8 +88,8 @@ namespace constants {
    {{-3.8,  0.0,  PI / 2},
     {1,     0.8,  0},
     {1,    -0.8,  0},
-    {0.5,   0.2,  0},
-    {0.5,  -0.2,  0},},
+    {0.5,   0.1,  0},
+    {0.5,  -0.1,  0},},
     // x, y, th - Freekick_Attack-Defense Formation
    {{-3.8,  0.0,  PI / 2},
     {-2.4,  0.3,  0},
@@ -98,8 +98,8 @@ namespace constants {
     {-2.4, -0.65, 0},},
     // x, y, th - Freekick_Defense-Attack Formation
    {{-3.8,  0.0,  PI / 2},
-    {-2.4,  0.2,  0},
-    {-2.4, -0.2,  0},
+    {-2.4,  0.1,  0},
+    {-2.4, -0.1,  0},
     {-1.75, 0.65, 0},
     {-1.75,-0.65, 0},},
     // x, y, th - Freekick_Defense-Defense Formation
