@@ -4,7 +4,6 @@ WorldInfo {
   physics "collision_detector"
   basicTimeStep 10
   FPS 20
-  optimalThreadCount 1
   defaultDamping Damping {
   }
   lineScale 0.01
@@ -117,9 +116,9 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      bounce 0.9
-      softERP 0.8
-      softCFM 1e-9
+      bounce 0.75
+      softERP 1
+      softCFM 0
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -226,7 +225,7 @@ WorldInfo {
     DEF defense_body-ball ContactProperties {
       material1 "defense_body"
       material2 "ball"
-      bounce 0.7
+      bounce 0.8
       softERP 0.15
       softCFM 1e-5
       bumpSound ""
@@ -267,7 +266,7 @@ WorldInfo {
 }
 DEF DEF_AUDVIEW Viewpoint {
   orientation -1 0 0 0.8910057735495215
-  position 0 6.016472079196641 4.992534556715559
+  position 0 8.875596883460489 7.30360808821792
 }
 Background {
   skyColor [
@@ -279,7 +278,7 @@ DirectionalLight {
   direction 0 -1 0
 }
 Referee {
-  translation 0 17.6 0
+  translation 0 25.6 0
   children [
     DEF DEF_RECV Receiver {
       name "recv"
@@ -292,6 +291,7 @@ Referee {
           fieldOfView 0.325
           width 640
           height 480
+          near 20
         }
         DEF DEF_CAMB Camera {
           rotation 0 0 1 3.1415926
@@ -299,6 +299,7 @@ Referee {
           fieldOfView 0.325
           width 640
           height 480
+          near 20
         }
       ]
     }
@@ -306,16 +307,17 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  fieldLength 5.2
-  fieldWidth 3.1
-  floorLength 5.8
-  floorWidth 3.3
+  fieldLength 7.8
+  fieldWidth 4.65
+  floorLength 8.5
+  floorWidth 4.8
+  lineThickness 0.02
   soccerFieldWall [
     Group {
       children [
         DEF DEF_WALL SoccerFieldWall {
-          length 5.2
-          width 3.1
+          length 7.8
+          width 4.65
           cornerLength 0.1
           goalWidth 0.6
           goalDepth 0.25
@@ -325,20 +327,23 @@ SoccerField5v5 {
           wallContactMaterial "wall"
         }
         DEF DEF_VISWALL VisualWall {
-          length 5.2
-          width 3.1
+          length 7.8
+          width 4.65
           goalWidth 0.6
-          gpTranslation 2.7084
+          gpTranslation 4.0081999999999995
           gpScale 1.3157
           bannerBehind TRUE
+          bannerHorizontal 19
+          bannerVertical 5
           cornerLength 0.1
         }
       ]
     }
   ]
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
-    length 5.8
-    width 3.3
+    blockSize 0.5
+    length 8.5
+    width 4.8
   }
   floorContactMaterial "floor"
 }
@@ -356,7 +361,7 @@ DEF DEF_BALL SoccerBall {
   ]
 }
 DEF DEF_ROBOTR0 SoccerRobot {
-  translation -2.5 0.045 0
+  translation -3.8 0.045 0
   lwTranslation -0.06 -0.0075 0
   lwRotation 1 0 0 1.5708
   rwTranslation 0.06 -0.0075 0
@@ -366,21 +371,21 @@ DEF DEF_ROBOTR0 SoccerRobot {
   controller "soccer_robot"
   axleLength 0.12
   wheelRadius 0.0375
-  maxSpeed 24
+  maxSpeed 40
   slipNoise 0.05
-  maxTorque 0.08
+  maxTorque 0.8
   height 0.09
   bodySize 0.13
   bodyPhysics Physics {
     density -1
-    mass 1.1
+    mass 2.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
   }
   wheelPhysics Physics {
     density -1
-    mass 0.07
+    mass 0.15
   }
   bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
@@ -404,7 +409,7 @@ DEF DEF_ROBOTR0 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR1 SoccerRobot {
-  translation -1.45 0.0375 -0.8
+  translation -2.25 0.0375 -1
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -430,7 +435,7 @@ DEF DEF_ROBOTR1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR2 SoccerRobot {
-  translation -1.45 0.0375 0.8
+  translation -2.25 0.0375 1
   rotation 0 1 0 -1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -468,19 +473,15 @@ DEF DEF_ROBOTR3 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
@@ -518,19 +519,15 @@ DEF DEF_ROBOTR4 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
@@ -556,7 +553,7 @@ DEF DEF_ROBOTR4 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB0 SoccerRobot {
-  translation 2.5 0.045 0
+  translation 3.8 0.045 0
   rotation 0 1 0 3.1415926
   lwTranslation -0.06 -0.0075 0
   lwRotation 1 0 0 1.5708
@@ -567,21 +564,21 @@ DEF DEF_ROBOTB0 SoccerRobot {
   controller "soccer_robot"
   axleLength 0.12
   wheelRadius 0.0375
-  maxSpeed 24
+  maxSpeed 40
   slipNoise 0.05
-  maxTorque 0.08
+  maxTorque 0.8
   height 0.09
   bodySize 0.13
   bodyPhysics Physics {
     density -1
-    mass 1.1
+    mass 2.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
   }
   wheelPhysics Physics {
     density -1
-    mass 0.07
+    mass 0.15
   }
   bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
@@ -606,7 +603,7 @@ DEF DEF_ROBOTB0 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB1 SoccerRobot {
-  translation 1.45 0.0375 0.8
+  translation 2.25 0.0375 1
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -633,7 +630,7 @@ DEF DEF_ROBOTB1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB2 SoccerRobot {
-  translation 1.45 0.0375 -0.8
+  translation 2.25 0.0375 -1
   rotation 0 1 0 1.5708
   lwRotation 1 0 0 1.5708
   rwRotation 1 0 0 1.5708
@@ -672,19 +669,15 @@ DEF DEF_ROBOTB3 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
@@ -723,19 +716,15 @@ DEF DEF_ROBOTB4 SoccerRobot {
   axleLength 0.09
   maxSpeed 70
   slipNoise 0.05
-  maxTorque 0.15
+  maxTorque 0.4
   height 0.07
   bodySize 0.1
   bodyPhysics Physics {
     density -1
-    mass 0.4
+    mass 1.5
     centerOfMass [
-      0 -0.025 0
+      0 -0.03 0
     ]
-  }
-  wheelPhysics Physics {
-    density -1
-    mass 0.03
   }
   bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"

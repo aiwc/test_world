@@ -42,8 +42,8 @@ namespace constants {
   constexpr std::size_t ESTIMATED_SUBIMAGE_SIZE = (RESOLUTION_X / SUBIMAGE_NX) * (RESOLUTION_Y / SUBIMAGE_NY) * 4 + 100;
 
   // Field Dimensions
-  constexpr double FIELD_LENGTH = 5.2;
-  constexpr double FIELD_WIDTH  = 3.1;
+  constexpr double FIELD_LENGTH = 7.8;
+  constexpr double FIELD_WIDTH  = 4.65;
   constexpr double GOAL_DEPTH   = 0.25;
   constexpr double GOAL_WIDTH   = 0.6;
   constexpr double PENALTY_AREA_DEPTH = 0.5;
@@ -60,50 +60,50 @@ namespace constants {
   constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.1, 0.1};
   constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
   constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.09, 0.09};
-  constexpr std::array<double, 5> ROBOT_BODY_MASS = {1.1, 0.75, 0.75, 0.4, 0.4};
+  constexpr std::array<double, 5> ROBOT_BODY_MASS = {2.5, 2.0, 2.0, 1.5, 1.5};
 
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
-  constexpr std::array<double, 5> WHEEL_MASS = {0.07, 0.05, 0.05, 0.03, 0.03};
+  constexpr std::array<double, 5> WHEEL_MASS = {0.15, 0.10, 0.10, 0.10, 0.10};
 
-  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {0.9, 1.5, 1.5, 2.1, 2.1};
-  constexpr std::array<double, 5> MAX_TORQUE = {0.08, 0.1, 0.1, 0.15, 0.15};
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.5, 1.8, 1.8, 2.1, 2.1};
+  constexpr std::array<double, 5> MAX_TORQUE = {0.8, 1.2, 1.2, 0.4, 0.4};
 
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
   constexpr double ROBOT_FORMATION[6][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
-   {{-2.5,   0.0, PI / 2},
-    {-1.45,  0.8, 0},
-    {-1.45, -0.8, 0},
+   {{-3.8,   0.0, PI / 2},
+    {-2.25,  1.0, 0},
+    {-2.25, -1.0, 0},
     {-0.65,  0.3, 0},
     {-0.65, -0.3, 0},},
     // x, y, th - Backpass Formation
-   {{-2.5,   0.0, PI / 2},
-    {-1.45,  0.8, 0},
-    {-1.45, -0.8, 0},
+   {{-3.8,   0.0, PI / 2},
+    {-2.25,  1.0, 0},
+    {-2.25, -1.0, 0},
     {-0.65,  0,   0},
     { 0.4,   0,   PI},},
     // x, y, th - Freekick_Attack-Attack Formation
-   {{-2.5,  0.0,  PI / 2},
+   {{-3.8,  0.0,  PI / 2},
     {1,     0.8,  0},
     {1,    -0.8,  0},
-    {0.5,   0.3,  0},
-    {0.5,  -0.3,  0},},
+    {0.5,   0.1,  0},
+    {0.5,  -0.1,  0},},
     // x, y, th - Freekick_Attack-Defense Formation
-   {{-2.5,  0.0,  PI / 2},
-    {-2.1,  0.3,  0},
-    {-2.1, -0.3,  0},
-    {-2.1,  0.65, 0},
-    {-2.1, -0.65, 0},},
+   {{-3.8,  0.0,  PI / 2},
+    {-2.4,  0.3,  0},
+    {-2.4, -0.3,  0},
+    {-2.4,  0.65, 0},
+    {-2.4, -0.65, 0},},
     // x, y, th - Freekick_Defense-Attack Formation
-   {{-2.5,  0.0,  PI / 2},
-    {-2.1,  0.3,  0},
-    {-2.1, -0.3,  0},
+   {{-3.8,  0.0,  PI / 2},
+    {-2.4,  0.1,  0},
+    {-2.4, -0.1,  0},
     {-1.75, 0.65, 0},
     {-1.75,-0.65, 0},},
     // x, y, th - Freekick_Defense-Defense Formation
-   {{-2.5,  0.0,  PI / 2},
+   {{-3.8,  0.0,  PI / 2},
     {0.5,   0.65,  0},
     {0.5,  -0.65,  0},
     {0.5,   0.2,  0},
@@ -111,11 +111,11 @@ namespace constants {
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
-    {-2.75, 0.65, 0},
-    {-2.75, 0.85, 0},
-    {-2.75, 1.05, 0},
-    {-2.75, 1.25, 0},
-    {-2.75, 1.45, 0},
+    {-4.05, 0.85, 0},
+    {-4.05, 1.15, 0},
+    {-4.05, 1.45, 0},
+    {-4.05, 1.75, 0},
+    {-4.05, 2.05, 0},
   };
 
   constexpr double BALL_POSTURE[3] = {0, 1, -1.75};
