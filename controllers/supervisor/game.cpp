@@ -1168,34 +1168,58 @@ void game::run_game()
     // check rules based on game states
     switch(game_state_) {
     case c::STATE_DEFAULT:
-      { // if a team scored
+      {
         const auto ball_x = std::get<0>(sv_.get_ball_position());
         const auto ball_y = std::get<1>(sv_.get_ball_position());
-        if((std::abs(ball_x) > c::FIELD_LENGTH / 2) && (std::abs(ball_y) < c::GOAL_WIDTH /2)) {
-          ++score_[(ball_x > 0) ? T_RED : T_BLUE];
-          update_label();
+        if(std::abs(ball_x) > c::FIELD_LENGTH / 2) {
+          // if a team scored
+          if(std::abs(ball_y) < c::GOAL_WIDTH /2) {
+            ++score_[(ball_x > 0) ? T_RED : T_BLUE];
+            update_label();
 
-          // stop all and wait for c::WAIT_GOAL seconds
-          pause();
-          stop_robots();
-          step(c::WAIT_GOAL_MS, false);
+            // stop all and wait for c::WAIT_GOAL seconds
+            pause();
+            stop_robots();
+            step(c::WAIT_GOAL_MS, false);
 
-          game_state_ = c::STATE_BACKPASS;
-          // backpass_foul_flag_ = false;
+            game_state_ = c::STATE_BACKPASS;
+            // backpass_foul_flag_ = false;
 
-          ball_ownership_ = (ball_x > 0) ? T_BLUE : T_RED;
-          backpass_time_ = time_ms_;
+            ball_ownership_ = (ball_x > 0) ? T_BLUE : T_RED;
+            backpass_time_ = time_ms_;
 
-          // reset and wait until stabilized
-          reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
+            // reset and wait until stabilized
+            reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
 
-          lock_all_robots();
-          unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
+            lock_all_robots();
+            unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
 
-          step(c::WAIT_STABLE_MS, false);
-          resume();
+            step(c::WAIT_STABLE_MS, false);
+            resume();
 
-          reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
+            reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
+          }
+          // ball sent out of the field - proceed to goalkick
+          else {
+            pause();
+            stop_robots();
+            step(c::WAIT_GOAL_MS, false);
+
+            game_state_ = c::STATE_GOALKICK;
+
+            ball_ownership_ = (ball_x < 0) ? T_RED : T_BLUE;
+            goalkick_time_ = time_ms_;
+
+            reset(((ball_ownership_ == T_RED) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_D), ((ball_ownership_ == T_BLUE) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_D));
+
+            lock_all_robots();
+            unlock_robot(ball_ownership_, 0);
+
+            step(c::WAIT_STABLE_MS, false);
+            resume();
+
+            reset_reason = c::GOALKICK;
+          }
         }
       }
 
@@ -1462,6 +1486,21 @@ void game::run_game()
               // }
             // }
           }
+        }
+      }
+      break;
+    case c::STATE_GOALKICK:
+      // time limite has passed
+      if (time_ms_ - goalkick_time_ >= c::GOALKICK_TIME_LIMIT_MS) {
+        game_state_ = c::STATE_GOALKICK;
+        unlock_all_robots();
+      }
+      else {
+        // the goalie has touched the ball
+        if (touch_[ball_ownership_][0]) {
+          game_state_ = c::STATE_DEFAULT;
+          unlock_all_robots();
+          break;
         }
       }
       break;
