@@ -200,6 +200,7 @@ private:
   std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
   std::size_t backpass_time_ = 0;
+  std::size_t goalkick_time_ = 0;
   std::size_t freekick_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
