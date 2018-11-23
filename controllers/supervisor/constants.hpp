@@ -71,7 +71,7 @@ namespace constants {
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
-  constexpr double ROBOT_FORMATION[6][NUMBER_OF_ROBOTS][3] = {
+  constexpr double ROBOT_FORMATION[8][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
    {{-3.8,   0.0, PI / 2},
     {-2.25,  1.0, 0},
@@ -84,6 +84,18 @@ namespace constants {
     {-2.25, -1.0, 0},
     {-0.9,  0,   0},
     { 0.4,   0,   PI},},
+    // x, y, th - Goalkick-Attack Formation
+   {{-3.8,   0.0, 0},
+    {-2,    0.45, 0},
+    {-2,   -0.45, 0},
+    {-1,     0.8, 0},
+    {-1,    -0.8, 0},},
+    // x, y, th - Goalkick-Defense Formation
+   {{-3.8,   0.0, PI / 2},
+    {-1.5,   0.45, 0},
+    {-1.5,  -0.45, 0},
+    {-0.5,   0.8, 0},
+    {-0.5,  -0.8, 0},},
     // x, y, th - Freekick_Attack-Attack Formation
    {{-3.8,  0.0,  PI / 2},
     {1,     0.8,  0},
@@ -118,7 +130,12 @@ namespace constants {
     {-4.05, 2.05, 0},
   };
 
-  constexpr double BALL_POSTURE[3] = {0, 1, -1.75};
+  constexpr double BALL_POSTURE[4][2] = {
+    {    0, 0},
+    {-3.25, 0},
+    {  1.0, 0},
+    {-1.75, 0}
+  };
 
   // WAMP router settings
   const std::string SERVER_IP = "127.0.0.1";
@@ -165,22 +182,26 @@ namespace constants {
   enum game_state {
     STATE_DEFAULT = 0,
     STATE_BACKPASS = 1,
-    STATE_FREEKICK = 2,
+    STATE_GOALKICK = 2,
+    STATE_FREEKICK = 3,
   };
 
   enum robot_formation {
     FORMATION_DEFAULT = 0,
     FORMATION_BACKPASS = 1,
-    FORMATION_FREEKICK_AA = 2,
-    FORMATION_FREEKICK_AD = 3,
-    FORMATION_FREEKICK_DA = 4,
-    FORMATION_FREEKICK_DD = 5,
+    FORMATION_GOALKICK_A = 2,
+    FORMATION_GOALKICK_D = 3,
+    FORMATION_FREEKICK_AA = 4,
+    FORMATION_FREEKICK_AD = 5,
+    FORMATION_FREEKICK_DA = 6,
+    FORMATION_FREEKICK_DD = 7,
   };
 
   enum ball_posture {
     BALL_DEFAULT = 0,
-    BALL_FREEKICK_ATTACK = 1,
-    BALL_FREEKICK_DEFENSE = 2,
+    BALL_GOALKICK = 1,
+    BALL_FREEKICK_ATTACK = 2,
+    BALL_FREEKICK_DEFENSE = 3,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {
