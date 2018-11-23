@@ -82,7 +82,7 @@ namespace constants {
    {{-3.8,   0.0, PI / 2},
     {-2.25,  1.0, 0},
     {-2.25, -1.0, 0},
-    {-0.65,  0,   0},
+    {-0.9,  0,   0},
     { 0.4,   0,   PI},},
     // x, y, th - Freekick_Attack-Attack Formation
    {{-3.8,  0.0,  PI / 2},
