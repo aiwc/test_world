@@ -309,7 +309,7 @@ Referee {
 SoccerField5v5 {
   fieldLength 7.8
   fieldWidth 4.65
-  floorLength 8.5
+  floorLength 8.8
   floorWidth 4.8
   lineThickness 0.02
   soccerFieldWall [
@@ -319,8 +319,8 @@ SoccerField5v5 {
           length 7.8
           width 4.65
           cornerLength 0.1
-          goalWidth 0.6
-          goalDepth 0.25
+          goalWidth 1
+          goalDepth 0.45
           wallHeight 0.075
           wallAppearance Gray {
           }
@@ -329,9 +329,9 @@ SoccerField5v5 {
         DEF DEF_VISWALL VisualWall {
           length 7.8
           width 4.65
-          goalWidth 0.6
-          gpTranslation 4.0081999999999995
-          gpScale 1.3157
+          goalWidth 1
+          gpTranslation 4.081
+          gpScale 2.193
           bannerBehind TRUE
           bannerHorizontal 19
           bannerVertical 5
@@ -342,7 +342,7 @@ SoccerField5v5 {
   ]
   grassSlot DEF DEF_GRASS SoccerFieldGrass {
     blockSize 0.5
-    length 8.5
+    length 8.8
     width 4.8
   }
   floorContactMaterial "floor"

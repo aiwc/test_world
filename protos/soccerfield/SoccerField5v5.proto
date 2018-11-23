@@ -51,12 +51,12 @@ PROTO SoccerField5v5 [
     floorAppearance IS floorAppearance
 
     centerDotRadius 0.01
-    centerCircleRadius 0.35
+    centerCircleRadius 0.5
     centerCircleSubdivision 24
-    penaltyAreaDepth 0.5
-    penaltyAreaWidth 1.3
-    goalAreaDepth 0.2
-    goalAreaWidth 0.85
+    penaltyAreaDepth 0.9
+    penaltyAreaWidth 1.8
+    goalAreaDepth 0.4
+    goalAreaWidth 1.3
     penaltyArcProportion 0.25
     penaltyArcSubdivision 7
 
