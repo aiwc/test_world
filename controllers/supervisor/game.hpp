@@ -88,6 +88,7 @@ private:
   std::size_t count_robots_in_penalty_area(bool is_red);
   std::size_t count_robots_in_opponent_penalty_area(bool is_red);
 
+  bool any_object_nearby(double target_x, double target_y, double target_r);
   bool is_deadlock_in_freekick_region();
 
   void publish_current_frame(std::size_t reset_reason);
@@ -179,6 +180,7 @@ private:
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> touch_;
+  std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> sentout_time_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> fall_time_;
   // std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> exhausted_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
