@@ -595,6 +595,9 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
 {
   sv_.reset_position(red_formation, blue_formation);
 
+  // reset freekick_flag_
+  freekick_flag_ = false;
+
   // reset activeness
   for(auto& team_activeness : activeness_) {
     for(auto& robot_activeness : team_activeness) {
@@ -1418,24 +1421,72 @@ void game::run_game()
 
       if(reset_reason == c::NONE && deadlock_flag_ == true) {
         if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
-          deadlock_reset_time_ = time_ms_;
+          // deadlock_reset_time_ = time_ms_;
           deadlock_time_ = time_ms_;
         }
 
         // if the ball is not moved fast enough for c::DEADLOCK_RESET_MS
-        if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
-          pause();
-          stop_robots();
-          reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
-          step(c::WAIT_STABLE_MS, false);
-          resume();
+        // if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
+          // pause();
+          // stop_robots();
+          // reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
+          // step(c::WAIT_STABLE_MS, false);
+          // resume();
 
-          reset_reason = c::DEADLOCK;
-        }
+          // reset_reason = c::DEADLOCK;
+        // }
         // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
         else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
+          // if the freekick flag is not set
+          if (!freekick_flag_) {
+            freekick_flag_ = true;
+
+            std::cout << "First instance of deadlock" << std::endl;
+
+            double robot_dists[2][c::NUMBER_OF_ROBOTS];
+
+            // record distances from the robots to the ball
+            for(const auto& team : {T_RED, T_BLUE}) {
+              for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
+                if(activeness_[team][id])
+                  robot_dists[team][id] = sv_.get_distance_from_ball(team == T_RED, id);
+                else
+                  robot_dists[team][id] = 99999;
+              }
+            }
+
+            for(std::size_t i = 0; i < c::DEADLOCK_SENTOUT_NUMBER; i++) {
+              bool sentout_team = false;
+              std::size_t sentout_id = 0;
+              double smallest_distance = 99999;
+
+              for(const auto& team : {T_RED, T_BLUE}) {
+                for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
+                  if(robot_dists[team][id] < smallest_distance) {
+                    sentout_team = team;
+                    sentout_id = id;
+                    smallest_distance = robot_dists[team][id];
+                  }
+                }
+              }
+
+              if(sentout_id != 0) {
+                robot_dists[sentout_team][sentout_id] = 99999;
+                activeness_[sentout_team][sentout_id] = false;
+                sv_.send_to_foulzone(sentout_team == T_RED, sentout_id);
+                sentout_time_[sentout_team][sentout_id] = time_ms_;
+              }
+            }
+
+            deadlock_time_ = time_ms_;
+          }
+          // if the freekick flag is set
+          else {
+            freekick_flag_ = false;
+
+            std::cout << "Second instance of deadlock" << std::endl;
           // if the deadlock happened in the freekick region, go into freekick state
-          if (is_deadlock_in_freekick_region()) {
+          // if (is_deadlock_in_freekick_region()) {
             // set the ball ownership
             ball_ownership_ = get_freekick_ownership();
 
@@ -1487,19 +1538,19 @@ void game::run_game()
             reset_reason = c::DEADLOCK;
           }
           // otherwise, send some robots out and continue the game
-          else {
-            for(const auto& team : {T_RED, T_BLUE}) {
-              for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
-                if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
-                  activeness_[team][id] = false;
+          // else {
+            // for(const auto& team : {T_RED, T_BLUE}) {
+              // for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
+                // if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
+                  // activeness_[team][id] = false;
                   // apply_penalty(team == T_RED, id);
-                  sv_.send_to_foulzone(team == T_RED, id);
-                  sentout_time_[team][id] = time_ms_;
-                }
-              }
-            }
-            deadlock_time_ = time_ms_;
-          }
+                  // sv_.send_to_foulzone(team == T_RED, id);
+                  // sentout_time_[team][id] = time_ms_;
+                // }
+              // }
+            // }
+            // deadlock_time_ = time_ms_;
+          // }
         }
       }
       break;
