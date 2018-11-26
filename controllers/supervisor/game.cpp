@@ -945,6 +945,39 @@ bool game::is_deadlock_in_freekick_region()
   return (std::abs(std::get<0>(pos)) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH);
 }
 
+bool game::any_object_nearby(double target_x, double target_y, double target_r)
+{
+  // check ball position
+  const auto pos = sv_.get_ball_position();
+
+  const auto x = std::get<0>(pos);
+  const auto y = std::get<1>(pos);
+
+  const auto dist_sq = (target_x - x) * (target_x - x) + (target_y - y) * (target_y - y);
+
+  // the ball is within the region
+  if(dist_sq < target_r * target_r)
+    return true;
+
+  // check robot positions
+  for(const auto& team : {T_RED, T_BLUE}) {
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      const auto pos = sv_.get_robot_posture(team == T_RED, id);
+
+      const auto x = std::get<0>(pos);
+      const auto y = std::get<1>(pos);
+
+      const auto dist_sq = (target_x - x) * (target_x - x) + (target_y - y) * (target_y - y);
+
+      // a robot is within the region
+      if(dist_sq < target_r * target_r)
+        return true;
+    }
+  }
+
+  return false;
+}
+
 void game::publish_current_frame(std::size_t reset_reason)
 {
   // get ball and robots position
@@ -1237,14 +1270,24 @@ void game::run_game()
               continue;
             // if a robot has been sent out and c::SENTOUT_DURATION_MS has passed, return the robot back to the field
             if(time_ms_ - sentout_time_[team][id] >= c::SENTOUT_DURATION_MS) {
-              activeness_[team][id] = true;
-              sv_.return_to_field(team == T_RED, id);
-              sentout_time_[team][id] = 0;
+              // if any object is located within 1.5 * robot_size, the return is delayed
+              const auto s = (team == T_RED) ? 1 : -1;
+              const auto x = c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][0] * s;
+              const auto y = c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1] * s;
+              const auto r = 1.5 * c::ROBOT_SIZE[id];
+
+              if(any_object_nearby(x, y, r)) {
+                std::cout << "Something is near the return region" << std::endl;
+              }
+              else {
+                activeness_[team][id] = true;
+                sv_.return_to_field(team == T_RED, id);
+                sentout_time_[team][id] = 0;
+              }
             }
           }
         }
       }
-
       // if a team is blocking the goal area
       // if (goal_area_foul_flag_ == true) {
       //   for(const auto& team : {T_RED, T_BLUE}) {

@@ -88,6 +88,7 @@ private:
   std::size_t count_robots_in_penalty_area(bool is_red);
   std::size_t count_robots_in_opponent_penalty_area(bool is_red);
 
+  bool any_object_nearby(double target_x, double target_y, double target_r);
   bool is_deadlock_in_freekick_region();
 
   void publish_current_frame(std::size_t reset_reason);
