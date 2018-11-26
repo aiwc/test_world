@@ -1171,9 +1171,7 @@ void game::run_game()
       {
         const auto ball_x = std::get<0>(sv_.get_ball_position());
         const auto ball_y = std::get<1>(sv_.get_ball_position());
-        if(std::abs(ball_x) > c::FIELD_LENGTH / 2) {
-          // if a team scored
-          if(std::abs(ball_y) < c::GOAL_WIDTH /2) {
+        if((std::abs(ball_x) > c::FIELD_LENGTH / 2) && (std::abs(ball_y) < c::GOAL_WIDTH /2)) {
             ++score_[(ball_x > 0) ? T_RED : T_BLUE];
             update_label();
 
@@ -1198,28 +1196,27 @@ void game::run_game()
             resume();
 
             reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
-          }
-          // ball sent out of the field - proceed to goalkick
-          else {
-            pause();
-            stop_robots();
-            step(c::WAIT_GOAL_MS, false);
+        }
+        // ball sent out of the field - proceed to goalkick
+        else if(std::abs(ball_x) > c::FIELD_LENGTH /2 + c::WALL_THICKNESS){
+          pause();
+          stop_robots();
+          step(c::WAIT_GOAL_MS, false);
 
-            game_state_ = c::STATE_GOALKICK;
+          game_state_ = c::STATE_GOALKICK;
 
-            ball_ownership_ = (ball_x < 0) ? T_RED : T_BLUE;
-            goalkick_time_ = time_ms_;
+          ball_ownership_ = (ball_x < 0) ? T_RED : T_BLUE;
+          goalkick_time_ = time_ms_;
 
-            reset(((ball_ownership_ == T_RED) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_D), ((ball_ownership_ == T_BLUE) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_D));
+          reset(((ball_ownership_ == T_RED) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_D), ((ball_ownership_ == T_BLUE) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_D));
 
-            lock_all_robots();
-            unlock_robot(ball_ownership_, 0);
+          lock_all_robots();
+          unlock_robot(ball_ownership_, 0);
 
-            step(c::WAIT_STABLE_MS, false);
-            resume();
+          step(c::WAIT_STABLE_MS, false);
+          resume();
 
-            reset_reason = c::GOALKICK;
-          }
+          reset_reason = c::GOALKICK;
         }
       }
 

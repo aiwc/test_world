@@ -50,6 +50,7 @@ namespace constants {
   constexpr double PENALTY_AREA_WIDTH = 1.8;
   constexpr double GOAL_AREA_DEPTH = 0.4;
   constexpr double GOAL_AREA_WIDTH = 1.3;
+  constexpr double WALL_THICKNESS = 0.025;
 
   // Ball Dimension
   constexpr double BALL_RADIUS = 0.03;
