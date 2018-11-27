@@ -81,7 +81,7 @@ private:
   void lock_all_robots(); // block sending wheel speed to the simulator
   void unlock_all_robots(); // unblock sending wheel speed to the simulator
   void unlock_robot(bool is_red, std::size_t id); // unblock sending wheel speed to the simulator (one specific robot)
-  bool get_freekick_ownership(); // find which team should get the ball ownership for freekick
+  bool get_corner_ownership(); // find which team should get the ball ownership for freekick on corners
 
   std::size_t count_robots_in_goal_area(bool is_red);
   std::size_t count_robots_in_opponent_goal_area(bool is_red);

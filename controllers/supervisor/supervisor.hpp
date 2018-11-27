@@ -71,7 +71,7 @@ public:
     namespace c = constants;
 
     const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
-      const double translation[] = {x, y, z};
+      const double translation[] = {x, y, -z};
       const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
@@ -115,17 +115,29 @@ public:
       case c::FORMATION_GOALKICK_D:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][1]);
+      case c::FORMATION_CAD_AD:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][1]);
+      case c::FORMATION_CAD_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][1]);
+      case c::FORMATION_CBC_AD:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][1]);
+      case c::FORMATION_CBC_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CAD_AA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CAD_DD:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CBC_AA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CBC_DD:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
         break;
       default:
         break;
@@ -289,14 +301,14 @@ public:
     namespace c = constants;
 
     const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
-      const double translation[] = {x, y, z};
+      const double translation[] = {x, y, -z};
       const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
       pn->resetPhysics();
     };
 
-    reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[pos][0], 0.2, -c::BALL_POSTURE[pos][1]);
+    reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[pos][0], 0.2, c::BALL_POSTURE[pos][1]);
   }
 
   void set_linear_wheel_speed(bool is_red, std::size_t id, const std::array<double, 2>& speed)

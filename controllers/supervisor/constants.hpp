@@ -72,7 +72,7 @@ namespace constants {
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
-  constexpr double ROBOT_FORMATION[8][NUMBER_OF_ROBOTS][3] = {
+  constexpr double ROBOT_FORMATION[12][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
    {{-3.8,   0.0, PI / 2},
     {-2.25,  1.0, 0},
@@ -97,30 +97,54 @@ namespace constants {
     {-1.5,  -0.45, 0},
     {-0.5,   0.8, 0},
     {-0.5,  -0.8, 0},},
-    // x, y, th - Freekick_Attack-Attack Formation
-   {{-3.8,  0.0,  PI / 2},
-    {1,     0.8,  0},
-    {1,    -0.8,  0},
-    {0.5,   0.1,  0},
-    {0.5,  -0.1,  0},},
-    // x, y, th - Freekick_Attack-Defense Formation
-   {{-3.8,  0.0,  PI / 2},
-    {-2.4,  0.3,  0},
-    {-2.4, -0.3,  0},
-    {-2.4,  0.65, 0},
-    {-2.4, -0.65, 0},},
-    // x, y, th - Freekick_Defense-Attack Formation
-   {{-3.8,  0.0,  PI / 2},
-    {-2.4,  0.1,  0},
-    {-2.4, -0.1,  0},
-    {-1.75, 0.65, 0},
-    {-1.75,-0.65, 0},},
-    // x, y, th - Freekick_Defense-Defense Formation
-   {{-3.8,  0.0,  PI / 2},
-    {0.5,   0.65,  0},
-    {0.5,  -0.65,  0},
-    {0.5,   0.2,  0},
-    {0.5,  -0.2,  0},},
+    // x, y, th - Corner AD - Attack-Attack Formation
+   {{-3.8,   0.0, PI / 2},
+    { 2.25, -1.0, PI / 2},
+    { 3.25, -1.0, PI / 2},
+    { 1.75, -1.0, PI / 2},
+    { 2.75, -2.0, PI / 2},},
+    // x, y, th - Corner AD - Attack-Defense Formation
+   {{-3.8,   0.0, PI / 2},
+    {-3.25,  0.5, PI / 2},
+    {-3.25, -0.5, PI / 2},
+    {-2.25,  0.5, PI / 2},
+    {-2.25, -0.5, PI / 2},},
+    // x, y, th - Corner AD - Defense-Attack Formation
+   {{-3.8,   0.0, PI / 2},
+    {-2.25,  1.0, 3*PI / 2},
+    {-3.25,  1.0, 3*PI / 2},
+    {-1.75,  1.0, 3*PI / 2},
+    {-2.75,  2.0, 3*PI / 2},},
+    // x, y, th - Corner AD - Defense-Defense Formation
+   {{-3.8,   0.0, PI / 2},
+    {-1.5,   0.45, 0},
+    {-1.5,  -0.45, 0},
+    {-0.5,   0.8, 0},
+    {-0.5,  -0.8, 0},},
+    // x, y, th - Corner BC - Attack-Attack Formation
+   {{-3.8,   0.0, PI / 2},
+    { 3.25,  1.0, 3*PI / 2},
+    { 2.25,  1.0, 3*PI / 2},
+    { 1.75,  1.0, 3*PI / 2},
+    { 2.75,  2.0, 3*PI / 2},},
+    // x, y, th - Corner BC - Attack-Defense Formation
+   {{-3.8,   0.0, PI / 2},
+    {-3.25,  0.5, 3*PI / 2},
+    {-3.25, -0.5, 3*PI / 2},
+    {-2.25,  0.5, 3*PI / 2},
+    {-2.25, -0.5, 3*PI / 2},},
+    // x, y, th - Corner BC - Defense-Attack Formation
+   {{-3.8,   0.0, PI / 2},
+    {-3.25, -1.0, PI / 2},
+    {-2.25, -1.0, PI / 2},
+    {-1.75, -1.0, PI / 2},
+    {-2.75, -2.0, PI / 2},},
+    // x, y, th - Corner BC - Defense-Defense Formation
+   {{-3.8,   0.0, PI / 2},
+    {-1.5,   0.45, 0},
+    {-1.5,  -0.45, 0},
+    {-0.5,   0.8, 0},
+    {-0.5,  -0.8, 0},},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
@@ -131,15 +155,14 @@ namespace constants {
     {-4.05, -2.05, 0},
   };
 
-  constexpr double BALL_POSTURE[12][2] = {
+  constexpr double BALL_POSTURE[7][2] = {
     {  0.0,  0.0},
     {-3.25,  0.0},
-    {  1.0,  0.0},
-    {-1.75,  0.0},
     { -1.5,  1.0},
     { -1.5, -1.0},
     {  1.5,  1.0},
     {  1.5, -1.0},
+    {-2.75,  1.5},
   };
 
   // WAMP router settings
@@ -186,6 +209,8 @@ namespace constants {
     GAME_END = 4,
     DEADLOCK = 5,
     GOALKICK = 6,
+    FREEKICK = 7,
+    PENALTYKICK = 8,
   };
 
   enum game_state {
@@ -193,6 +218,7 @@ namespace constants {
     STATE_BACKPASS = 1,
     STATE_GOALKICK = 2,
     STATE_FREEKICK = 3,
+    STATE_PENALTYKICK = 4,
   };
 
   enum robot_formation {
@@ -200,21 +226,24 @@ namespace constants {
     FORMATION_BACKPASS = 1,
     FORMATION_GOALKICK_A = 2,
     FORMATION_GOALKICK_D = 3,
-    FORMATION_FREEKICK_AA = 4,
-    FORMATION_FREEKICK_AD = 5,
-    FORMATION_FREEKICK_DA = 6,
-    FORMATION_FREEKICK_DD = 7,
+    FORMATION_CAD_AA = 4,
+    FORMATION_CAD_AD = 5,
+    FORMATION_CAD_DA = 6,
+    FORMATION_CAD_DD = 7,
+    FORMATION_CBC_AA = 8,
+    FORMATION_CBC_AD = 9,
+    FORMATION_CBC_DA = 10,
+    FORMATION_CBC_DD = 11,
   };
 
   enum ball_posture {
     BALL_DEFAULT = 0,
     BALL_GOALKICK = 1,
-    BALL_FREEKICK_ATTACK = 2,
-    BALL_FREEKICK_DEFENSE = 3,
-    BALL_RELOCATION_A = 4,
-    BALL_RELOCATION_B = 5,
-    BALL_RELOCATION_C = 6,
-    BALL_RELOCATION_D = 7,
+    BALL_RELOCATION_A = 2,
+    BALL_RELOCATION_B = 3,
+    BALL_RELOCATION_C = 4,
+    BALL_RELOCATION_D = 5,
+    BALL_FREEKICK = 6,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {

@@ -777,7 +777,7 @@ std::size_t game::count_robots_in_goal_area(bool is_red)
   return ret;
 }
 
-bool game::get_freekick_ownership()
+bool game::get_corner_ownership()
 {
   std::cout << "Freekick Checker" << std::endl;
   const auto ball_x = std::get<0>(sv_.get_ball_position());
@@ -785,9 +785,10 @@ bool game::get_freekick_ownership()
   int robot_count[2] = {0, 0};
   double robot_distance[2] = {0, 0};
 
-  std::cout << "Border: " << c::FREEKICK_BORDER * c::FREEKICK_BORDER << std::endl;
+  const auto s_x = (ball_x > 0) ? 1 : -1;
+  const auto s_y = (ball_y > 0) ? 1 : -1;
 
-  // count the robots near the ball
+  // count the robots and distance from the ball in the corner region of concern
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       if(!activeness_[team][id])
@@ -797,11 +798,9 @@ bool game::get_freekick_ownership()
       const auto x = std::get<0>(robot_pos);
       const auto y = std::get<1>(robot_pos);
 
-      const auto distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
-
-      std::cout << "Team " << ((team == T_RED) ? "Red" : "Blue") << " Robot " << id << ": " << distance_squared << std::endl;
-
-      if(distance_squared <= c::FREEKICK_BORDER * c::FREEKICK_BORDER) {
+      // the robot is located in the corner region of concern
+      if((s_x * x > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH) && (s_y * y > c::PENALTY_AREA_WIDTH / 2)) {
+        const auto distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
         robot_count[team] += 1;
         robot_distance[team] += sqrt(distance_squared);
       }
@@ -821,17 +820,17 @@ bool game::get_freekick_ownership()
   else {
     std::cout << "Both sides have same number of robots" << std::endl;
     // both teams have no robot near the ball
-    if(robot_count[T_RED] == 0) {
-      SPECIAL_TIE_PARAMETER = true;
-      return false;
-    }
-    else if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
+    if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
       std::cout << "Red is farther to the ball on average" << std::endl;
       return T_RED;
     }
-    else  {
+    else if(robot_distance[T_BLUE] > robot_distance[T_RED]) {
       std::cout << "Blue is farther to the ball on average" << std::endl;
       return T_BLUE;
+    }
+    // a total tie - the attacker team gets an advantage
+    else {
+      return (ball_x > 0) ? T_RED : T_BLUE;
     }
   }
 }
@@ -1447,6 +1446,66 @@ void game::run_game()
             // if the deadlock happened in the corner regions
             else {
               std::cout << "Deadlock in corner area" << std::endl;
+
+              // set the ball ownership
+              ball_ownership_ = get_corner_ownership();
+
+              std::cout << "Owner: " << ((ball_ownership_ == T_RED) ? "T_RED" : "T_BLUE") << std::endl;
+
+              pause();
+              stop_robots();
+              step(c::WAIT_STABLE_MS, false);
+
+              game_state_ = c::STATE_FREEKICK;
+
+              freekick_time_ = time_ms_;
+
+              // determine where to place the robots and the ball
+              if (ball_x < 0) { // on Team Red's side
+                if (ball_y > 0) { // on upper side
+                  if (ball_ownership_ == T_RED) { // ball owned by Team Red
+                    reset(c::FORMATION_CAD_DA, c::FORMATION_CAD_DD);
+                  }
+                  else { // ball owned by Team Blue
+                    reset(c::FORMATION_CAD_AD, c::FORMATION_CAD_AA);
+                  }
+                }
+                else { // on lower side
+                  if (ball_ownership_ == T_RED) { // ball owned by Team Red
+                    reset(c::FORMATION_CBC_DA, c::FORMATION_CBC_DD);
+                  }
+                  else { // ball owned by Team Blue
+                    reset(c::FORMATION_CBC_AD, c::FORMATION_CBC_AA);
+                  }
+                }
+              }
+              else { // on Team Blue's side
+                if (ball_y > 0) { // on upper side
+                  if (ball_ownership_ == T_RED) { // ball owned by Team Red
+                    reset(c::FORMATION_CBC_AA, c::FORMATION_CBC_AD);
+                  }
+                  else { // ball owned by Team Blue
+                    reset(c::FORMATION_CBC_DD, c::FORMATION_CBC_DA);
+                  }
+                }
+                else { // on lower side
+                  if (ball_ownership_ == T_RED) { // ball owned by Team Red
+                    reset(c::FORMATION_CAD_AA, c::FORMATION_CAD_AD);
+                  }
+                  else { // ball owned by Team Blue
+                    reset(c::FORMATION_CAD_DD, c::FORMATION_CAD_DA);
+                  }
+                }
+              }
+
+              lock_all_robots();
+              for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
+                unlock_robot(ball_ownership_, id);
+
+              step(c::WAIT_STABLE_MS, false);
+              resume();
+
+              reset_reason = c::FREEKICK;
             }
             deadlock_time_ = time_ms_;
           }

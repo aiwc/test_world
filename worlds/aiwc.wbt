@@ -287,6 +287,7 @@ Referee {
       rotation 1 0 0 4.712389
       children [
         DEF DEF_CAMA Camera {
+          rotation 0 0 1 0
           name "cam_a"
           fieldOfView 0.325
           width 640
