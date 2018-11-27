@@ -131,11 +131,19 @@ namespace constants {
     {-4.05, -2.05, 0},
   };
 
-  constexpr double BALL_POSTURE[4][2] = {
-    {    0, 0},
-    {-3.25, 0},
-    {  1.0, 0},
-    {-1.75, 0}
+  constexpr double BALL_POSTURE[12][2] = {
+    {  0.0,  0.0},
+    {-3.25,  0.0},
+    {  1.0,  0.0},
+    {-1.75,  0.0},
+    { -2.5,  1.0},
+    { -2.5, -1.0},
+    { -1.0,  1.0},
+    { -1.0, -1.0},
+    {  1.0,  1.0},
+    {  1.0, -1.0},
+    {  2.5,  1.0},
+    {  2.5, -1.0},
   };
 
   // WAMP router settings
@@ -207,6 +215,14 @@ namespace constants {
     BALL_GOALKICK = 1,
     BALL_FREEKICK_ATTACK = 2,
     BALL_FREEKICK_DEFENSE = 3,
+    BALL_RELOCATION_A = 4,
+    BALL_RELOCATION_B = 5,
+    BALL_RELOCATION_C = 6,
+    BALL_RELOCATION_D = 7,
+    BALL_RELOCATION_E = 8,
+    BALL_RELOCATION_F = 9,
+    BALL_RELOCATION_G = 10,
+    BALL_RELOCATION_H = 11,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {

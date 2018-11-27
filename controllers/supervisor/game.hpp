@@ -168,7 +168,7 @@ private:
   bool goal_area_foul_flag_;
   bool penalty_area_foul_flag_;
   bool ball_ownership_;
-  bool freekick_flag_;
+  bool relocation_flag_;
 
   //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   bool SPECIAL_TIE_PARAMETER = false;

@@ -595,8 +595,8 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
 {
   sv_.reset_position(red_formation, blue_formation);
 
-  // reset freekick_flag_
-  freekick_flag_ = false;
+  // reset relocation_flag_
+  relocation_flag_ = false;
 
   // reset activeness
   for(auto& team_activeness : activeness_) {
@@ -1437,9 +1437,9 @@ void game::run_game()
         // }
         // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
         else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
-          // if the freekick flag is not set
-          if (!freekick_flag_) {
-            freekick_flag_ = true;
+          // if the relocation flag is not set
+          if (!relocation_flag_) {
+            relocation_flag_ = true;
 
             std::cout << "First instance of deadlock" << std::endl;
 
@@ -1480,62 +1480,86 @@ void game::run_game()
 
             deadlock_time_ = time_ms_;
           }
-          // if the freekick flag is set
+          // if the relocation flag is set
           else {
-            freekick_flag_ = false;
+            relocation_flag_ = false;
 
             std::cout << "Second instance of deadlock" << std::endl;
           // if the deadlock happened in the freekick region, go into freekick state
           // if (is_deadlock_in_freekick_region()) {
             // set the ball ownership
-            ball_ownership_ = get_freekick_ownership();
+            // ball_ownership_ = get_freekick_ownership();
 
             //@@@@@@@@@@@@@@@@@@@@@@@@@@
-            if (SPECIAL_TIE_PARAMETER) {
-              SPECIAL_TIE_PARAMETER = false;
-              deadlock_time_ = time_ms_;
+            // if (SPECIAL_TIE_PARAMETER) {
+              // SPECIAL_TIE_PARAMETER = false;
+              // deadlock_time_ = time_ms_;
 
-              pause();
-              stop_robots();
-              reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
-              step(c::WAIT_STABLE_MS, false);
-              resume();
+              // pause();
+              // stop_robots();
+              // reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
+              // step(c::WAIT_STABLE_MS, false);
+              // resume();
 
-              reset_reason = c::DEADLOCK;
-              continue;
-            }
+              // reset_reason = c::DEADLOCK;
+              // continue;
+            // }
             //@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             const auto ball_x = std::get<0>(sv_.get_ball_position());
+            const auto ball_y = std::get<1>(sv_.get_ball_position());
+
+            c::ball_posture min_dist_pos = c::BALL_DEFAULT; // just a placeholder this should never end up as c::BALL_DEFAULT
+            double min_relocation_dist_sq = 99999;
+
+            // find the closest relocation position
+            for(const auto& pos : {c::BALL_RELOCATION_A, c::BALL_RELOCATION_B,
+                                   c::BALL_RELOCATION_C, c::BALL_RELOCATION_D,
+                                   c::BALL_RELOCATION_E, c::BALL_RELOCATION_F,
+                                   c::BALL_RELOCATION_G, c::BALL_RELOCATION_H}) {
+              const auto dist = (ball_x - c::BALL_POSTURE[pos][0]) * (ball_x - c::BALL_POSTURE[pos][0]) +
+                                (ball_y - c::BALL_POSTURE[pos][1]) * (ball_y - c::BALL_POSTURE[pos][1]);
+
+              if(dist < min_relocation_dist_sq) {
+                min_dist_pos = pos;
+                min_relocation_dist_sq = dist;
+              }
+            }
 
             pause();
             stop_robots();
+            step(c::WAIT_STABLE_MS, false);
 
-            game_state_ = c::STATE_FREEKICK;
-            freekick_time_ = time_ms_;
+            // relocate the ball
+            sv_.relocate_ball(min_dist_pos);
 
-            const auto deadlock_side = (ball_x > 0) ? T_BLUE : T_RED;
+
+            // game_state_ = c::STATE_FREEKICK;
+            // freekick_time_ = time_ms_;
+
+            // const auto deadlock_side = (ball_x > 0) ? T_BLUE : T_RED;
 
             // determine the formation based on the ownership
-            if (ball_ownership_ == T_RED && deadlock_side == T_RED)
-              reset(c::FORMATION_FREEKICK_DA, c::FORMATION_FREEKICK_DD);
-            else if (ball_ownership_ == T_RED && deadlock_side == T_BLUE)
-              reset(c::FORMATION_FREEKICK_AA, c::FORMATION_FREEKICK_AD);
-            else if (ball_ownership_ == T_BLUE && deadlock_side == T_RED)
-              reset(c::FORMATION_FREEKICK_AD, c::FORMATION_FREEKICK_AA);
-            else if (ball_ownership_ == T_BLUE && deadlock_side == T_BLUE)
-              reset(c::FORMATION_FREEKICK_DD, c::FORMATION_FREEKICK_DA);
-            else
-              std::cout << "This message should never appear!" << std::endl;
+            // if (ball_ownership_ == T_RED && deadlock_side == T_RED)
+              // reset(c::FORMATION_FREEKICK_DA, c::FORMATION_FREEKICK_DD);
+            // else if (ball_ownership_ == T_RED && deadlock_side == T_BLUE)
+              // reset(c::FORMATION_FREEKICK_AA, c::FORMATION_FREEKICK_AD);
+            // else if (ball_ownership_ == T_BLUE && deadlock_side == T_RED)
+              // reset(c::FORMATION_FREEKICK_AD, c::FORMATION_FREEKICK_AA);
+            // else if (ball_ownership_ == T_BLUE && deadlock_side == T_BLUE)
+              // reset(c::FORMATION_FREEKICK_DD, c::FORMATION_FREEKICK_DA);
+            // else
+              // std::cout << "This message should never appear!" << std::endl;
 
-            lock_all_robots();
-            for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
-              unlock_robot(ball_ownership_, id);
+            // lock_all_robots();
+            // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
+              // unlock_robot(ball_ownership_, id);
 
             step(c::WAIT_STABLE_MS, false);
             resume();
 
-            reset_reason = c::DEADLOCK;
+            // reset_reason = c::DEADLOCK;
+            deadlock_time_ = time_ms_;
           }
           // otherwise, send some robots out and continue the game
           // else {
@@ -1604,21 +1628,23 @@ void game::run_game()
             // }
           }
         }
+
+        deadlock_time_ = time_ms_;
       }
       break;
     case c::STATE_GOALKICK:
-      // time limite has passed
-      if (time_ms_ - goalkick_time_ >= c::GOALKICK_TIME_LIMIT_MS) {
-        game_state_ = c::STATE_GOALKICK;
-        unlock_all_robots();
-      }
-      else {
+      {
+        // time limit has passed
+        if (time_ms_ - goalkick_time_ >= c::GOALKICK_TIME_LIMIT_MS) {
+          game_state_ = c::STATE_GOALKICK;
+          unlock_all_robots();
+        }
         // the goalie has touched the ball
-        if (touch_[ball_ownership_][0]) {
+        else if (touch_[ball_ownership_][0]) {
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
-          break;
         }
+        deadlock_time_ = time_ms_;
       }
       break;
     case c::STATE_FREEKICK:
@@ -1639,6 +1665,7 @@ void game::run_game()
             }
           }
         }
+        deadlock_time_ = time_ms_;
       }
       break;
     default:

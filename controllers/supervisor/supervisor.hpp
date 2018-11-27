@@ -284,6 +284,21 @@ public:
     pn->resetPhysics();
   }
 
+  void relocate_ball(constants::ball_posture pos)
+  {
+    namespace c = constants;
+
+    const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
+      const double translation[] = {x, y, z};
+      const double rotation[] = {0, 1, 0, 0};
+      pn->getField("translation")->setSFVec3f(translation);
+      pn->getField("rotation")->setSFRotation(rotation);
+      pn->resetPhysics();
+    };
+
+    reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[pos][0], 0.2, -c::BALL_POSTURE[pos][1]);
+  }
+
   void set_linear_wheel_speed(bool is_red, std::size_t id, const std::array<double, 2>& speed)
   {
     namespace c = constants;
