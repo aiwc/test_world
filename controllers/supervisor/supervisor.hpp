@@ -80,7 +80,7 @@ public:
 
     const auto reset_robot_node = [&](webots::Node* pn, double x, double y, double z, double th) {
       const double translation[] = {x, y, -z};
-      const double rotation[] = {0, 1, 0, th - c::PI / 2};
+      const double rotation[] = {0, 1, 0, th};
 
       const double al = pn->getField("axleLength")->getSFFloat();
       const double h = pn->getField("height")->getSFFloat();
@@ -139,7 +139,7 @@ public:
                    c::ROBOT_FORMATION[formation][id][0] * s,
                    c::ROBOT_HEIGHT[id] / 2,
                    c::ROBOT_FORMATION[formation][id][1] * s,
-                   c::ROBOT_FORMATION[formation][id][2] + (is_red ? 0. : c::PI));
+                   c::ROBOT_FORMATION[formation][id][2] + (is_red ? 0. : c::PI) - c::PI / 2);
       }
     }
   }
