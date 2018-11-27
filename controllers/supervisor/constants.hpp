@@ -136,14 +136,10 @@ namespace constants {
     {-3.25,  0.0},
     {  1.0,  0.0},
     {-1.75,  0.0},
-    { -2.5,  1.0},
-    { -2.5, -1.0},
-    { -1.0,  1.0},
-    { -1.0, -1.0},
-    {  1.0,  1.0},
-    {  1.0, -1.0},
-    {  2.5,  1.0},
-    {  2.5, -1.0},
+    { -1.5,  1.0},
+    { -1.5, -1.0},
+    {  1.5,  1.0},
+    {  1.5, -1.0},
   };
 
   // WAMP router settings
@@ -219,10 +215,6 @@ namespace constants {
     BALL_RELOCATION_B = 5,
     BALL_RELOCATION_C = 6,
     BALL_RELOCATION_D = 7,
-    BALL_RELOCATION_E = 8,
-    BALL_RELOCATION_F = 9,
-    BALL_RELOCATION_G = 10,
-    BALL_RELOCATION_H = 11,
   };
 
   constexpr std::array<std::size_t, 5> CODEWORDS = {

@@ -595,9 +595,6 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
 {
   sv_.reset_position(red_formation, blue_formation);
 
-  // reset relocation_flag_
-  relocation_flag_ = false;
-
   // reset activeness
   for(auto& team_activeness : activeness_) {
     for(auto& robot_activeness : team_activeness) {
@@ -1437,54 +1434,24 @@ void game::run_game()
         // }
         // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
         else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
-          // if the relocation flag is not set
-          if (!relocation_flag_) {
-            relocation_flag_ = true;
+          const auto ball_x = std::get<0>(sv_.get_ball_position());
+          const auto ball_y = std::get<1>(sv_.get_ball_position());
 
-            std::cout << "First instance of deadlock" << std::endl;
-
-            double robot_dists[2][c::NUMBER_OF_ROBOTS];
-
-            // record distances from the robots to the ball
-            for(const auto& team : {T_RED, T_BLUE}) {
-              for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
-                if(activeness_[team][id])
-                  robot_dists[team][id] = sv_.get_distance_from_ball(team == T_RED, id);
-                else
-                  robot_dists[team][id] = 99999;
-              }
+          // if the deadlock happened in special region
+          if (std::abs(ball_x) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH) {
+            std::cout << "Deadlock in special region" << std::endl;
+            // if the deadlock happened inside the penalty area
+            if (std::abs(ball_y) < c::PENALTY_AREA_WIDTH / 2) {
+              std::cout << "Deadlock in penalty area" << std::endl;
             }
-
-            for(std::size_t i = 0; i < c::DEADLOCK_SENTOUT_NUMBER; i++) {
-              bool sentout_team = false;
-              std::size_t sentout_id = 0;
-              double smallest_distance = 99999;
-
-              for(const auto& team : {T_RED, T_BLUE}) {
-                for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
-                  if(robot_dists[team][id] < smallest_distance) {
-                    sentout_team = team;
-                    sentout_id = id;
-                    smallest_distance = robot_dists[team][id];
-                  }
-                }
-              }
-
-              if(sentout_id != 0) {
-                robot_dists[sentout_team][sentout_id] = 99999;
-                activeness_[sentout_team][sentout_id] = false;
-                sv_.send_to_foulzone(sentout_team == T_RED, sentout_id);
-                sentout_time_[sentout_team][sentout_id] = time_ms_;
-              }
+            // if the deadlock happened in the corner regions
+            else {
+              std::cout << "Deadlock in corner area" << std::endl;
             }
-
             deadlock_time_ = time_ms_;
           }
-          // if the relocation flag is set
           else {
-            relocation_flag_ = false;
-
-            std::cout << "Second instance of deadlock" << std::endl;
+            std::cout << "Deadlock in general region" << std::endl;
           // if the deadlock happened in the freekick region, go into freekick state
           // if (is_deadlock_in_freekick_region()) {
             // set the ball ownership
@@ -1506,33 +1473,27 @@ void game::run_game()
             // }
             //@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-            const auto ball_x = std::get<0>(sv_.get_ball_position());
-            const auto ball_y = std::get<1>(sv_.get_ball_position());
-
-            c::ball_posture min_dist_pos = c::BALL_DEFAULT; // just a placeholder this should never end up as c::BALL_DEFAULT
-            double min_relocation_dist_sq = 99999;
-
-            // find the closest relocation position
-            for(const auto& pos : {c::BALL_RELOCATION_A, c::BALL_RELOCATION_B,
-                                   c::BALL_RELOCATION_C, c::BALL_RELOCATION_D,
-                                   c::BALL_RELOCATION_E, c::BALL_RELOCATION_F,
-                                   c::BALL_RELOCATION_G, c::BALL_RELOCATION_H}) {
-              const auto dist = (ball_x - c::BALL_POSTURE[pos][0]) * (ball_x - c::BALL_POSTURE[pos][0]) +
-                                (ball_y - c::BALL_POSTURE[pos][1]) * (ball_y - c::BALL_POSTURE[pos][1]);
-
-              if(dist < min_relocation_dist_sq) {
-                min_dist_pos = pos;
-                min_relocation_dist_sq = dist;
-              }
-            }
-
             pause();
             stop_robots();
             step(c::WAIT_STABLE_MS, false);
 
-            // relocate the ball
-            sv_.relocate_ball(min_dist_pos);
-
+            // determine where to relocate and relocate the ball
+            if (ball_x < 0) { // Team Red's region
+              if (ball_y > 0) { // upper half
+                sv_.relocate_ball(c::BALL_RELOCATION_A);
+              }
+              else { // lower half
+                sv_.relocate_ball(c::BALL_RELOCATION_B);
+              }
+            }
+            else { // Team Blue's region
+              if (ball_y > 0) { // upper half
+                sv_.relocate_ball(c::BALL_RELOCATION_C);
+              }
+              else { // lower half
+                sv_.relocate_ball(c::BALL_RELOCATION_D);
+              }
+            }
 
             // game_state_ = c::STATE_FREEKICK;
             // freekick_time_ = time_ms_;
