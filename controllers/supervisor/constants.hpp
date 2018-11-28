@@ -153,16 +153,16 @@ namespace constants {
     {-0.5,  -0.8, 0},},
     // x, y, th - Penaltykick - Attack Formation
    {{-3.8,   0.0, PI / 2},
+    { 0.5,  -0.8, 0},
+    { 1.0,  -0.8, 0},
     { 1.5,  -0.8, 0},
-    { 2.0,  -0.8, 0},
-    { 2.5,  -0.8, 0},
     { 2.0,   0.0, 0},},
     // x, y, th - Penaltykick - Defense Formation
    {{-3.8,   0.0,  PI / 2},
-    {-2.5,  -0.8,  PI / 2},
-    {-2.5,  -1.05, PI / 2},
-    {-2.25, -0.8,  PI / 2},
-    {-2.25, -1.05, PI / 2},},
+    {-1.5,  -0.8,  PI / 2},
+    {-1.5,  -1.05, PI / 2},
+    {-1.25, -0.8,  PI / 2},
+    {-1.25, -1.05, PI / 2},},
   };
 
   constexpr double ROBOT_FOUL_POSTURE[NUMBER_OF_ROBOTS][3] = {
