@@ -101,7 +101,7 @@ namespace constants {
    {{-3.8,   0.0, PI / 2},
     { 2.25, -1.0, PI / 2},
     { 3.25, -1.0, PI / 2},
-    { 1.75, -1.0, PI / 2},
+    { 2.25,  0.0,      0},
     { 2.75, -2.0, PI / 2},},
     // x, y, th - Corner AD - Attack-Defense Formation
    {{-3.8,   0.0, PI / 2},
@@ -113,7 +113,7 @@ namespace constants {
    {{-3.8,   0.0, PI / 2},
     {-2.25,  1.0, 3*PI / 2},
     {-3.25,  1.0, 3*PI / 2},
-    {-1.75,  1.0, 3*PI / 2},
+    {-3.25,  0.0,        0},
     {-2.75,  2.0, 3*PI / 2},},
     // x, y, th - Corner AD - Defense-Defense Formation
    {{-3.8,   0.0, PI / 2},
@@ -125,7 +125,7 @@ namespace constants {
    {{-3.8,   0.0, PI / 2},
     { 3.25,  1.0, 3*PI / 2},
     { 2.25,  1.0, 3*PI / 2},
-    { 1.75,  1.0, 3*PI / 2},
+    { 2.25,  0.0,        0},
     { 2.75,  2.0, 3*PI / 2},},
     // x, y, th - Corner BC - Attack-Defense Formation
    {{-3.8,   0.0, PI / 2},
@@ -137,7 +137,7 @@ namespace constants {
    {{-3.8,   0.0, PI / 2},
     {-3.25, -1.0, PI / 2},
     {-2.25, -1.0, PI / 2},
-    {-1.75, -1.0, PI / 2},
+    {-3.25,  0.0, 0     },
     {-2.75, -2.0, PI / 2},},
     // x, y, th - Corner BC - Defense-Defense Formation
    {{-3.8,   0.0, PI / 2},

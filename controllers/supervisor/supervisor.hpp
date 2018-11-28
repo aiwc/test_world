@@ -192,6 +192,7 @@ public:
     const double x = position[0];
     const double y = -position[2];
     const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
+    // TODO: Make better stand check algorithm - rotation y is not stable when robot orientation is 0
     const double stand = std::abs(rotation[1] > 0.75);
 
     return std::make_tuple(x, y, th, stand);

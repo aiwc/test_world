@@ -937,12 +937,12 @@ std::size_t game::count_robots_in_opponent_penalty_area(bool is_red)
   return ret;
 }
 
-bool game::is_deadlock_in_freekick_region()
-{
-  const auto pos = sv_.get_ball_position();
+// bool game::is_deadlock_in_freekick_region()
+// {
+  // const auto pos = sv_.get_ball_position();
 
-  return (std::abs(std::get<0>(pos)) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH);
-}
+  // return (std::abs(std::get<0>(pos)) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH);
+// }
 
 bool game::any_object_nearby(double target_x, double target_y, double target_r)
 {
