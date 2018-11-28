@@ -82,6 +82,7 @@ private:
   void unlock_all_robots(); // unblock sending wheel speed to the simulator
   void unlock_robot(bool is_red, std::size_t id); // unblock sending wheel speed to the simulator (one specific robot)
   bool get_corner_ownership(); // find which team should get the ball ownership for freekick on corners
+  bool check_penalty_area(); // check whether the penaly area reset condition is met
   bool get_pa_ownership(); // find which team should get the ball ownership for deadlock happened in the penalty area
 
   std::size_t count_robots_in_goal_area(bool is_red);
@@ -205,6 +206,7 @@ private:
   std::size_t backpass_time_ = 0;
   std::size_t goalkick_time_ = 0;
   std::size_t freekick_time_ = 0;
+  std::size_t penaltykick_time_ = 0;
 
   using wheel_speed_t = std::array<std::array<std::array<double, 2>, constants::NUMBER_OF_ROBOTS>, 2>;
 

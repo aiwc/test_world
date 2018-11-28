@@ -112,7 +112,10 @@ public:
       case c::FORMATION_GOALKICK_A:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
-      case c::FORMATION_GOALKICK_D:
+      case c::FORMATION_GOALKICK_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
+        break;
+      case c::FORMATION_GOALKICK_DB:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
       case c::FORMATION_CAD_AD:
@@ -138,6 +141,12 @@ public:
         break;
       case c::FORMATION_CBC_DD:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_PENALTYKICK_A:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
+        break;
+      case c::FORMATION_PENALTYKICK_D:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
         break;
       default:
         break;
