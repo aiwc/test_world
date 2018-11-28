@@ -238,6 +238,12 @@ public:
     return {{{rc[0][0], rc[0][1], rc[0][2], rc[0][3], rc[0][4]}, {rc[1][0], rc[1][1], rc[1][2], rc[1][3], rc[1][4]}}};
   }
 
+  void flush_touch_ball() const
+  {
+    while (pr_recv_->getQueueLength() > 0)
+      pr_recv_->nextPacket();
+  }
+
   void send_to_foulzone(bool is_red, std::size_t id)
   {
     namespace c = constants;

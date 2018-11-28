@@ -680,6 +680,9 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
 
   deadlock_reset_time_ = time_ms_;
   deadlock_time_ = time_ms_;
+
+  // flush touch packet
+  sv_.flush_touch_ball();
 }
 
 void game::resume()
@@ -1505,6 +1508,8 @@ void game::run_game()
               }
             }
 
+            sv_.flush_touch_ball();
+
             // game_state_ = c::STATE_FREEKICK;
             // freekick_time_ = time_ms_;
 
@@ -1612,6 +1617,7 @@ void game::run_game()
         }
         // the goalie has touched the ball
         else if (touch_[ball_ownership_][0]) {
+          std::cout << "The goalie has touched the ball" << std::endl;
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }
@@ -1648,6 +1654,7 @@ void game::run_game()
         }
         // the attacker has touched the ball
         else if (touch_[ball_ownership_][4]) {
+          std::cout << "The attacker has touched the ball" << std::endl;
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }
