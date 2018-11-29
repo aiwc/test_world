@@ -1250,26 +1250,42 @@ void game::run_game()
 
             reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
         }
-        // ball sent out of the field - proceed to goalkick
+        // ball sent out of the field - proceed to corner freekick
         else if(std::abs(ball_x) > c::FIELD_LENGTH /2 + c::WALL_THICKNESS){
           pause();
           stop_robots();
-          step(c::WAIT_GOAL_MS, false);
+          step(c::WAIT_STABLE_MS, false);
 
-          game_state_ = c::STATE_GOALKICK;
+          game_state_ = c::STATE_FREEKICK;
 
-          ball_ownership_ = (ball_x < 0) ? T_RED : T_BLUE;
-          goalkick_time_ = time_ms_;
+          ball_ownership_ = (ball_x < 0) ? T_BLUE : T_RED;
+          freekick_time_ = time_ms_;
 
-          reset(((ball_ownership_ == T_RED) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_DA), ((ball_ownership_ == T_BLUE) ? c::FORMATION_GOALKICK_A : c::FORMATION_GOALKICK_DA));
+          if(ball_x < 0 && ball_y > 0) {
+            // upper left corner
+            reset(c::FORMATION_CAD_AD, c::FORMATION_CAD_AA);
+          }
+          else if(ball_x < 0 && ball_y < 0) {
+            // lower left corner
+            reset(c::FORMATION_CBC_AD, c::FORMATION_CBC_AA);
+          }
+          else if(ball_x > 0 && ball_y > 0) {
+            // upper right corner
+            reset(c::FORMATION_CBC_AA, c::FORMATION_CBC_AD);
+          }
+          else {
+            // lower right corner
+            reset(c::FORMATION_CAD_AA, c::FORMATION_CAD_AD);
+          }
 
           lock_all_robots();
-          unlock_robot(ball_ownership_, 0);
+          for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
+            unlock_robot(ball_ownership_, id);
 
           step(c::WAIT_STABLE_MS, false);
           resume();
 
-          reset_reason = c::GOALKICK;
+          reset_reason = c::FREEKICK;
           break;
         }
       }
