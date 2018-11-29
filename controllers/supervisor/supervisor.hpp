@@ -196,13 +196,11 @@ public:
 
     const double* position = pn_robot->getPosition();
     const double* orientation = pn_robot->getOrientation();
-    const double* rotation = pn_robot->getField("rotation")->getSFRotation();
 
     const double x = position[0];
     const double y = -position[2];
     const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
-    // TODO: Make better stand check algorithm - rotation y is not stable when robot orientation is 0
-    const double stand = std::abs(rotation[1] > 0.75);
+    const bool  stand = orientation[4] > 0.8;
 
     return std::make_tuple(x, y, th, stand);
   }
