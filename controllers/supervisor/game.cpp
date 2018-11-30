@@ -838,6 +838,63 @@ bool game::get_corner_ownership()
   }
 }
 
+bool game::get_pa_ownership()
+{
+  std::cout << "PA Checker" << std::endl;
+  const auto ball_x = std::get<0>(sv_.get_ball_position());
+  const auto ball_y = std::get<1>(sv_.get_ball_position());
+  std::size_t robot_count[2] = {0, 0};
+  double robot_distance[2] = {0, 0};
+
+  const auto s_x = (ball_x > 0) ? 1 : -1;
+
+  // count the robots and distance from the ball in the penalty area of concern
+  for(const auto& team : {T_RED, T_BLUE}) {
+    for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
+      if(!activeness_[team][id])
+        continue;
+
+      const auto robot_pos = sv_.get_robot_posture(team == T_RED, id);
+      const auto x = std::get<0>(robot_pos);
+      const auto y = std::get<1>(robot_pos);
+
+      // the robot is located in the corner region of concern
+      if((s_x * x > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH) && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2)) {
+        const auto distance_squared = (x-ball_x)*(x-ball_x) + (y-ball_y)*(y-ball_y);
+        robot_count[team] += 1;
+        robot_distance[team] += sqrt(distance_squared);
+      }
+    }
+  }
+
+  // decision - team with less robots near the ball gets the ownership
+  if(robot_count[T_RED] < robot_count[T_BLUE]) {
+    std::cout << "Red has less robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+    return T_RED;
+  }
+  else if(robot_count[T_BLUE] < robot_count[T_RED]) {
+    std::cout << "Blue has less robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
+    return T_BLUE;
+  }
+  // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
+  else {
+    std::cout << "Both sides have same number of robots" << std::endl;
+    // both teams have no robot near the ball
+    if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
+      std::cout << "Red is farther to the ball on average" << std::endl;
+      return T_RED;
+    }
+    else if(robot_distance[T_BLUE] > robot_distance[T_RED]) {
+      std::cout << "Blue is farther to the ball on average" << std::endl;
+      return T_BLUE;
+    }
+    // a total tie - the attacker team gets an advantage
+    else {
+      return (ball_x > 0) ? T_RED : T_BLUE;
+    }
+  }
+}
+
 bool game::check_penalty_area()
 {
   const auto ball_x = std::get<0>(sv_.get_ball_position());
@@ -1357,7 +1414,65 @@ void game::run_game()
           if (std::abs(ball_x) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH) {
             // if the deadlock happened inside the penalty area
             if (std::abs(ball_y) < c::PENALTY_AREA_WIDTH / 2) {
-              // do nothing - this should actually never happen
+              std::cout << "Deadlock in penalty area" << std::endl;
+
+              ball_ownership_ = get_pa_ownership();
+
+              std::cout << "Owner: " << ((ball_ownership_ == T_RED) ? "T_RED" : "T_BLUE") << std::endl;
+
+              pause();
+              stop_robots();
+              step(c::WAIT_STABLE_MS, false);
+
+
+              if(ball_x < 0 && ball_ownership_ == T_RED) {
+                // proceed to goal kick by Team Red
+                game_state_ = c::STATE_GOALKICK;
+                reset_reason = c::GOALKICK;
+                goalkick_time_ = time_ms_;
+
+                reset(c::FORMATION_GOALKICK_A, c::FORMATION_GOALKICK_D);
+
+                lock_all_robots();
+                unlock_robot(ball_ownership_, 0);
+              }
+              else if(ball_x > 0 && ball_ownership_ == T_BLUE) {
+                // proceed to goal kick by Team Blue
+                game_state_ = c::STATE_GOALKICK;
+                reset_reason = c::GOALKICK;
+                goalkick_time_ = time_ms_;
+
+                reset(c::FORMATION_GOALKICK_D, c::FORMATION_GOALKICK_A);
+
+                lock_all_robots();
+                unlock_robot(ball_ownership_, 0);
+              }
+              else if(ball_x < 0 && ball_ownership_ == T_BLUE) {
+                // proceed to penalty kick by Team Blue
+                game_state_ = c::STATE_PENALTYKICK;
+                reset_reason = c::PENALTYKICK;
+                penaltykick_time_ = time_ms_;
+
+                reset(c::FORMATION_PENALTYKICK_D, c::FORMATION_PENALTYKICK_A);
+
+                lock_all_robots();
+                unlock_robot(ball_ownership_, 4);
+              }
+              else {
+                // proceed to penalty kick by Team Red
+                game_state_ = c::STATE_PENALTYKICK;
+                reset_reason = c::PENALTYKICK;
+                penaltykick_time_ = time_ms_;
+
+                reset(c::FORMATION_PENALTYKICK_A, c::FORMATION_PENALTYKICK_D);
+
+                lock_all_robots();
+                unlock_robot(ball_ownership_, 4);
+              }
+
+              step(c::WAIT_STABLE_MS, false);
+              resume();
+              deadlock_time_ = time_ms_;
             }
             // if the deadlock happened in the corner regions
             else {
@@ -1422,8 +1537,8 @@ void game::run_game()
               resume();
 
               reset_reason = c::FREEKICK;
+              deadlock_time_ = time_ms_;
             }
-            deadlock_time_ = time_ms_;
           }
           else {
             std::cout << "Deadlock in general region" << std::endl;
@@ -1496,7 +1611,7 @@ void game::run_game()
             step(c::WAIT_STABLE_MS, false);
             resume();
 
-            // reset_reason = c::DEADLOCK;
+            reset_reason = c::DEADLOCK;
             deadlock_time_ = time_ms_;
           }
           // otherwise, send some robots out and continue the game
