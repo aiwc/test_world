@@ -71,7 +71,7 @@ public:
     namespace c = constants;
 
     const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
-      const double translation[] = {x, y, z};
+      const double translation[] = {x, y, -z};
       const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
@@ -112,20 +112,41 @@ public:
       case c::FORMATION_GOALKICK_A:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
-      case c::FORMATION_GOALKICK_D:
+      case c::FORMATION_GOALKICK_DA:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][1]);
+      case c::FORMATION_GOALKICK_DB:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_ATTACK][1]);
+      case c::FORMATION_CAD_AD:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][1]);
+      case c::FORMATION_CAD_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
         break;
-      case c::FORMATION_FREEKICK_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK_DEFENSE][1]);
+      case c::FORMATION_CBC_AD:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CBC_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CAD_AA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CAD_DD:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CBC_AA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_CBC_DD:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        break;
+      case c::FORMATION_PENALTYKICK_A:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
+        break;
+      case c::FORMATION_PENALTYKICK_D:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
         break;
       default:
         break;
@@ -175,12 +196,11 @@ public:
 
     const double* position = pn_robot->getPosition();
     const double* orientation = pn_robot->getOrientation();
-    const double* rotation = pn_robot->getField("rotation")->getSFRotation();
 
     const double x = position[0];
     const double y = -position[2];
     const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
-    const double stand = std::abs(rotation[1] > 0.75);
+    const bool  stand = orientation[4] > 0.8;
 
     return std::make_tuple(x, y, th, stand);
   }
@@ -214,6 +234,12 @@ public:
     }
 
     return {{{rc[0][0], rc[0][1], rc[0][2], rc[0][3], rc[0][4]}, {rc[1][0], rc[1][1], rc[1][2], rc[1][3], rc[1][4]}}};
+  }
+
+  void flush_touch_ball() const
+  {
+    while (pr_recv_->getQueueLength() > 0)
+      pr_recv_->nextPacket();
   }
 
   void send_to_foulzone(bool is_red, std::size_t id)
@@ -282,6 +308,21 @@ public:
     pn->getField("rwRotation")->setSFRotation(wheelRotation);
 
     pn->resetPhysics();
+  }
+
+  void relocate_ball(constants::ball_posture pos)
+  {
+    namespace c = constants;
+
+    const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
+      const double translation[] = {x, y, -z};
+      const double rotation[] = {0, 1, 0, 0};
+      pn->getField("translation")->setSFVec3f(translation);
+      pn->getField("rotation")->setSFRotation(rotation);
+      pn->resetPhysics();
+    };
+
+    reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[pos][0], 0.2, c::BALL_POSTURE[pos][1]);
   }
 
   void set_linear_wheel_speed(bool is_red, std::size_t id, const std::array<double, 2>& speed)
