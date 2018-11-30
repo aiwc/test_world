@@ -112,10 +112,7 @@ public:
       case c::FORMATION_GOALKICK_A:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
-      case c::FORMATION_GOALKICK_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
-        break;
-      case c::FORMATION_GOALKICK_DB:
+      case c::FORMATION_GOALKICK_D:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
       case c::FORMATION_CAD_AD:
@@ -199,7 +196,13 @@ public:
 
     const double x = position[0];
     const double y = -position[2];
-    const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
+    double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
+    // Squeeze the orientation range to [-PI, PI]
+    while (th > constants::PI)
+      th -= 2*constants::PI;
+    while (th < -constants::PI)
+      th += 2*constants::PI;
+
     const bool  stand = orientation[4] > 0.8;
 
     return std::make_tuple(x, y, th, stand);

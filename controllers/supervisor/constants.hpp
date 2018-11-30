@@ -72,7 +72,7 @@ namespace constants {
   // Unused
   // constexpr std::array<double, 5> MAX_METERS_RUN = {90. 120, 120, 150, 150};
 
-  constexpr double ROBOT_FORMATION[15][NUMBER_OF_ROBOTS][3] = {
+  constexpr double ROBOT_FORMATION[14][NUMBER_OF_ROBOTS][3] = {
     // x, y, th - Default Formation
    {{-3.8,   0.0, PI / 2},
     {-2.25,  1.0, 0},
@@ -91,13 +91,7 @@ namespace constants {
     {-2.5,   -0.45, 0},
     {-1.5,     0.8, 0},
     {-1.5,    -0.8, 0},},
-    // x, y, th - Goalkick-Defense Formation A
-   {{-3.8,   0.0, PI / 2},
-    {-1.5,   0.8, 0},
-    {-1.5,  -0.8, 0},
-    {-0.5,   0.45, 0},
-    {-0.5,  -0.45, 0},},
-    // x, y, th - Goalkick-Defense Formation B
+    // x, y, th - Goalkick-Defense Formation
    {{-3.8,   0.0, PI / 2},
     {-0.5,   0.8, 0},
     {-0.5,  -0.8, 0},
@@ -243,18 +237,17 @@ namespace constants {
     FORMATION_DEFAULT = 0,
     FORMATION_BACKPASS = 1,
     FORMATION_GOALKICK_A = 2,
-    FORMATION_GOALKICK_DA = 3,
-    FORMATION_GOALKICK_DB = 4,
-    FORMATION_CAD_AA = 5,
-    FORMATION_CAD_AD = 6,
-    FORMATION_CAD_DA = 7,
-    FORMATION_CAD_DD = 8,
-    FORMATION_CBC_AA = 9,
-    FORMATION_CBC_AD = 10,
-    FORMATION_CBC_DA = 11,
-    FORMATION_CBC_DD = 12,
-    FORMATION_PENALTYKICK_A = 13,
-    FORMATION_PENALTYKICK_D = 14,
+    FORMATION_GOALKICK_D = 3,
+    FORMATION_CAD_AA = 4,
+    FORMATION_CAD_AD = 5,
+    FORMATION_CAD_DA = 6,
+    FORMATION_CAD_DD = 7,
+    FORMATION_CBC_AA = 8,
+    FORMATION_CBC_AD = 9,
+    FORMATION_CBC_DA = 10,
+    FORMATION_CBC_DD = 11,
+    FORMATION_PENALTYKICK_A = 12,
+    FORMATION_PENALTYKICK_D = 13,
   };
 
   enum ball_posture {

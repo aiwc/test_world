@@ -1287,7 +1287,7 @@ void game::run_game()
             reset_reason = c::GOALKICK;
             goalkick_time_ = time_ms_;
 
-            reset(c::FORMATION_GOALKICK_A, c::FORMATION_GOALKICK_DB);
+            reset(c::FORMATION_GOALKICK_A, c::FORMATION_GOALKICK_D);
 
             lock_all_robots();
             unlock_robot(ball_ownership_, 0);
@@ -1298,7 +1298,7 @@ void game::run_game()
             reset_reason = c::GOALKICK;
             goalkick_time_ = time_ms_;
 
-            reset(c::FORMATION_GOALKICK_DB, c::FORMATION_GOALKICK_A);
+            reset(c::FORMATION_GOALKICK_D, c::FORMATION_GOALKICK_A);
 
             lock_all_robots();
             unlock_robot(ball_ownership_, 0);
