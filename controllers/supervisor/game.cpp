@@ -954,6 +954,25 @@ bool game::check_penalty_area()
   return false;
 }
 
+bool game::robot_in_field(bool is_red, std::size_t id)
+{
+  const auto robot_pos = sv_.get_robot_posture(is_red, id);
+  const auto x = std::get<0>(robot_pos);
+  const auto y = std::get<1>(robot_pos);
+
+  if (std::abs(y) < c::GOAL_WIDTH / 2) {
+    if (std::abs(x) > c::FIELD_LENGTH / 2 + c::GOAL_DEPTH)
+      return false;
+    else
+      return true;
+  }
+
+  if (std::abs(x) > c::FIELD_LENGTH / 2)
+    return false;
+  else
+    return true;
+}
+
 // bool game::is_deadlock_in_freekick_region()
 // {
   // const auto pos = sv_.get_ball_position();
@@ -1217,6 +1236,21 @@ void game::run_game()
             // if robot is standing properly
             if (std::get<3>(sv_.get_robot_posture(team == T_RED, id)))
               fall_time_[team][id] = time_ms_;
+          }
+        }
+      }
+    }
+
+    // check if any of robots has been left the field without send_to_foulzone()
+    {
+      for(const auto& team : {T_RED, T_BLUE}) {
+        for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+          // an active robot is not in the field
+          if(activeness_[team][id] && !robot_in_field(team == T_RED, id)) {
+            // make the robot inactive and send out
+            activeness_[team][id] = false;
+            sv_.send_to_foulzone(team == T_RED, id);
+            sentout_time_[team][id] = time_ms_;
           }
         }
       }

@@ -84,6 +84,7 @@ private:
   bool get_corner_ownership(); // find which team should get the ball ownership for freekick on corners
   bool get_pa_ownership(); // find which team should get the ball ownership for deadlock happened in the penalty area
   bool check_penalty_area(); // check whether the penaly area reset condition is met
+  bool robot_in_field(bool is_Red, std::size_t id); // check whether a robot is in the field
 
   std::size_t count_robots_in_goal_area(bool is_red);
   std::size_t count_robots_in_opponent_goal_area(bool is_red);
