@@ -53,17 +53,17 @@ namespace constants {
   constexpr double WALL_THICKNESS = 0.025;
 
   // Ball Dimension
-  constexpr double BALL_RADIUS = 0.03;
-  constexpr double BALL_MASS = 0.0184;
+  constexpr double BALL_RADIUS = 0.04;
+  constexpr double BALL_MASS = 0.001;
 
   // Robot Specifications
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
-  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.115, 0.115, 0.1, 0.1};
-  constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.075, 0.075, 0.07, 0.07};
-  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.105, 0.105, 0.09, 0.09};
+  constexpr std::array<double, 5> ROBOT_SIZE = {0.13, 0.13, 0.13, 0.13, 0.13};
+  constexpr std::array<double, 5> ROBOT_HEIGHT = {0.09, 0.09, 0.09, 0.09, 0.09};
+  constexpr std::array<double, 5> AXLE_LENGTH = {0.12, 0.12, 0.12, 0.12, 0.12};
   constexpr std::array<double, 5> ROBOT_BODY_MASS = {2.5, 2.0, 2.0, 1.5, 1.5};
 
-  constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.03, 0.03, 0.03, 0.03};
+  constexpr std::array<double, 5> WHEEL_RADIUS = {0.0375, 0.0375, 0.0375, 0.0375, 0.0375};
   constexpr std::array<double, 5> WHEEL_MASS = {0.15, 0.10, 0.10, 0.10, 0.10};
 
   constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.5, 1.8, 1.8, 2.1, 2.1};

@@ -7,8 +7,8 @@ PROTO SoccerRobotIDPatch [
   # fields inherited from Shape
 
   # fields specific to Patch
-  field SFFloat length 0.115
-  field SFFloat width 0.115
+  field SFFloat length 0.13
+  field SFFloat width 0.13
   field SFInt32 id 0 # should be >= 0
   field SFBool isTeamTagRed TRUE
   field SFInt32 dataResolution 3 # should be > 0

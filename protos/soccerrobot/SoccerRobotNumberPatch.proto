@@ -7,24 +7,17 @@ PROTO SoccerRobotNumberPatch [
   # fields inherited from Shape
 
   # fields specific to Patch
-  field SFFloat length 0.115
-  field SFFloat width 0.115
+  field SFFloat length 0.13
+  field SFFloat width 0.13
   # field SFFloat radius 0.0575
-  field SFInt32 id 0 # should be >= 0
+  field SFString role "GK"
   field SFBool isTeamTagRed TRUE
   field SFString name "number_patch"
 ]
 {
   %{
-    -- local variables
-    local id = fields.id.value
+    -- local variable
     local isTeamTagRed = fields.isTeamTagRed.value
-
-    -- invariants
-    if id < 0 then
-      print("id must be nonnegative. Setting id to 0.\n")
-      id = 0
-    end
   }%
   Solid {
     name IS name
@@ -39,7 +32,7 @@ PROTO SoccerRobotNumberPatch [
                   local color
                   if isTeamTagRed then color = 'red' else color = 'blue' end
                 }%
-                url [ "textures/%{=color}%_%{=fields.id.value}%.png" ]
+                url [ "textures/%{=color}%_%{=fields.role.value}%.png" ]
               }
             }
             geometry Plane {
