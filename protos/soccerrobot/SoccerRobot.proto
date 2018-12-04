@@ -10,9 +10,9 @@ PROTO SoccerRobot [
   field SFVec3f    scale               1 1 1
 
   # fields for left and right wheels
-  field SFVec3f    lwTranslation       -0.0525 -0.0075 0
+  field SFVec3f    lwTranslation       -0.06 -0.0075 0
   field SFRotation lwRotation          1 0 0 1.570796
-  field SFVec3f    rwTranslation       0.0525 -0.0075 0
+  field SFVec3f    rwTranslation       0.06 -0.0075 0
   field SFRotation rwRotation          1 0 0 1.570796
 
   # children
@@ -40,21 +40,21 @@ PROTO SoccerRobot [
 
   # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
-  field SFFloat    axleLength          0.105
-  field SFFloat    wheelRadius         0.03
-  field SFFloat    maxSpeed            60          # (0,inf)
+  field SFFloat    axleLength          0.12
+  field SFFloat    wheelRadius         0.0375
+  field SFFloat    maxSpeed            48          # (0,inf)
   field SFFloat    slipNoise           0.1         # [0,inf)
   field SFFloat    maxTorque           1.2         # (0,inf)
 
   # fields specific to SoccerRobot
-  field SFFloat  height 0.075
+  field SFFloat  height 0.09
 
   field SFBool   kinematic FALSE # If TRUE, Physics' are ignored
 
   field SFFloat  wheelThickness 0.004
   field SFFloat  wheelTireThickness 0.0
 
-  field SFFloat  bodySize       0.115
+  field SFFloat  bodySize       0.13
   # field SFFloat  bodyRadius     0.0575
   field SFFloat  bodySubdivision 4
   field SFFloat  wheelVisibleRatio 0.75
@@ -93,7 +93,7 @@ PROTO SoccerRobot [
   field SFString wheelContactMaterial "default"
 
   field MFNode patches [
-    SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 name "number_patch" }
+    SoccerRobotNumberPatch { isTeamTagRed TRUE role "GK" name "number_patch" }
     SoccerRobotIDPatch { isTeamTagRed TRUE id 0 name "id_patch_red" }
     SoccerRobotIDPatch { isTeamTagRed FALSE id 0 name "id_patch_blue" }
   ]

@@ -349,34 +349,26 @@ SoccerField5v5 {
   floorContactMaterial "floor"
 }
 DEF DEF_BALL SoccerBall {
-  translation 0 0.03 0
+  translation 0 0.05 0
   contactMaterial "ball"
-  mass 0.0184
+  mass 0.001
   shapes [
     DEF DEF_BALLSHAPE SoccerBallShape {
-      radius 0.03
+      radius 0.04
     }
     DEF DEF_ORANGESHAPE SoccerBallOrangeShape {
-      radius 0.03
+      radius 0.04
     }
   ]
 }
 DEF DEF_ROBOTR0 SoccerRobot {
   translation -3.8 0.045 0
-  lwTranslation -0.06 -0.0075 0
-  lwRotation 1 0 0 1.5708
-  rwTranslation 0.06 -0.0075 0
-  rwRotation 1 0 0 1.5708
   name "R0"
   customData "0 0"
   controller "soccer_robot"
-  axleLength 0.12
-  wheelRadius 0.0375
   maxSpeed 40
   slipNoise 0.05
   maxTorque 0.8
-  height 0.09
-  bodySize 0.13
   bodyPhysics Physics {
     density -1
     mass 2.5
@@ -392,28 +384,20 @@ DEF DEF_ROBOTR0 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      length 0.13
-      width 0.13
-      id 1
+      role "GK"
     }
     SoccerRobotIDPatch {
-      length 0.13
-      width 0.13
       name "id_patch_red"
     }
     SoccerRobotIDPatch {
-      length 0.13
-      width 0.13
       isTeamTagRed FALSE
       name "id_patch_blue"
     }
   ]
 }
 DEF DEF_ROBOTR1 SoccerRobot {
-  translation -2.25 0.0375 -1
+  translation -2.25 0.045 -1
   rotation 0 1 0 -1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "R1"
   customData "0 0"
   controller "soccer_robot"
@@ -422,7 +406,7 @@ DEF DEF_ROBOTR1 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 4
+      role "D"
     }
     SoccerRobotIDPatch {
       id 31
@@ -438,8 +422,6 @@ DEF DEF_ROBOTR1 SoccerRobot {
 DEF DEF_ROBOTR2 SoccerRobot {
   translation -2.25 0.0375 1
   rotation 0 1 0 -1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "R2"
   customData "0 0"
   controller "soccer_robot"
@@ -448,7 +430,7 @@ DEF DEF_ROBOTR2 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 5
+      role "D"
     }
     SoccerRobotIDPatch {
       id 227
@@ -462,21 +444,14 @@ DEF DEF_ROBOTR2 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR3 SoccerRobot {
-  translation -0.65 0.0375 -0.3
+  translation -0.65 0.045 -0.3
   rotation 0 1 0 -1.5708
-  lwTranslation -0.045 -0.005 0
-  lwRotation 1 0 0 1.5708
-  rwTranslation 0.045 -0.005 0
-  rwRotation 1 0 0 1.5708
   name "R3"
   customData "0 0"
   controller "soccer_robot"
-  axleLength 0.09
-  maxSpeed 70
+  maxSpeed 56
   slipNoise 0.05
   maxTorque 0.4
-  height 0.07
-  bodySize 0.1
   bodyPhysics Physics {
     density -1
     mass 1.5
@@ -488,19 +463,13 @@ DEF DEF_ROBOTR3 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      length 0.105
-      width 0.105
-      id 7
+      role "F"
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 364
       name "id_patch_red"
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 364
       isTeamTagRed FALSE
       name "id_patch_blue"
@@ -508,21 +477,14 @@ DEF DEF_ROBOTR3 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTR4 SoccerRobot {
-  translation -0.65 0.0375 0.3
+  translation -0.65 0.045 0.3
   rotation 0 1 0 -1.5708
-  lwTranslation -0.045 -0.005 0
-  lwRotation 1 0 0 1.5708
-  rwTranslation 0.045 -0.005 0
-  rwRotation 1 0 0 1.5708
   name "R4"
   customData "0 0"
   controller "soccer_robot"
-  axleLength 0.09
-  maxSpeed 70
+  maxSpeed 56
   slipNoise 0.05
   maxTorque 0.4
-  height 0.07
-  bodySize 0.1
   bodyPhysics Physics {
     density -1
     mass 1.5
@@ -534,19 +496,13 @@ DEF DEF_ROBOTR4 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      length 0.105
-      width 0.105
-      id 9
+      role "F"
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 437
       name "id_patch_red"
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 437
       isTeamTagRed FALSE
       name "id_patch_blue"
@@ -556,20 +512,12 @@ DEF DEF_ROBOTR4 SoccerRobot {
 DEF DEF_ROBOTB0 SoccerRobot {
   translation 3.8 0.045 0
   rotation 0 1 0 3.1415926
-  lwTranslation -0.06 -0.0075 0
-  lwRotation 1 0 0 1.5708
-  rwTranslation 0.06 -0.0075 0
-  rwRotation 1 0 0 1.5708
   name "B0"
   customData "0 0"
   controller "soccer_robot"
-  axleLength 0.12
-  wheelRadius 0.0375
   maxSpeed 40
   slipNoise 0.05
   maxTorque 0.8
-  height 0.09
-  bodySize 0.13
   bodyPhysics Physics {
     density -1
     mass 2.5
@@ -585,29 +533,21 @@ DEF DEF_ROBOTB0 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      length 0.13
-      width 0.13
-      id 1
+      role "GK"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
-      length 0.13
-      width 0.13
       isTeamTagRed FALSE
       name "id_patch_red"
     }
     SoccerRobotIDPatch {
-      length 0.13
-      width 0.13
       name "id_patch_blue"
     }
   ]
 }
 DEF DEF_ROBOTB1 SoccerRobot {
-  translation 2.25 0.0375 1
+  translation 2.25 0.045 1
   rotation 0 1 0 1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "B1"
   customData "0 0"
   controller "soccer_robot"
@@ -616,7 +556,7 @@ DEF DEF_ROBOTB1 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 4
+      role "D"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -631,10 +571,8 @@ DEF DEF_ROBOTB1 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB2 SoccerRobot {
-  translation 2.25 0.0375 -1
+  translation 2.25 0.045 -1
   rotation 0 1 0 1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "B2"
   customData "0 0"
   controller "soccer_robot"
@@ -643,7 +581,7 @@ DEF DEF_ROBOTB2 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 5
+      role "D"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -658,21 +596,14 @@ DEF DEF_ROBOTB2 SoccerRobot {
   ]
 }
 DEF DEF_ROBOTB3 SoccerRobot {
-  translation 0.65 0.0375 0.3
+  translation 0.65 0.045 0.3
   rotation 0 1 0 1.5708
-  lwTranslation -0.045 -0.005 0
-  lwRotation 1 0 0 1.5708
-  rwTranslation 0.045 -0.005 0
-  rwRotation 1 0 0 1.5708
   name "B3"
   customData "0 0"
   controller "soccer_robot"
-  axleLength 0.09
-  maxSpeed 70
+  maxSpeed 56
   slipNoise 0.05
   maxTorque 0.4
-  height 0.07
-  bodySize 0.1
   bodyPhysics Physics {
     density -1
     mass 1.5
@@ -684,42 +615,29 @@ DEF DEF_ROBOTB3 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      length 0.105
-      width 0.105
-      id 7
+      role "F"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 364
       isTeamTagRed FALSE
       name "id_patch_red"
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 364
       name "id_patch_blue"
     }
   ]
 }
 DEF DEF_ROBOTB4 SoccerRobot {
-  translation 0.65 0.0375 -0.3
+  translation 0.65 0.045 -0.3
   rotation 0 1 0 1.5708
-  lwTranslation -0.045 -0.005 0
-  lwRotation 1 0 0 1.5708
-  rwTranslation 0.045 -0.005 0
-  rwRotation 1 0 0 1.5708
   name "B4"
   customData "0 0"
   controller "soccer_robot"
-  axleLength 0.09
-  maxSpeed 70
+  maxSpeed 56
   slipNoise 0.05
   maxTorque 0.4
-  height 0.07
-  bodySize 0.1
   bodyPhysics Physics {
     density -1
     mass 1.5
@@ -731,21 +649,15 @@ DEF DEF_ROBOTB4 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      length 0.105
-      width 0.105
-      id 9
+      role "F"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 437
       isTeamTagRed FALSE
       name "id_patch_red"
     }
     SoccerRobotIDPatch {
-      length 0.105
-      width 0.105
       id 437
       name "id_patch_blue"
     }
