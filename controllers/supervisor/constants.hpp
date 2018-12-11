@@ -54,7 +54,7 @@ namespace constants {
 
   // Ball Dimension
   constexpr double BALL_RADIUS = 0.04;
-  constexpr double BALL_MASS = 0.001;
+  constexpr double BALL_MASS = 0.0184;
 
   // Robot Specifications
   constexpr std::size_t NUMBER_OF_ROBOTS = 5;
