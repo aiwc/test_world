@@ -42,7 +42,7 @@ PROTO SoccerRobot [
   field SFFloat    motorConsumption    0           # [0,inf)
   field SFFloat    axleLength          0.12
   field SFFloat    wheelRadius         0.0375
-  field SFFloat    maxSpeed            48          # (0,inf)
+  field SFFloat    maxSpeed            56          # (0,inf)
   field SFFloat    slipNoise           0.1         # [0,inf)
   field SFFloat    maxTorque           1.2         # (0,inf)
 

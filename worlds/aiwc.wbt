@@ -366,7 +366,7 @@ DEF DEF_ROBOTR0 SoccerRobot {
   name "R0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 40
+  maxSpeed 48
   slipNoise 0.05
   maxTorque 0.8
   bodyPhysics Physics {
@@ -449,7 +449,7 @@ DEF DEF_ROBOTR3 SoccerRobot {
   name "R3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 56
+  maxSpeed 68
   slipNoise 0.05
   maxTorque 0.4
   bodyPhysics Physics {
@@ -482,7 +482,7 @@ DEF DEF_ROBOTR4 SoccerRobot {
   name "R4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 56
+  maxSpeed 68
   slipNoise 0.05
   maxTorque 0.4
   bodyPhysics Physics {
@@ -515,7 +515,7 @@ DEF DEF_ROBOTB0 SoccerRobot {
   name "B0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 40
+  maxSpeed 48
   slipNoise 0.05
   maxTorque 0.8
   bodyPhysics Physics {
@@ -601,7 +601,7 @@ DEF DEF_ROBOTB3 SoccerRobot {
   name "B3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 56
+  maxSpeed 68
   slipNoise 0.05
   maxTorque 0.4
   bodyPhysics Physics {
@@ -635,7 +635,7 @@ DEF DEF_ROBOTB4 SoccerRobot {
   name "B4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 56
+  maxSpeed 68
   slipNoise 0.05
   maxTorque 0.4
   bodyPhysics Physics {
