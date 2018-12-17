@@ -66,23 +66,7 @@ game::game(supervisor& sv, std::size_t rs_port, std::string uds_path)
   : sv_(sv)
   , rs_port_(rs_port)
   , uds_path_(uds_path)
-{
-  // for(auto& fc : foul_pa_counter_) {
-    // fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
-  // }
-
-  // for(auto& fc : foul_opa_counter_) {
-    // fc.set_capacity(c::FOUL_PA_DURATION_MS / c::PERIOD_MS);
-  // }
-
-  // for(auto& fc : foul_ga_counter_) {
-    // fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
-  // }
-
-  // for(auto& fc : foul_oga_counter_) {
-    // fc.set_capacity(c::FOUL_GA_DURATION_MS / c::PERIOD_MS);
-  // }
-}
+{}
 
 void game::run()
 {
@@ -139,14 +123,8 @@ void game::run()
   {
     game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
     deadlock_flag_ = true;
-    goal_area_foul_flag_ = true;
-    penalty_area_foul_flag_ = true;
-
-    // for (int i = 0; i < 2; i++)
-      // for (unsigned int j = 0; j < c::NUMBER_OF_ROBOTS; j++) {
-        // stop_time_[i][j] = 0;
-        // exhausted_[i][j] = false;
-    // }
+    // goal_area_foul_flag_ = true;
+    // penalty_area_foul_flag_ = true;
 
     if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
@@ -155,11 +133,11 @@ void game::run()
       if (config_json["rule"].HasMember("deadlock") && config_json["rule"]["deadlock"].IsBool())
         deadlock_flag_ = config_json["rule"]["deadlock"].GetBool();
 
-      if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
-        goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
+      // if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
+        // goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
 
-      if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
-        penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
+      // if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
+        // penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
     }
     else
       std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
@@ -167,8 +145,8 @@ void game::run()
     std::cout << "Rules:" << std::endl;
     std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
-    std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
-    std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
+    // std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
+    // std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
   }
 
   const auto path_prefix = std::string("../../");
@@ -623,62 +601,8 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
     }
   }
 
-  // check stamina status and send exhausted robots out
-  // for(const auto& team : {T_RED, T_BLUE}) {
-    // auto is_red = team == T_RED;
-    // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      // if(exhausted_[team][id]) {
-        // activeness_[team][id] = false;
-        // sv_.send_to_foulzone(is_red, id);
-      // }
-    // }
-  // }
-
-  // reset in_penalty_area
-  for(auto& team_ipa : in_penalty_area_) {
-    for(auto& robot_ipa : team_ipa) {
-      robot_ipa = false;
-    }
-  }
-
-  // reset in_opponent_penalty_area
-  for(auto& team_iopa : in_opponent_penalty_area_) {
-    for(auto& robot_iopa : team_iopa) {
-      robot_iopa = false;
-    }
-  }
-
-  // reset in_goal_area
-  for(auto& team_iga : in_goal_area_) {
-    for(auto& robot_iga : team_iga) {
-      robot_iga = false;
-    }
-  }
-
-  // reset in_opponent_goal_area
-  for(auto& team_ioga : in_opponent_goal_area_) {
-    for(auto& robot_ioga : team_ioga) {
-      robot_ioga = false;
-    }
-  }
-
   stop_robots();
 
-  // reset foul counters
-  for(auto& fc : foul_pa_counter_) {
-    fc.clear();
-  }
-  for(auto& fc : foul_opa_counter_) {
-    fc.clear();
-  }
-  for(auto& fc : foul_ga_counter_) {
-    fc.clear();
-  }
-  for(auto& fc : foul_oga_counter_) {
-    fc.clear();
-  }
-
-  deadlock_reset_time_ = time_ms_;
   deadlock_time_ = time_ms_;
 
   // flush touch packet
@@ -746,40 +670,6 @@ void game::unlock_robot(bool team, std::size_t id)
   activeness_[team][id] = true;
 }
 
-std::size_t game::count_robots_in_goal_area(bool is_red)
-{
-  std::size_t ret = 0;
-
-  constexpr auto is_in_goal = [](double x, double y) {
-    return (x < -c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
-  };
-
-  constexpr auto is_in_goal_area = [](double x, double y) {
-    return
-    (x >= -c::FIELD_LENGTH / 2)
-    && (x < -c::FIELD_LENGTH / 2 + c::GOAL_AREA_DEPTH)
-    && (std::abs(y) < c::GOAL_AREA_WIDTH / 2);
-  };
-
-  for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-    const auto pos = sv_.get_robot_posture(is_red, id);
-    const double sign = is_red ? 1 : -1;
-
-    const auto x = sign * std::get<0>(pos);
-    const auto y = sign * std::get<1>(pos);
-
-    if(is_in_goal(x, y) || is_in_goal_area(x, y)) {
-      in_goal_area_[is_red ? T_RED : T_BLUE][id] = true;
-      ++ret;
-    }
-    else {
-      in_goal_area_[is_red ? T_RED : T_BLUE][id] = false;
-    }
-  }
-
-  return ret;
-}
-
 bool game::get_corner_ownership()
 {
   std::cout << "Freekick Checker" << std::endl;
@@ -840,7 +730,6 @@ bool game::get_corner_ownership()
 
 bool game::get_pa_ownership()
 {
-  std::cout << "PA Checker" << std::endl;
   const auto ball_x = std::get<0>(sv_.get_ball_position());
   const auto ball_y = std::get<1>(sv_.get_ball_position());
   std::size_t robot_count[2] = {0, 0};
@@ -973,13 +862,6 @@ bool game::robot_in_field(bool is_red, std::size_t id)
     return true;
 }
 
-// bool game::is_deadlock_in_freekick_region()
-// {
-  // const auto pos = sv_.get_ball_position();
-
-  // return (std::abs(std::get<0>(pos)) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH);
-// }
-
 bool game::any_object_nearby(double target_x, double target_y, double target_r)
 {
   // check ball position
@@ -1017,7 +899,7 @@ void game::publish_current_frame(std::size_t reset_reason)
 {
   // get ball and robots position
   const auto g_ball = sv_.get_ball_position();
-  std::array<std::array<std::tuple<double, double, double, bool, bool, double>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
+  std::array<std::array<std::tuple<double, double, double, bool, bool>, c::NUMBER_OF_ROBOTS>, 2> g_robots;
   for(const auto& team : {T_RED, T_BLUE}) {
     for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
       const auto r = sv_.get_robot_posture(team == T_RED, id);
@@ -1026,7 +908,6 @@ void game::publish_current_frame(std::size_t reset_reason)
       std::get<2>(g_robots[team][id]) = std::get<2>(r);
       std::get<3>(g_robots[team][id]) = activeness_[team][id];
       std::get<4>(g_robots[team][id]) = touch_[team][id];
-      // std::get<5>(g_robots[team][id]) = meters_run_[team][id];
     }
   }
 
@@ -1140,36 +1021,6 @@ void game::run_game()
     }
   }
 
-  for(auto& team_ipa : in_penalty_area_) {
-    for(auto& robot_ipa : team_ipa) {
-      robot_ipa = false;
-    }
-  }
-
-  for(auto& team_ipa : in_opponent_penalty_area_) {
-    for(auto& robot_ipa : team_ipa) {
-      robot_ipa = false;
-    }
-  }
-
-  for(auto& team_iga : in_goal_area_) {
-    for(auto& robot_iga : team_iga) {
-      robot_iga = false;
-    }
-  }
-
-  for(auto& team_iga : in_opponent_goal_area_) {
-    for(auto& robot_iga : team_iga) {
-      robot_iga = false;
-    }
-  }
-
-  // for(auto& team_mr : meters_run_) {
-    // for(auto& robot_mr : team_mr) {
-      // robot_mr = 0.0;
-    // }
-  // }
-
   update_label();
 
   // reset and wait 1s for stabilizing
@@ -1179,7 +1030,6 @@ void game::run_game()
   ball_ownership_ = T_RED;
   game_state_ = c::STATE_BACKPASS;
   backpass_time_ = time_ms_;
-  // backpass_foul_flag_ = false;
 
   reset(c::FORMATION_BACKPASS, c::FORMATION_DEFAULT);
 
@@ -1206,16 +1056,6 @@ void game::run_game()
       step(c::WAIT_END_MS, false);
       return;
     }
-
-    // special case 2: all robots are exhausted. finish the game without checking game rules.
-    // if(std::all_of(std::begin(exhausted_[0]), std::end(exhausted_[0]), [](const auto& is_exhausted) { return is_exhausted; })
-     // &&std::all_of(std::begin(exhausted_[1]), std::end(exhausted_[1]), [](const auto& is_exhausted) { return is_exhausted; })) {
-      // publish_current_frame(c::GAME_END);
-      // pause();
-      // stop_robots();
-      // step(c::WAIT_END_MS, false);
-      // return;
-    // }
 
     // publish current frame
     publish_current_frame(reset_reason);
@@ -1425,20 +1265,8 @@ void game::run_game()
 
       if(reset_reason == c::NONE && deadlock_flag_ == true) {
         if(sv_.get_ball_velocity() >= c::DEADLOCK_THRESHOLD) {
-          // deadlock_reset_time_ = time_ms_;
           deadlock_time_ = time_ms_;
         }
-
-        // if the ball is not moved fast enough for c::DEADLOCK_RESET_MS
-        // if((time_ms_ - deadlock_reset_time_) >= c::DEADLOCK_RESET_MS) {
-          // pause();
-          // stop_robots();
-          // reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
-          // step(c::WAIT_STABLE_MS, false);
-          // resume();
-
-          // reset_reason = c::DEADLOCK;
-        // }
         // if the ball is not moved fast enough for c::DEADLOCK_DURATION_MS
         else if((time_ms_ - deadlock_time_) >= c::DEADLOCK_DURATION_MS) {
           const auto ball_x = std::get<0>(sv_.get_ball_position());
@@ -1574,29 +1402,8 @@ void game::run_game()
               deadlock_time_ = time_ms_;
             }
           }
+          // if the deadlock happened in the general region, relocate the ball and continue the game
           else {
-            std::cout << "Deadlock in general region" << std::endl;
-          // if the deadlock happened in the freekick region, go into freekick state
-          // if (is_deadlock_in_freekick_region()) {
-            // set the ball ownership
-            // ball_ownership_ = get_freekick_ownership();
-
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@
-            // if (SPECIAL_TIE_PARAMETER) {
-              // SPECIAL_TIE_PARAMETER = false;
-              // deadlock_time_ = time_ms_;
-
-              // pause();
-              // stop_robots();
-              // reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
-              // step(c::WAIT_STABLE_MS, false);
-              // resume();
-
-              // reset_reason = c::DEADLOCK;
-              // continue;
-            // }
-            //@@@@@@@@@@@@@@@@@@@@@@@@@@
-
             pause();
             stop_robots();
             step(c::WAIT_STABLE_MS, false);
@@ -1621,47 +1428,12 @@ void game::run_game()
 
             sv_.flush_touch_ball();
 
-            // game_state_ = c::STATE_FREEKICK;
-            // freekick_time_ = time_ms_;
-
-            // const auto deadlock_side = (ball_x > 0) ? T_BLUE : T_RED;
-
-            // determine the formation based on the ownership
-            // if (ball_ownership_ == T_RED && deadlock_side == T_RED)
-              // reset(c::FORMATION_FREEKICK_DA, c::FORMATION_FREEKICK_DD);
-            // else if (ball_ownership_ == T_RED && deadlock_side == T_BLUE)
-              // reset(c::FORMATION_FREEKICK_AA, c::FORMATION_FREEKICK_AD);
-            // else if (ball_ownership_ == T_BLUE && deadlock_side == T_RED)
-              // reset(c::FORMATION_FREEKICK_AD, c::FORMATION_FREEKICK_AA);
-            // else if (ball_ownership_ == T_BLUE && deadlock_side == T_BLUE)
-              // reset(c::FORMATION_FREEKICK_DD, c::FORMATION_FREEKICK_DA);
-            // else
-              // std::cout << "This message should never appear!" << std::endl;
-
-            // lock_all_robots();
-            // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
-              // unlock_robot(ball_ownership_, id);
-
             step(c::WAIT_STABLE_MS, false);
             resume();
 
             reset_reason = c::DEADLOCK;
             deadlock_time_ = time_ms_;
           }
-          // otherwise, send some robots out and continue the game
-          // else {
-            // for(const auto& team : {T_RED, T_BLUE}) {
-              // for(std::size_t id = 1; id < c::NUMBER_OF_ROBOTS; id++) {
-                // if(activeness_[team][id] && (sv_.get_distance_from_ball(team == T_RED, id) < c::DEADLOCK_RANGE)) {
-                  // activeness_[team][id] = false;
-                  // apply_penalty(team == T_RED, id);
-                  // sv_.send_to_foulzone(team == T_RED, id);
-                  // sentout_time_[team][id] = time_ms_;
-                // }
-              // }
-            // }
-            // deadlock_time_ = time_ms_;
-          // }
         }
       }
       break;
@@ -1673,46 +1445,12 @@ void game::run_game()
           unlock_all_robots();
         }
         else {
-          // ball has left the center circle
           const auto ball_x = std::get<0>(sv_.get_ball_position());
           const auto ball_y = std::get<1>(sv_.get_ball_position());
+          // ball has left the center circle
           if (ball_x*ball_x + ball_y*ball_y > c::BACKPASS_BORDER*c::BACKPASS_BORDER) {
-            // if ((ball_ownership_ == T_RED) ? (ball_x < 0) : (ball_x > 0)) { // good backpass
-            // backpass_foul_flag_ = false;
-
             unlock_all_robots();
-
             game_state_ = c::STATE_DEFAULT;
-            // }
-            // else { // bad backpass
-              // if (backpass_foul_flag_) { // both teams made bad backpasses
-                // std::cout << "Two bad backpass in a row!" << std::endl;
-                // game_state_ = c::STATE_DEFAULT;
-
-                // pause();
-                // stop_robots();
-                // reset(c::FORMATION_DEFAULT, c::FORMATION_DEFAULT);
-
-                // step(c::WAIT_STABLE_MS, false);
-                // resume();
-              // }
-              // else { // the team made a bad backpass => ownership is changed
-                // std::cout << "Wrong backpass!" << std::endl;
-                // ball_ownership_ = !ball_ownership_;
-                // backpass_time_ = time_ms_;
-                // backpass_foul_flag_ = true;
-
-                // pause();
-                // stop_robots();
-                // reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
-
-                // lock_all_robots();
-                // unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
-
-                // step(c::WAIT_STABLE_MS, false);
-                // resume();
-              // }
-            // }
           }
         }
 

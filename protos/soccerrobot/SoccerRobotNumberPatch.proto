@@ -7,8 +7,8 @@ PROTO SoccerRobotNumberPatch [
   # fields inherited from Shape
 
   # fields specific to Patch
-  field SFFloat length 0.13
-  field SFFloat width 0.13
+  field SFFloat length 0.15
+  field SFFloat width 0.15
   # field SFFloat radius 0.0575
   field SFString role "GK"
   field SFBool isTeamTagRed TRUE

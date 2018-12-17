@@ -65,9 +65,6 @@ private:
   void terminate_participant();
 
   void update_label();
-  // void save_current_pos();
-  // void update_meters_run();
-  // void apply_penalty(bool is_red, std::size_t id);
 
   // game state control functions
   void step(std::size_t ms, bool update); // throw webots_revert_exception when webots reverts
@@ -92,7 +89,6 @@ private:
   std::size_t count_robots_in_opponent_penalty_area(bool is_red);
 
   bool any_object_nearby(double target_x, double target_y, double target_r);
-  // bool is_deadlock_in_freekick_region();
 
   void publish_current_frame(std::size_t reset_reason);
 
@@ -168,16 +164,9 @@ private:
 
   std::size_t game_time_ms_;
   bool deadlock_flag_;
-  bool goal_area_foul_flag_;
-  bool penalty_area_foul_flag_;
+  // bool goal_area_foul_flag_;
+  // bool penalty_area_foul_flag_;
   bool ball_ownership_;
-
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-  bool SPECIAL_TIE_PARAMETER = false;
-  //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-  // bool backpass_foul_flag_;
-  // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> stop_time_;
 
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};
@@ -185,24 +174,11 @@ private:
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> touch_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> sentout_time_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> fall_time_;
-  // std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> exhausted_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_penalty_area_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_penalty_area_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_goal_area_;
-  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> in_opponent_goal_area_;
-  // std::array<std::array<double, constants::NUMBER_OF_ROBOTS>, 2> meters_run_;
-  // std::array<std::array<std::tuple<double, double, double, bool>, constants::NUMBER_OF_ROBOTS>, 2> prev_pos_;
   std::atomic<bool> paused_{true};
   constants::game_state game_state_;
 
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
 
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_pa_counter_;
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_opa_counter_;
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_ga_counter_;
-  std::array<boost::circular_buffer<std::size_t>, 2> foul_oga_counter_;
-
-  std::size_t deadlock_reset_time_ = 0;
   std::size_t deadlock_time_ = 0;
   std::size_t backpass_time_ = 0;
   std::size_t goalkick_time_ = 0;
