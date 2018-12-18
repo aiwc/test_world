@@ -83,11 +83,6 @@ private:
   bool check_penalty_area(); // check whether the penaly area reset condition is met
   bool robot_in_field(bool is_Red, std::size_t id); // check whether a robot is in the field
 
-  std::size_t count_robots_in_goal_area(bool is_red);
-  std::size_t count_robots_in_opponent_goal_area(bool is_red);
-  std::size_t count_robots_in_penalty_area(bool is_red);
-  std::size_t count_robots_in_opponent_penalty_area(bool is_red);
-
   bool any_object_nearby(double target_x, double target_y, double target_r);
 
   void publish_current_frame(std::size_t reset_reason);
@@ -164,8 +159,6 @@ private:
 
   std::size_t game_time_ms_;
   bool deadlock_flag_;
-  // bool goal_area_foul_flag_;
-  // bool penalty_area_foul_flag_;
   bool ball_ownership_;
 
   std::size_t time_ms_ = 0;

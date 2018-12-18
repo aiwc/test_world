@@ -119,12 +119,10 @@ void game::run()
   if (!config_json.IsObject())
     throw std::runtime_error("Format of 'config.json' seems to be incorrect.");
 
-  //gets game rules from 'config.json' (if no rules specified, default options are given)
+  // gets game rules from 'config.json' (if no rules specified, default options are given)
   {
     game_time_ms_ = c::DEFAULT_GAME_TIME_MS / c::PERIOD_MS * c::PERIOD_MS;
     deadlock_flag_ = true;
-    // goal_area_foul_flag_ = true;
-    // penalty_area_foul_flag_ = true;
 
     if (config_json.HasMember("rule") && config_json["rule"].IsObject()) { //set rules
       if (config_json["rule"].HasMember("game_time") && config_json["rule"]["game_time"].IsNumber())
@@ -132,12 +130,6 @@ void game::run()
 
       if (config_json["rule"].HasMember("deadlock") && config_json["rule"]["deadlock"].IsBool())
         deadlock_flag_ = config_json["rule"]["deadlock"].GetBool();
-
-      // if (config_json["rule"].HasMember("goal_area_foul") && config_json["rule"]["goal_area_foul"].IsBool())
-        // goal_area_foul_flag_ = config_json["rule"]["goal_area_foul"].GetBool();
-
-      // if (config_json["rule"].HasMember("penalty_area_foul") && config_json["rule"]["penalty_area_foul"].IsBool())
-        // penalty_area_foul_flag_ = config_json["rule"]["penalty_area_foul"].GetBool();
     }
     else
       std::cout << "\"rule\" section of 'config.json' seems to be missing: using default options" << std::endl;
@@ -145,8 +137,6 @@ void game::run()
     std::cout << "Rules:" << std::endl;
     std::cout << "     game duration - " << game_time_ms_ / 1000.0 << " seconds" << std::endl;
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
-    // std::cout << "    goal area foul - " << (goal_area_foul_flag_ ? "on" : "off") << std::endl;
-    // std::cout << " penalty area foul - " << (penalty_area_foul_flag_ ? "on" : "off") << std::endl;
   }
 
   const auto path_prefix = std::string("../../");
@@ -204,7 +194,6 @@ void game::run()
 
     info.emplace_back("max_linear_velocity",  msgpack::object(c::MAX_LINEAR_VELOCITY, z_info_));
     info.emplace_back("max_torque",           msgpack::object(c::MAX_TORQUE, z_info_));
-    // info.emplace_back("max_meters_run", msgpack::object(c::MAX_METERS_RUN, z_info_));
 
     info.emplace_back("resolution", msgpack::object(std::make_tuple(c::RESOLUTION_X, c::RESOLUTION_Y), z_info_));
     info.emplace_back("number_of_robots", msgpack::object(c::NUMBER_OF_ROBOTS, z_info_));
@@ -304,8 +293,6 @@ void game::run()
       const auto it = std::find_if(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
                                    [](const auto& kv) { return kv.second.is_ready == true; });
       assert(it != std::cend(player_team_infos_));
-
-      // TODO: send winning frame to team pointed by it.
     }
     else {
       try {
@@ -321,7 +308,6 @@ void game::run()
           auto& ti = kv.second;
 
           // boost 1.65 or lower has a bug in child::wait_until(). use child::wait_for().
-          // ti.c.wait_until(until);
           ti.c.wait_for(until - std::chrono::steady_clock::now());
           if(ti.c.running()) {
             ti.c.terminate();
@@ -477,63 +463,6 @@ void game::update_label()
   }
 }
 
-// Unused
-// void game::save_current_pos()
-// {
-  // for(const auto& team : {T_RED, T_BLUE}) {
-    // auto is_red = team == T_RED;
-    // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      // const auto pos = sv_.get_robot_posture(is_red, id);
-
-      // prev_pos_[team][id] = pos;
-    // }
-  // }
-// }
-
-// Unused
-// void game::update_meters_run()
-// {
-  // for(const auto& team : {T_RED, T_BLUE}) {
-    // auto is_red = team == T_RED;
-    // for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
-      // const auto pos = sv_.get_robot_posture(is_red, id);
-
-      // const auto x = std::get<0>(pos);
-      // const auto y = std::get<1>(pos);
-
-      // const auto stand = std::get<3>(pos);
-
-      // const auto prev_x = std::get<0>(prev_pos_[team][id]);
-      // const auto prev_y = std::get<1>(prev_pos_[team][id]);
-
-      // if(activeness_[team][id] && stand) {
-        // meters_run_[team][id] += sqrt(pow(x - prev_x,2) + pow(y - prev_y,2));
-        // if(meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
-          // meters_run_[team][id] = c::MAX_METERS_RUN[id];
-          // activeness_[team][id] = false;
-          // exhausted_[team][id] = true;
-        // }
-      // }
-    // }
-  // }
-// }
-
-// Unused
-// apply penalty to robots sent out
-// void game::apply_penalty(bool is_red, std::size_t id)
-// {
-  // auto team = (is_red ? T_RED : T_BLUE);
-  // if (!exhausted_[team][id]) {
-    // meters_run_[team][id] += c::DEFAULT_PENALTY_RATIO * c::MAX_METERS_RUN[id];
-
-    // if (meters_run_[team][id] >= c::MAX_METERS_RUN[id]) {
-      // meters_run_[team][id] = c::MAX_METERS_RUN[id];
-      // activeness_[team][id] = false;
-      // exhausted_[team][id] = true;
-    // }
-  // }
-// }
-
 // game state control functions
 void game::step(std::size_t ms, bool update)
 {
@@ -554,10 +483,6 @@ void game::step(std::size_t ms, bool update)
       send_speed();
       time_ms_ += basic_time_step;
     }
-
-    // if(update)
-      // update_meters_run();
-    // save_current_pos();
 
     update_label();
     step_throw_if_revert(basic_time_step);
@@ -702,23 +627,18 @@ bool game::get_corner_ownership()
 
   // decision - team with less robots near the ball gets the ownership
   if(robot_count[T_RED] < robot_count[T_BLUE]) {
-    std::cout << "Red has less robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
     return T_RED;
   }
   else if(robot_count[T_BLUE] < robot_count[T_RED]) {
-    std::cout << "Blue has less robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
     return T_BLUE;
   }
   // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
   else {
-    std::cout << "Both sides have same number of robots" << std::endl;
     // both teams have no robot near the ball
     if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
-      std::cout << "Red is farther to the ball on average" << std::endl;
       return T_RED;
     }
     else if(robot_distance[T_BLUE] > robot_distance[T_RED]) {
-      std::cout << "Blue is farther to the ball on average" << std::endl;
       return T_BLUE;
     }
     // a total tie - the attacker team gets an advantage
@@ -758,23 +678,18 @@ bool game::get_pa_ownership()
 
   // decision - team with less robots near the ball gets the ownership
   if(robot_count[T_RED] < robot_count[T_BLUE]) {
-    std::cout << "Red has less robots than Blue - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
     return T_RED;
   }
   else if(robot_count[T_BLUE] < robot_count[T_RED]) {
-    std::cout << "Blue has less robots than Red - " << robot_count[T_RED] << ":" << robot_count[T_BLUE] << std::endl;
     return T_BLUE;
   }
   // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
   else {
-    std::cout << "Both sides have same number of robots" << std::endl;
     // both teams have no robot near the ball
     if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
-      std::cout << "Red is farther to the ball on average" << std::endl;
       return T_RED;
     }
     else if(robot_distance[T_BLUE] > robot_distance[T_RED]) {
-      std::cout << "Blue is farther to the ball on average" << std::endl;
       return T_BLUE;
     }
     // a total tie - the attacker team gets an advantage
@@ -817,12 +732,10 @@ bool game::check_penalty_area()
   if(ball_x < 0) {
     //the ball is in Team Red's penalty area
     if(robot_count[T_RED] > c::PA_THRESHOLD_D) {
-      std::cout << "Red has too many defenders" << std::endl;
       ball_ownership_ = T_BLUE;
       return true;
     }
     if(robot_count[T_BLUE] > c::PA_THRESHOLD_A) {
-      std::cout << "Blue has too many attackers" << std::endl;
       ball_ownership_ = T_RED;
       return true;
     }
@@ -830,12 +743,10 @@ bool game::check_penalty_area()
   else {
     //the ball is in Team Blue's penalty area
     if(robot_count[T_BLUE] > c::PA_THRESHOLD_D) {
-      std::cout << "Blue has too many defenders" << std::endl;
       ball_ownership_ = T_RED;
       return true;
     }
     if(robot_count[T_RED] > c::PA_THRESHOLD_A) {
-      std::cout << "Red has too many attackers" << std::endl;
       ball_ownership_ = T_BLUE;
       return true;
     }
@@ -1183,10 +1094,7 @@ void game::run_game()
               const auto y = c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1] * s;
               const auto r = 1.5 * c::ROBOT_SIZE[id];
 
-              if(any_object_nearby(x, y, r)) {
-                std::cout << "Something is near the return region" << std::endl;
-              }
-              else {
+              if(!any_object_nearby(x, y, r)) {
                 activeness_[team][id] = true;
                 sv_.return_to_field(team == T_RED, id);
                 sentout_time_[team][id] = 0;
@@ -1198,15 +1106,9 @@ void game::run_game()
 
       {
         const auto ball_x = std::get<0>(sv_.get_ball_position());
-
         // if the penalty area reset condition is met
         if(check_penalty_area()) {
-          std::cout << "Penalty region rule" << std::endl;
-
           // the ball ownership is already set by check_penalty_area()
-
-          std::cout << "Owner: " << ((ball_ownership_ == T_RED) ? "T_RED" : "T_BLUE") << std::endl;
-
           pause();
           stop_robots();
           step(c::WAIT_STABLE_MS, false);
@@ -1276,11 +1178,7 @@ void game::run_game()
           if (std::abs(ball_x) > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH) {
             // if the deadlock happened inside the penalty area
             if (std::abs(ball_y) < c::PENALTY_AREA_WIDTH / 2) {
-              std::cout << "Deadlock in penalty area" << std::endl;
-
               ball_ownership_ = get_pa_ownership();
-
-              std::cout << "Owner: " << ((ball_ownership_ == T_RED) ? "T_RED" : "T_BLUE") << std::endl;
 
               pause();
               stop_robots();
@@ -1338,12 +1236,8 @@ void game::run_game()
             }
             // if the deadlock happened in the corner regions
             else {
-              std::cout << "Deadlock in corner area" << std::endl;
-
               // set the ball ownership
               ball_ownership_ = get_corner_ownership();
-
-              std::cout << "Owner: " << ((ball_ownership_ == T_RED) ? "T_RED" : "T_BLUE") << std::endl;
 
               pause();
               stop_robots();
@@ -1466,7 +1360,6 @@ void game::run_game()
         }
         // the goalie has touched the ball
         else if (touch_[ball_ownership_][0]) {
-          std::cout << "The goalie has touched the ball" << std::endl;
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }
@@ -1484,7 +1377,6 @@ void game::run_game()
           // a robot has touched the ball
           for (std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
             if (touch_[ball_ownership_][id]) {
-              std::cout << "Robot " << id << " has touched the ball" << std::endl;
               game_state_ = c::STATE_DEFAULT;
               unlock_all_robots();
               break;
@@ -1503,7 +1395,6 @@ void game::run_game()
         }
         // the attacker has touched the ball
         else if (touch_[ball_ownership_][4]) {
-          std::cout << "The attacker has touched the ball" << std::endl;
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }
