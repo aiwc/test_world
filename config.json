@@ -14,15 +14,5 @@
     "name": "teamB",
     "executable": "examples/player_rulebased_py/player_rulebased.py",
     "datapath": "examples/team_b_data"
-  },
-  "commentator": {
-    "name": "commentator",
-    "executable": "",
-    "datapath": "../../examples/commentator_data"
-  },
-  "reporter": {
-    "name": "reporter",
-    "executable": "",
-    "datapath": "../../examples/reporter_data"
   }
 }

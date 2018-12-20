@@ -211,60 +211,6 @@ void game::run()
     info_[team] = msgpack::object(info, z_info_);
   }
 
-  // gets commentator information from 'config.json' (commentator is optional)
-  if (config_json.HasMember("commentator") && config_json["commentator"].IsObject()) {
-    const std::string& name   = ((config_json["commentator"].HasMember("name") && config_json["commentator"]["name"].IsString()) ? config_json["commentator"]["name"].GetString() : "");
-    const std::string& exe    = ((config_json["commentator"].HasMember("executable") && config_json["commentator"]["executable"].IsString()) ? config_json["commentator"]["executable"].GetString() : "");
-    const std::string& data   = ((config_json["commentator"].HasMember("datapath") && config_json["commentator"]["datapath"].IsString()) ? config_json["commentator"]["datapath"].GetString() : "");
-
-    if(!exe.empty()) {
-      // commentator is treated as red team with rating 0
-      const auto ret = player_team_infos_.emplace(std::piecewise_construct,
-                                                  std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, path_prefix + exe, data,
-                                                                  ROLE_COMMENTATOR, true)
-                                                  );
-
-      assert(ret.second);
-
-      std::cout << "Commentator: " << std::endl;
-      std::cout << "  team name - " << name << std::endl;
-      std::cout << " executable - " << exe << std::endl;
-      std::cout << "  data path - " << data << std::endl << std::endl;
-    }
-    else
-      std::cout << "Commentator \"executable\" is missing: skipping commentator" << std::endl;
-  }
-  else
-    std::cout << "\"commentator\" section of 'config.json' seems to be missing: skipping commentator" << std::endl;
-
-  // gets reporter information from 'config.json' (reporter is optional)
-  if (config_json.HasMember("reporter") && config_json["reporter"].IsObject()) {
-    const std::string& name   = ((config_json["reporter"].HasMember("name") && config_json["reporter"]["name"].IsString()) ? config_json["reporter"]["name"].GetString() : "");
-    const std::string& exe    = ((config_json["reporter"].HasMember("executable") && config_json["reporter"]["executable"].IsString()) ? config_json["reporter"]["executable"].GetString() : "");
-    const std::string& data   = ((config_json["reporter"].HasMember("datapath") && config_json["reporter"]["datapath"].IsString()) ? config_json["reporter"]["datapath"].GetString() : "");
-
-    if(!exe.empty()) {
-      // reporter is treated as red team with rating 0
-      const auto ret = player_team_infos_.emplace(std::piecewise_construct,
-                                                  std::make_tuple(random_string(c::KEY_LENGTH)),
-                                                  std::make_tuple(name, 0, path_prefix + exe, data,
-                                                                  ROLE_REPORTER, true)
-                                                  );
-
-      assert(ret.second);
-
-      std::cout << "Reporter: " << std::endl;
-      std::cout << "  team name - " << name << std::endl;
-      std::cout << " executable - " << exe << std::endl;
-      std::cout << "  data path - " << data << std::endl << std::endl;
-    }
-    else
-      std::cout << "Reporter \"executable\" is missing: skipping reporter" << std::endl;
-  }
-  else
-    std::cout << "\"reporter\" section of 'config.json' seems to be missing: skipping reporter" << std::endl;
-
   // initialize promises and futures
   bootup_promise_ = {};
   ready_promise_ = {};
@@ -320,14 +266,6 @@ void game::run()
     }
   }
 
-  // save the report if anything has been written
-  if (report.size() > 0) {
-    std::ofstream rfile(std::string("../../reports/") + config_json["reporter"]["name"].GetString() + ".txt");
-    for (auto& line : report)
-      rfile << line << std::endl;
-    rfile.close();
-  }
-
   // stop publishing and wait until publish thread stops
   events_stop_ = true;
   events_cv_.notify_one();
@@ -370,8 +308,6 @@ void game::connect_to_server()
   session_->provide("aiwc.ready",     [&](autobahn::wamp_invocation i) { return on_ready(i); }).get();
   session_->provide("aiwc.get_info",  [&](autobahn::wamp_invocation i) { return on_info(i); }).get();
   session_->provide("aiwc.set_speed", [&](autobahn::wamp_invocation i) { return on_set_speed(i); }).get();
-  session_->provide("aiwc.commentate", [&](autobahn::wamp_invocation i) { return on_commentate(i); }).get();
-  session_->provide("aiwc.report",    [&](autobahn::wamp_invocation i) { return on_report(i); }).get();
 }
 
 void game::run_participant()
@@ -449,22 +385,10 @@ void game::update_label()
                0.10, 0x00000000, // size, color
                0, "Arial" // transparency, font
                );
-
-  constexpr std::size_t comments_start = 1;
-
-  std::unique_lock<std::mutex> lck(m_comments_);
-  for(std::size_t i = 0; i < comments_.size(); ++i) {
-    sv_.setLabel(comments_start + i,
-                 comments_[i],
-                 0.01, 0.02 + 0.04 * i, // x, y
-                 0.08, 0x00000000, // size, color
-                 0, "Arial" // transparency, font
-                 );
-  }
 }
 
 // game state control functions
-void game::step(std::size_t ms, bool update)
+void game::step(std::size_t ms)
 {
   // we assume that world.basicTimeStep doesn't change and the given 'ms' is multiple of the basic time step
   const std::size_t basic_time_step = static_cast<std::size_t>(sv_.getBasicTimeStep());
@@ -946,7 +870,7 @@ void game::run_game()
   lock_all_robots();
   unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
 
-  step(c::WAIT_STABLE_MS, false);
+  step(c::WAIT_STABLE_MS);
 
   resume();
   publish_current_frame(c::GAME_START);
@@ -955,7 +879,7 @@ void game::run_game()
   auto reset_reason = c::NONE;
 
   for(;;) {
-    step(c::PERIOD_MS, true);
+    step(c::PERIOD_MS);
     update_label();
 
     // special case: game ended. finish the game without checking game rules.
@@ -963,7 +887,7 @@ void game::run_game()
       publish_current_frame(c::GAME_END);
       pause();
       stop_robots();
-      step(c::WAIT_END_MS, false);
+      step(c::WAIT_END_MS);
       return;
     }
 
@@ -1019,7 +943,7 @@ void game::run_game()
             // stop all and wait for c::WAIT_GOAL seconds
             pause();
             stop_robots();
-            step(c::WAIT_GOAL_MS, false);
+            step(c::WAIT_GOAL_MS);
 
             game_state_ = c::STATE_BACKPASS;
             // backpass_foul_flag_ = false;
@@ -1033,7 +957,7 @@ void game::run_game()
             lock_all_robots();
             unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
 
-            step(c::WAIT_STABLE_MS, false);
+            step(c::WAIT_STABLE_MS);
             resume();
 
             reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
@@ -1042,7 +966,7 @@ void game::run_game()
         else if(std::abs(ball_x) > c::FIELD_LENGTH /2 + c::WALL_THICKNESS){
           pause();
           stop_robots();
-          step(c::WAIT_STABLE_MS, false);
+          step(c::WAIT_STABLE_MS);
 
           game_state_ = c::STATE_FREEKICK;
 
@@ -1070,7 +994,7 @@ void game::run_game()
           for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
             unlock_robot(ball_ownership_, id);
 
-          step(c::WAIT_STABLE_MS, false);
+          step(c::WAIT_STABLE_MS);
           resume();
 
           reset_reason = c::FREEKICK;
@@ -1110,7 +1034,7 @@ void game::run_game()
           // the ball ownership is already set by check_penalty_area()
           pause();
           stop_robots();
-          step(c::WAIT_STABLE_MS, false);
+          step(c::WAIT_STABLE_MS);
 
 
           if(ball_x < 0 && ball_ownership_ == T_RED) {
@@ -1158,7 +1082,7 @@ void game::run_game()
             unlock_robot(ball_ownership_, 4);
           }
 
-          step(c::WAIT_STABLE_MS, false);
+          step(c::WAIT_STABLE_MS);
           resume();
           break;
         }
@@ -1181,7 +1105,7 @@ void game::run_game()
 
               pause();
               stop_robots();
-              step(c::WAIT_STABLE_MS, false);
+              step(c::WAIT_STABLE_MS);
 
 
               if(ball_x < 0 && ball_ownership_ == T_RED) {
@@ -1229,7 +1153,7 @@ void game::run_game()
                 unlock_robot(ball_ownership_, 4);
               }
 
-              step(c::WAIT_STABLE_MS, false);
+              step(c::WAIT_STABLE_MS);
               resume();
               deadlock_time_ = time_ms_;
             }
@@ -1240,7 +1164,7 @@ void game::run_game()
 
               pause();
               stop_robots();
-              step(c::WAIT_STABLE_MS, false);
+              step(c::WAIT_STABLE_MS);
 
               game_state_ = c::STATE_FREEKICK;
 
@@ -1288,7 +1212,7 @@ void game::run_game()
               for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
                 unlock_robot(ball_ownership_, id);
 
-              step(c::WAIT_STABLE_MS, false);
+              step(c::WAIT_STABLE_MS);
               resume();
 
               reset_reason = c::FREEKICK;
@@ -1299,7 +1223,7 @@ void game::run_game()
           else {
             pause();
             stop_robots();
-            step(c::WAIT_STABLE_MS, false);
+            step(c::WAIT_STABLE_MS);
 
             // determine where to relocate and relocate the ball
             if (ball_x < 0) { // Team Red's region
@@ -1321,7 +1245,7 @@ void game::run_game()
 
             sv_.flush_touch_ball();
 
-            step(c::WAIT_STABLE_MS, false);
+            step(c::WAIT_STABLE_MS);
             resume();
 
             reset_reason = c::DEADLOCK;
@@ -1513,47 +1437,6 @@ void game::on_set_speed(autobahn::wamp_invocation invocation)
 
     wheel_speed_.write(io_thread_wheel_speed_);
   }
-
-  invocation->empty_result();
-}
-
-// called from io thread.
-void game::on_commentate(autobahn::wamp_invocation invocation)
-{
-  const auto caller      = invocation->argument<std::string>(0);
-
-  // if the caller is not a commentator, then error
-  auto it = player_team_infos_.find(caller);
-  if((it == std::cend(player_team_infos_))
-     || (it->second.role != ROLE_COMMENTATOR)
-     ) {
-    invocation->error("wamp.error.invalid_argument");
-    return;
-  }
-
-  std::unique_lock<std::mutex> lck(m_comments_);
-  comments_.push_back((boost::format("[%.2f] ") % (time_ms_ / 1000.)).str() + invocation->argument<std::string>(1));
-
-  invocation->empty_result();
-}
-
-// called from io thread.
-void game::on_report(autobahn::wamp_invocation invocation)
-{
-  const auto caller      = invocation->argument<std::string>(0);
-
-  // if the caller is not a reporter, then error
-  auto it = player_team_infos_.find(caller);
-  if((it == std::cend(player_team_infos_))
-     || (it->second.role != ROLE_REPORTER)
-     ) {
-    invocation->error("wamp.error.invalid_argument");
-    return;
-  }
-
-  report = invocation->argument<std::vector<std::string>>(1);
-
-  // we will handle this report internally.
 
   invocation->empty_result();
 }
