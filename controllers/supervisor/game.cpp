@@ -597,7 +597,6 @@ void game::unlock_robot(bool team, std::size_t id)
 
 bool game::get_corner_ownership()
 {
-  std::cout << "Freekick Checker" << std::endl;
   const auto ball_x = std::get<0>(sv_.get_ball_position());
   const auto ball_y = std::get<1>(sv_.get_ball_position());
   std::size_t robot_count[2] = {0, 0};
