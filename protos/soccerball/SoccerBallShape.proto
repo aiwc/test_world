@@ -14,12 +14,14 @@ PROTO SoccerBallShape [
   Solid {
     children [
       Shape {
-        appearance Appearance {
-          texture ImageTexture {
+        appearance PBRAppearance {
+          baseColorMap ImageTexture {
             url [
               "textures/football.jpg"
             ]
           }
+          roughness 0.5
+          metalness 0
         }
         geometry Sphere {
           radius IS radius

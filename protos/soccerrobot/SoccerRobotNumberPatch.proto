@@ -26,8 +26,8 @@ PROTO SoccerRobotNumberPatch [
         rotation 0 1 0 %{=-math.pi/2}%
         children [
           Shape {
-            appearance Appearance {
-              texture ImageTexture {
+            appearance PBRAppearance {
+              baseColorMap ImageTexture {
                 %{
                   local color
                   if isTeamTagRed then color = 'red' else color = 'blue' end

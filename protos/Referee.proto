@@ -17,7 +17,7 @@ PROTO Referee [
   field SFBool     synchronization     TRUE
 ]
 {
-  Supervisor {
+  Robot {
     translation     IS translation
     rotation        IS rotation
     scale           IS scale
@@ -29,5 +29,6 @@ PROTO Referee [
     controller      IS controller
     controllerArgs  IS controllerArgs
     synchronization IS synchronization
+    supervisor         TRUE
   }
 }
