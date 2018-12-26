@@ -152,6 +152,7 @@ private:
   std::atomic<state_t> state_{STATE_WAITING_BOOTUP};
 
   std::size_t game_time_ms_;
+  bool half_passed_;
   bool deadlock_flag_;
   bool ball_ownership_;
 

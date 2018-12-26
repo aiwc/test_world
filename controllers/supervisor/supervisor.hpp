@@ -71,7 +71,8 @@ public:
     namespace c = constants;
 
     const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
-      const double translation[] = {x, y, -z};
+      const auto f = half_passed_ ? -1 : 1;
+      const double translation[] = {f * x, y, f * -z};
       const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
@@ -79,8 +80,9 @@ public:
     };
 
     const auto reset_robot_node = [&](webots::Node* pn, double x, double y, double z, double th) {
-      const double translation[] = {x, y, -z};
-      const double rotation[] = {0, 1, 0, th};
+      const auto f = half_passed_ ? -1 : 1;
+      const double translation[] = {f * x, y, f * -z};
+      const double rotation[] = {0, 1, 0, (half_passed_ ? c::PI : 0.) + th};
 
       const double al = pn->getField("axleLength")->getSFFloat();
       const double h = pn->getField("height")->getSFFloat();
@@ -164,6 +166,7 @@ public:
 
   std::array<double, 2> get_ball_position() const
   {
+    const auto f = half_passed_ ? -1 : 1;
     webots::Node* pn_ball = getFromDef(constants::DEF_BALL);
 
     const double* position = pn_ball->getPosition();
@@ -171,7 +174,7 @@ public:
     const double x = position[0];
     const double y = -position[2];
 
-    return {x, y};
+    return {f * x, f * y};
   }
 
   double get_ball_velocity() const
@@ -189,23 +192,26 @@ public:
   //         x       y       th
   std::tuple<double, double, double, bool> get_robot_posture(bool is_red, std::size_t id) const
   {
+    namespace c = constants;
+
     webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
+    const auto f = half_passed_ ? -1 : 1;
 
     const double* position = pn_robot->getPosition();
     const double* orientation = pn_robot->getOrientation();
 
     const double x = position[0];
     const double y = -position[2];
-    double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
+    double th = (half_passed_ ? c::PI : 0.) + std::atan2(orientation[2], orientation[8]) + c::PI / 2;
     // Squeeze the orientation range to [-PI, PI]
-    while (th > constants::PI)
-      th -= 2*constants::PI;
-    while (th < -constants::PI)
-      th += 2*constants::PI;
+    while (th > c::PI)
+      th -= 2*c::PI;
+    while (th < -c::PI)
+      th += 2*c::PI;
 
     const bool  stand = orientation[4] > 0.8;
 
-    return std::make_tuple(x, y, th, stand);
+    return std::make_tuple(f * x, f * y, th, stand);
   }
 
   double get_distance_from_ball(bool is_red, std::size_t id) const
@@ -251,12 +257,13 @@ public:
 
     webots::Node* pn = getFromDef(robot_name(is_red, id));
 
+    const auto f = half_passed_ ? -1 : 1;
     const auto s = is_red ? 1 : -1;
-    const double translation[] = {c::ROBOT_FOUL_POSTURE[id][0] * s,
+    const double translation[] = {f * c::ROBOT_FOUL_POSTURE[id][0] * s,
                                   c::ROBOT_HEIGHT[id] / 2,
-                                  -c::ROBOT_FOUL_POSTURE[id][1] * s};
+                                  f * -c::ROBOT_FOUL_POSTURE[id][1] * s};
     const double rotation[] = { 0, 1, 0,
-                                c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
+                                (half_passed_ ? c::PI : 0.) + c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
 
     const double al = pn->getField("axleLength")->getSFFloat();
     const double h = pn->getField("height")->getSFFloat();
@@ -285,12 +292,13 @@ public:
 
     webots::Node* pn = getFromDef(robot_name(is_red, id));
 
+    const auto f = half_passed_ ? -1 : 1;
     const auto s = is_red ? 1 : -1;
-    const double translation[] = {c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][0] * s,
+    const double translation[] = {f * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][0] * s,
                                   c::ROBOT_HEIGHT[id] / 2,
-                                  -c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1] * s};
+                                  f * -c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1] * s};
     const double rotation[] = { 0, 1, 0,
-                                c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
+                                (half_passed_ ? c::PI : 0.) + c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
 
     const double al = pn->getField("axleLength")->getSFFloat();
     const double h = pn->getField("height")->getSFFloat();
@@ -318,7 +326,8 @@ public:
     namespace c = constants;
 
     const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
-      const double translation[] = {x, y, -z};
+      const auto f = half_passed_ ? -1 : 1;
+      const double translation[] = {f * x, y, f * -z};
       const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
@@ -336,6 +345,17 @@ public:
 
     pn_robot->getField("customData")->setSFString(std::to_string(speed[0] / c::WHEEL_RADIUS[id]) + " " +
                                             std::to_string(speed[1] / c::WHEEL_RADIUS[id]));
+  }
+
+  void mark_half_passed()
+  {
+    if (!half_passed_) {
+      half_passed_ = true;
+      const double rotation_a[] = {0, 0, 1, constants::PI};
+      const double rotation_b[] = {0, 0, 1, 0};
+      pn_cams_[1]->getField("rotation")->setSFRotation(rotation_a);
+      pn_cams_[2]->getField("rotation")->setSFRotation(rotation_b);
+    }
   }
 
 private: // private member functions
@@ -449,6 +469,7 @@ private: // private member variables
   std::array<webots::Node*, 3> pn_cams_;
   std::array<webots::Camera*, 2> pc_cams_;
   webots::Receiver* pr_recv_;
+  bool half_passed_ = false;
 };
 
 #endif // H_SUPERVISOR_HPP

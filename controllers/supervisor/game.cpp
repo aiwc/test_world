@@ -379,12 +379,24 @@ void game::terminate_participant()
 
 void game::update_label()
 {
-  sv_.setLabel(0,
-               (boost::format("score %d:%d, time %.2f") % score_[0] % score_[1] % (time_ms_ / 1000.)).str(),
-               0.4, 0.95, // x, y
-               0.10, 0x00000000, // size, color
-               0, "Arial" // transparency, font
-               );
+  if(half_passed_ == false) {
+    sv_.setLabel(1, "1st Half", 0.45, 0, 0.10, 0x00000000, 0, "Arial");
+    sv_.setLabel(0,
+                 (boost::format("score %d:%d, time %.2f") % score_[0] % score_[1] % (time_ms_ / 1000.)).str(),
+                 0.4, 0.95, // x, y
+                 0.10, 0x00000000, // size, color
+                 0, "Arial" // transparency, font
+                 );
+  }
+  else {
+    sv_.setLabel(1, "2nd Half", 0.45, 0, 0.10, 0x00000000, 0, "Arial");
+    sv_.setLabel(0,
+                 (boost::format("score %d:%d, time %.2f") % score_[1] % score_[0] % (time_ms_ / 1000.)).str(),
+                 0.4, 0.95, // x, y
+                 0.10, 0x00000000, // size, color
+                 0, "Arial" // transparency, font
+                 );
+  }
 }
 
 // game state control functions
@@ -785,6 +797,7 @@ void game::publish_current_frame(std::size_t reset_reason)
         msg.emplace_back("ball_ownership", msgpack::object(ti.is_red ? ball_ownership_ == T_RED : ball_ownership_ == T_BLUE, z));
       else
         msg.emplace_back("ball_ownership", msgpack::object(false, z));
+      msg.emplace_back("half_passed", msgpack::object(half_passed_, z));
 
 
       auto subimages = ti.imbuf.update_image(sv_.get_image(ti.is_red));
@@ -842,6 +855,7 @@ void game::run_game()
 {
   time_ms_ = 0;
   score_ = {0, 0};
+  half_passed_ = false;
 
   for(auto& team_activeness : activeness_) {
     for(auto& robot_activeness : team_activeness) {
@@ -884,11 +898,42 @@ void game::run_game()
 
     // special case: game ended. finish the game without checking game rules.
     if(time_ms_ >= game_time_ms_) {
-      publish_current_frame(c::GAME_END);
-      pause();
-      stop_robots();
-      step(c::WAIT_END_MS);
-      return;
+      if(half_passed_) {
+        publish_current_frame(c::GAME_END);
+        pause();
+        stop_robots();
+        step(c::WAIT_END_MS);
+        return;
+      }
+      else {
+        publish_current_frame(c::HALFTIME);
+        pause();
+        stop_robots();
+        step(c::WAIT_END_MS);
+
+        // mark the halftime and notify the supervisor too
+        half_passed_ = true;
+        sv_.mark_half_passed();
+        time_ms_ = 0;
+
+        // second half starts with a backpass by T_BLUE
+        ball_ownership_ = T_BLUE;
+        game_state_ = c::STATE_BACKPASS;
+        backpass_time_ = time_ms_;
+
+        reset(c::FORMATION_DEFAULT, c::FORMATION_BACKPASS);
+
+        lock_all_robots();
+        unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
+
+        step(c::WAIT_STABLE_MS);
+
+        resume();
+        publish_current_frame(c::GAME_START);
+        update_label();
+
+        reset_reason = c::NONE;
+      }
     }
 
     // publish current frame
