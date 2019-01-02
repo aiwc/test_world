@@ -146,11 +146,23 @@ void game::run()
     record = false;
     record_path = "";
 
+    // automatic repetition of the game (default: false)
+    repeat = false;
+
     if (config_json.HasMember("tool") && config_json["tool"].IsObject()) { //set other options if specified
-      if (config_json["tool"].HasMember("record") && config_json["tool"]["record"].IsBool())
-        record = config_json["tool"]["record"].GetBool();
-      if (record && config_json["tool"].HasMember("record_path") && config_json["tool"]["record_path"].IsString())
-        record_path = config_json["tool"]["record_path"].GetString();
+      if (config_json["tool"].HasMember("repeat") && config_json["tool"]["repeat"].IsBool())
+        repeat = config_json["tool"]["repeat"].GetBool();
+
+      // if repeat is enabled, record is forced to be disabled
+      if (repeat)
+        std::cout << "Game repetition is enabled that the game recording will be disabled." << std::endl;
+      else {
+        if (config_json["tool"].HasMember("record") && config_json["tool"]["record"].IsBool())
+          record = config_json["tool"]["record"].GetBool();
+
+        if (record && config_json["tool"].HasMember("record_path") && config_json["tool"]["record_path"].IsString())
+          record_path = config_json["tool"]["record_path"].GetString();
+      }
     }
   }
 
@@ -274,7 +286,14 @@ void game::run()
         }
 
         std::cout << "Starting a new game" << std::endl;
-        run_game();
+        if (repeat) {
+          for(;;) {
+            run_game();
+            sv_.mark_episode_restart();
+          }
+        }
+        else
+          run_game();
 
         // now players have c::WAIT_KILL seconds to finish
         const auto until = std::chrono::steady_clock::now() + std::chrono::milliseconds(c::WAIT_KILL_MS);
@@ -937,7 +956,10 @@ void game::run_game()
     // special case: game ended. finish the game without checking game rules.
     if(time_ms_ >= game_time_ms_) {
       if(half_passed_) {
-        publish_current_frame(c::GAME_END);
+        if(repeat)
+          publish_current_frame(c::EPISODE_END);
+        else
+          publish_current_frame(c::GAME_END);
         pause();
         stop_robots();
         step(c::WAIT_END_MS);

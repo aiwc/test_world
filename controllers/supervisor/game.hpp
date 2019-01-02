@@ -156,6 +156,7 @@ private:
   bool deadlock_flag_;
   bool ball_ownership_;
   bool record;
+  bool repeat;
 
   std::string record_path;
   std::string record_fullpath;
