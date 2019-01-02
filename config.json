@@ -12,5 +12,9 @@
     "name": "teamB",
     "executable": "examples/player_rulebased_py/player_rulebased.py",
     "datapath": "examples/team_b_data"
+  },
+  "tool": {
+    "record": false,
+    "record_path": ""
   }
 }

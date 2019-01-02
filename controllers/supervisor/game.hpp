@@ -155,6 +155,11 @@ private:
   bool half_passed_;
   bool deadlock_flag_;
   bool ball_ownership_;
+  bool record;
+
+  std::string record_path;
+  std::string record_fullpath;
+  std::string team_name[2];
 
   std::size_t time_ms_ = 0;
   std::array<std::size_t, 2> score_ = {{0, 0}};

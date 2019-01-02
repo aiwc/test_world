@@ -11,6 +11,7 @@
 
 #include "rapidjson/document.h"
 #include <fstream>
+#include <time.h>
 
 namespace c = constants;
 namespace bp = boost::process;
@@ -139,6 +140,20 @@ void game::run()
     std::cout << "          deadlock - " << (deadlock_flag_ ? "on" : "off") << std::endl;
   }
 
+  // gets other options from 'config.json' (if no option is specified, default option is given)
+  {
+    // automatic recording of the game (default: false)
+    record = false;
+    record_path = "";
+
+    if (config_json.HasMember("tool") && config_json["tool"].IsObject()) { //set other options if specified
+      if (config_json["tool"].HasMember("record") && config_json["tool"]["record"].IsBool())
+        record = config_json["tool"]["record"].GetBool();
+      if (record && config_json["tool"].HasMember("record_path") && config_json["tool"]["record_path"].IsString())
+        record_path = config_json["tool"]["record_path"].GetString();
+    }
+  }
+
   const auto path_prefix = std::string("../../");
 
   // gets the teams' information from 'config.json'
@@ -168,6 +183,7 @@ void game::run()
 
     std::cout << ((team == T_RED) ? "Team A: " : "Team B: ") << std::endl;
     std::cout << "  team name - " << name << std::endl;
+    team_name[team] = name;
     std::cout << " executable - " << exe << std::endl;
     std::cout << "  data path - " << data << std::endl << std::endl;
 
@@ -219,7 +235,7 @@ void game::run()
 
   connect_to_server();
 
-  // bootup VMs & wait until app players boot up
+  // wait until app players boot up
   run_participant();
   bootup_future.wait();
 
@@ -242,6 +258,21 @@ void game::run()
     }
     else {
       try {
+        // if recording is enabled
+        if (record) {
+          std::cout << "Game recording is enabled" << std::endl;
+          // Get the timestamp
+          time_t rawtime;
+          struct tm *timeinfo;
+
+          time(&rawtime);
+          timeinfo = localtime(&rawtime);
+
+          // Start game recording
+          record_fullpath = record_path + std::string("/[") + std::to_string(timeinfo->tm_mon + 1) + "-" + std::to_string(timeinfo->tm_mday) + " " + std::to_string(timeinfo->tm_hour) + ":" + std::to_string(timeinfo->tm_min) + ":" + std::to_string(timeinfo->tm_sec) + std::string("]") + team_name[T_RED] + "_vs_" + team_name[T_BLUE] + ".mp4";
+          sv_.movieStartRecording(record_fullpath, 1280, 720, 0, 90, 1, false);
+        }
+
         std::cout << "Starting a new game" << std::endl;
         run_game();
 
@@ -258,6 +289,13 @@ void game::run()
           if(ti.c.running()) {
             ti.c.terminate();
           }
+        }
+
+        if (record) {
+          // Steop game recording
+          std::cout << "Saving the recorded game as: " << record_fullpath << std::endl;
+          std::cout << "Please wait until the message \033[36m\"INFO: Video creation finished.\"\033[0m is shown." << std::endl;
+          sv_.movieStopRecording();
         }
       }
       catch(const webots_revert_exception& e) {
