@@ -351,7 +351,6 @@ SoccerField5v5 {
 DEF DEF_BALL SoccerBall {
   translation 0 0.05 0
   contactMaterial "ball"
-  mass 0.0184
   shapes [
     DEF DEF_BALLSHAPE SoccerBallShape {
       radius 0.04

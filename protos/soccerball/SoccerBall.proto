@@ -24,16 +24,16 @@ PROTO SoccerBall [
   field SFFloat rotationStep 0.261799387 # pi/12 rad
 
   # fields specific to SoccerBall
-  field SFFloat radius 0.03
+  field SFFloat radius 0.04
   field SFInt32 subdivision 2
-  field SFFloat mass 0.046
+  field SFFloat mass 0.0184
   field MFNode shapes [
     DEF DEF_SOCCERBALLSHAPE SoccerBallShape {
-      radius 0.03
+      radius 0.04
       subdivision 3
     }
     DEF DEF_ORANGESHAPE SoccerBallOrangeShape {
-      radius 0.03
+      radius 0.04
       subdivision 3
     }
   ]
