@@ -1,9 +1,7 @@
 {
   "rule": {
     "game_time": 300,
-    "deadlock": true,
-    "goal_area_foul": true,
-    "penalty_area_foul": true
+    "deadlock": true
   },
   "team_a": {
     "name": "teamA",
