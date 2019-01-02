@@ -334,8 +334,8 @@ SoccerField5v5 {
           gpTranslation 4.081
           gpScale 2.193
           bannerBehind TRUE
-          bannerHorizontal 19
-          bannerVertical 5
+          bannerHorizontal 10
+          bannerVertical 2
           cornerLength 0.1
         }
       ]

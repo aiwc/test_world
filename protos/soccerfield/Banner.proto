@@ -80,11 +80,8 @@ PROTO Banner [
                   Shape {
                     %{if bb then}%
                       appearance PBRAppearance {
-                        baseColorMap ImageTexture {
-                          url [
-                            "%{=url}%"
-                          ]
-                        }
+                        baseColor 1 1 1
+                        transparency 0.75
                         roughness 0
                         metalness 0
                       }

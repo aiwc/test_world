@@ -10,7 +10,7 @@ PROTO VisualWall [
   
   field SFFloat    length 2.2
   field SFFloat    width 1.8
-  field SFFloat    bannerHeight 0.1
+  field SFFloat    bannerHeight 0.2
   field SFFloat    goalWidth 0.4
   field SFFloat    bannerThickness 0.025
   field SFFloat    frameThickness 0.01
