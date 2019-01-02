@@ -14,6 +14,7 @@
     "datapath": "examples/team_b_data"
   },
   "tool": {
+    "repeat": false,
     "record": false,
     "record_path": ""
   }

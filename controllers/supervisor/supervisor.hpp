@@ -358,6 +358,17 @@ public:
     }
   }
 
+  void mark_episode_restart()
+  {
+    if (half_passed_) {
+      half_passed_ = false;
+      const double rotation_a[] = {0, 0, 1, 0};
+      const double rotation_b[] = {0, 0, 1, constants::PI};
+      pn_cams_[1]->getField("rotation")->setSFRotation(rotation_a);
+      pn_cams_[2]->getField("rotation")->setSFRotation(rotation_b);
+    }
+  }
+
 private: // private member functions
   void control_visibility()
   {

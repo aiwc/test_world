@@ -215,6 +215,7 @@ namespace constants {
     FREEKICK = 7,
     PENALTYKICK = 8,
     HALFTIME = 9,
+    EPISODE_END = 10,
   };
 
   enum game_state {
