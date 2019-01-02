@@ -18,7 +18,7 @@ PROTO VisualWall [
   field SFFloat    gpTranslation 1.21
   field SFFloat    gpScale 1
 
-  field SFBool     castShadows TRUE
+  field SFBool     castShadows FALSE
   field SFBool     bannerBehind FALSE
 
   field SFInt32    bannerHorizontal 8

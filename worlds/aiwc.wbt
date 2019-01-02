@@ -276,6 +276,7 @@ Background {
 DirectionalLight {
   ambientIntensity 1
   direction 0 -1 0
+  castShadows TRUE
 }
 Referee {
   translation 0 25.6 0
