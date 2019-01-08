@@ -172,7 +172,7 @@ namespace constants {
     {  1.5,  1.0},
     {  1.5, -1.0},
     {-2.75,  1.5},
-    { 2.75,  0.0},
+    { 2.95,  0.0},
   };
 
   // WAMP router settings
