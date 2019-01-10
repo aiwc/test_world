@@ -34,6 +34,7 @@ PROTO SoccerRobotNumberPatch [
                 }%
                 url [ "textures/%{=color}%_%{=fields.role.value}%.png" ]
               }
+              roughness 0.5
             }
             geometry Plane {
               size %{=fields.width.value}% %{=fields.length.value}%
