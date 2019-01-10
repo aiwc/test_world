@@ -765,6 +765,35 @@ bool game::robot_in_field(bool is_red, std::size_t id)
     return true;
 }
 
+bool game::ball_in_field()
+{
+  const auto pos = sv_.get_ball_position();
+
+  // checking with absolute values is sufficient since the field is symmetrical
+  const auto abs_x = std::abs(std::get<0>(pos));
+  const auto abs_y = std::abs(std::get<1>(pos));
+
+  if ((abs_x > c::FIELD_LENGTH / 2 + c::WALL_THICKNESS) && (abs_y > c::GOAL_WIDTH / 2 + c::WALL_THICKNESS))
+    return false;
+
+  if (abs_y > c::FIELD_WIDTH / 2 + c::WALL_THICKNESS)
+    return false;
+
+  // check triangular region at the corner
+  const auto cs_x = c::FIELD_LENGTH / 2 - c::CORNER_LENGTH;
+  const auto cs_y = c::FIELD_WIDTH / 2 + c::WALL_THICKNESS;
+  const auto ce_x = c::FIELD_LENGTH / 2 + c::WALL_THICKNESS;
+  const auto ce_y = c::FIELD_WIDTH / 2 - c::CORNER_LENGTH;
+
+  if (cs_x < abs_x && abs_x < ce_x) {
+    const auto border_y = ce_y + (abs_x - ce_x)*(ce_y - cs_y)/(ce_x - cs_x);
+    if (abs_y > border_y)
+      return false;
+  }
+
+  return true;
+}
+
 bool game::any_object_nearby(double target_x, double target_y, double target_r)
 {
   // check ball position
@@ -1068,7 +1097,7 @@ void game::run_game()
             reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
         }
         // ball sent out of the field - proceed to corner freekick
-        else if(std::abs(ball_x) > c::FIELD_LENGTH /2 + c::WALL_THICKNESS){
+        else if(!ball_in_field()){
           pause();
           stop_robots();
           step(c::WAIT_STABLE_MS);

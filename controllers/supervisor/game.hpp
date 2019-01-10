@@ -80,6 +80,7 @@ private:
   bool get_pa_ownership(); // find which team should get the ball ownership for deadlock happened in the penalty area
   bool check_penalty_area(); // check whether the penaly area reset condition is met
   bool robot_in_field(bool is_Red, std::size_t id); // check whether a robot is in the field
+  bool ball_in_field(); // check whether the ball is in the field
 
   bool any_object_nearby(double target_x, double target_y, double target_r);
 
