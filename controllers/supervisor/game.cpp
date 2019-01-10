@@ -617,20 +617,19 @@ bool game::get_corner_ownership()
     }
   }
 
-  // decision - team with less robots near the ball gets the ownership
-  if(robot_count[T_RED] < robot_count[T_BLUE]) {
+  // decision - team with more robots near the ball gets the ownership
+  if(robot_count[T_RED] > robot_count[T_BLUE]) {
     return T_RED;
   }
-  else if(robot_count[T_BLUE] < robot_count[T_RED]) {
+  else if(robot_count[T_BLUE] > robot_count[T_RED]) {
     return T_BLUE;
   }
   // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
   else {
-    // both teams have no robot near the ball
-    if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
+    if(robot_distance[T_RED] < robot_distance[T_BLUE]) {
       return T_RED;
     }
-    else if(robot_distance[T_BLUE] > robot_distance[T_RED]) {
+    else if(robot_distance[T_BLUE] < robot_distance[T_RED]) {
       return T_BLUE;
     }
     // a total tie - the attacker team gets an advantage
@@ -668,20 +667,19 @@ bool game::get_pa_ownership()
     }
   }
 
-  // decision - team with less robots near the ball gets the ownership
-  if(robot_count[T_RED] < robot_count[T_BLUE]) {
+  // decision - team with more robots near the ball gets the ownership
+  if(robot_count[T_RED] > robot_count[T_BLUE]) {
     return T_RED;
   }
-  else if(robot_count[T_BLUE] < robot_count[T_RED]) {
+  else if(robot_count[T_BLUE] > robot_count[T_RED]) {
     return T_BLUE;
   }
   // tie breaker - team with robots (within the decision region) closer to the ball on average gets the ownership
   else {
-    // both teams have no robot near the ball
-    if(robot_distance[T_RED] > robot_distance[T_BLUE]) {
+    if(robot_distance[T_RED] < robot_distance[T_BLUE]) {
       return T_RED;
     }
-    else if(robot_distance[T_BLUE] > robot_distance[T_RED]) {
+    else if(robot_distance[T_BLUE] < robot_distance[T_RED]) {
       return T_BLUE;
     }
     // a total tie - the attacker team gets an advantage
