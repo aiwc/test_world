@@ -167,6 +167,7 @@ private:
   std::array<std::size_t, 2> score_ = {{0, 0}};
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> activeness_;
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> touch_;
+  std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> recent_touch_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> sentout_time_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> fall_time_;
   std::atomic<bool> paused_{true};
