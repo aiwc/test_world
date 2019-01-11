@@ -1161,8 +1161,7 @@ void game::run_game()
               }
 
               lock_all_robots();
-              for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
-                unlock_robot(ball_ownership_, id);
+              unlock_robot(ball_ownership_, 4);
 
               reset_reason = c::FREEKICK;
             }
@@ -1196,8 +1195,7 @@ void game::run_game()
               }
 
               lock_all_robots();
-              for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
-                unlock_robot(ball_ownership_, id);
+              unlock_robot(ball_ownership_, 4);
 
               reset_reason = c::FREEKICK;
             }
@@ -1416,8 +1414,7 @@ void game::run_game()
               }
 
               lock_all_robots();
-              for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++)
-                unlock_robot(ball_ownership_, id);
+              unlock_robot(ball_ownership_, 4);
 
               step(c::WAIT_STABLE_MS);
               resume();
