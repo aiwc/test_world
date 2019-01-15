@@ -26,15 +26,15 @@ PROTO SoccerRobotNumberPatch [
         rotation 0 1 0 %{=-math.pi/2}%
         children [
           Shape {
-            appearance PBRAppearance {
-              baseColorMap ImageTexture {
+            appearance Appearance {
+              material Material {}
+              texture ImageTexture {
                 %{
                   local color
                   if isTeamTagRed then color = 'red' else color = 'blue' end
                 }%
                 url [ "textures/%{=color}%_%{=fields.role.value}%.png" ]
               }
-              roughness 0.5
             }
             geometry Plane {
               size %{=fields.width.value}% %{=fields.length.value}%

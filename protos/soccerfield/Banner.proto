@@ -52,14 +52,16 @@ PROTO Banner [
                 rotation 0 0 1 -1.57
                 children [
                   Shape {
-                    appearance PBRAppearance {
-                      baseColorMap ImageTexture {
+                    appearance Appearance {
+                      material Material {
+                        ambientIntensity 1
+                        diffuseColor 1 1 1
+                      }
+                      texture ImageTexture {
                         url [
                           "%{=url}%"
                         ]
                       }
-                      roughness 0
-                      metalness 0
                     }
                     geometry Plane {
                       size %{=bl}% %{=bh}%
@@ -79,11 +81,12 @@ PROTO Banner [
                 children [
                   Shape {
                     %{if bb then}%
-                      appearance PBRAppearance {
-                        baseColor 1 1 1
-                        transparency 0.75
-                        roughness 0
-                        metalness 0
+                      appearance Appearance {
+                        material Material {
+                          ambientIntensity 1
+                          diffuseColor 1 1 1
+                          transparency 0.75
+                        }
                       }
                     %{else}%
                       appearance IS frameAppearance
