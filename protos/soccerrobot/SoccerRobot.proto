@@ -69,8 +69,8 @@ PROTO SoccerRobot [
   field SFFloat  distanceToPatch 0.001
   field SFFloat  distanceToWheel 0.001
   field SFNode   bodyAppearance Black { }
-  field SFNode   tireAppearance White { }
-  field SFNode   wheelAppearance White { }
+  field SFNode   tireAppearance Gray { }
+  field SFNode   wheelAppearance Gray { }
   field SFNode bodyPhysics Physics {
     density -1
     mass 2.0

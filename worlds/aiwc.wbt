@@ -1,4 +1,4 @@
-#VRML_SIM R2018b utf8
+#VRML_SIM R2019a utf8
 WorldInfo {
   ERP 0.15
   physics "collision_detector"
@@ -16,7 +16,7 @@ WorldInfo {
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -29,7 +29,7 @@ WorldInfo {
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -42,7 +42,7 @@ WorldInfo {
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -55,7 +55,7 @@ WorldInfo {
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -68,7 +68,7 @@ WorldInfo {
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -78,7 +78,7 @@ WorldInfo {
       material2 "goalie_body"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -88,7 +88,7 @@ WorldInfo {
       material2 "defense_body"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -98,7 +98,7 @@ WorldInfo {
       material2 "offense_body"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -108,7 +108,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -128,7 +128,7 @@ WorldInfo {
       material2 "goalie_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -138,7 +138,7 @@ WorldInfo {
       material2 "goalie_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -148,7 +148,7 @@ WorldInfo {
       material2 "defense_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -158,7 +158,7 @@ WorldInfo {
       material2 "defense_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -168,7 +168,7 @@ WorldInfo {
       material2 "offense_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -178,7 +178,7 @@ WorldInfo {
       material2 "offense_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -188,7 +188,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0.3
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -198,7 +198,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0.3
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -208,7 +208,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0.3
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -217,7 +217,7 @@ WorldInfo {
       material1 "goalie_body"
       material2 "ball"
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -227,7 +227,7 @@ WorldInfo {
       material2 "ball"
       bounce 0.8
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -237,7 +237,7 @@ WorldInfo {
       material2 "ball"
       bounce 0.8
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -247,7 +247,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -257,7 +257,7 @@ WorldInfo {
       material2 "ball"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -270,7 +270,7 @@ DEF DEF_AUDVIEW Viewpoint {
 }
 Background {
   skyColor [
-    0.7 0.8 1
+    0.283 0.54 0.665
   ]
 }
 DirectionalLight {
@@ -336,7 +336,6 @@ SoccerField5v5 {
           gpScale 2.193
           bannerBehind TRUE
           bannerHorizontal 10
-          bannerVertical 2
           cornerLength 0.1
         }
       ]
@@ -382,18 +381,6 @@ DEF DEF_ROBOTR0 SoccerRobot {
   }
   bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
-  patches [
-    SoccerRobotNumberPatch {
-      role "GK"
-    }
-    SoccerRobotIDPatch {
-      name "id_patch_red"
-    }
-    SoccerRobotIDPatch {
-      isTeamTagRed FALSE
-      name "id_patch_blue"
-    }
-  ]
 }
 DEF DEF_ROBOTR1 SoccerRobot {
   translation -2.25 0.045 -1
@@ -406,7 +393,7 @@ DEF DEF_ROBOTR1 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "D"
+      role "D1"
     }
     SoccerRobotIDPatch {
       id 31
@@ -430,7 +417,7 @@ DEF DEF_ROBOTR2 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "D"
+      role "D2"
     }
     SoccerRobotIDPatch {
       id 227
@@ -463,7 +450,7 @@ DEF DEF_ROBOTR3 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "F"
+      role "F1"
     }
     SoccerRobotIDPatch {
       id 364
@@ -496,7 +483,7 @@ DEF DEF_ROBOTR4 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "F"
+      role "F2"
     }
     SoccerRobotIDPatch {
       id 437
@@ -533,7 +520,6 @@ DEF DEF_ROBOTB0 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "GK"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -556,7 +542,7 @@ DEF DEF_ROBOTB1 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "D"
+      role "D1"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -581,7 +567,7 @@ DEF DEF_ROBOTB2 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "D"
+      role "D2"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -615,7 +601,7 @@ DEF DEF_ROBOTB3 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "F"
+      role "F1"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -649,7 +635,7 @@ DEF DEF_ROBOTB4 SoccerRobot {
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      role "F"
+      role "F2"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {

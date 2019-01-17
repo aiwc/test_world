@@ -7,6 +7,7 @@ PROTO White [
 {
   Appearance {
     material Material {
+      ambientIntensity 1
       diffuseColor 1 1 1
     }
   }

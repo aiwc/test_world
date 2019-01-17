@@ -11,7 +11,7 @@ PROTO Banner [
   field SFFloat    bannerThickness 0.025
   field SFFloat    frameThickness 0.01
   field SFVec3f    scale 1 1 1
-  field SFNode     frameAppearance White { }
+  field SFNode     frameAppearance Gray { }
   field SFBool     castShadows TRUE
   field SFBool     bannerBehind TRUE
   field SFString   url "textures/kaist.png"
@@ -30,6 +30,7 @@ PROTO Banner [
     local bb = fields.bannerBehind.value
     
     local bl = math.min(l-ft, l)
+    local blb = l
     local bh = math.min(h-2*ft, h)
     
     local fvt = math.min(ft, h/2)
@@ -92,7 +93,7 @@ PROTO Banner [
                       appearance IS frameAppearance
                     %{end}%
                     geometry Plane {
-                      size %{=bl}% %{=bh}%
+                      size %{=blb}% %{=bh}%
                     }
                     castShadows IS castShadows
                   }
@@ -113,7 +114,7 @@ PROTO Banner [
               Shape {
                 appearance IS frameAppearance
                 geometry Box {
-  	       size %{=bt}% %{=fvt}% %{=l-ft}%
+                  size %{=bt}% %{=fvt}% %{=l}%
   	     }
                 castShadows IS castShadows
   	   }
@@ -125,7 +126,7 @@ PROTO Banner [
 	   Shape {
                 appearance IS frameAppearance
 	     geometry Box {
-	       size %{=bt}% %{=fvt}% %{=l-ft}%
+	       size %{=bt}% %{=fvt}% %{=l}%
 	     }
                 castShadows IS castShadows
 	   }
@@ -133,24 +134,26 @@ PROTO Banner [
           }
           %{end}%
           Transform {
-	 translation 0 %{=h/2}% %{=l/2-fht/2}%
+            rotation 0 0 1 4.71238
+	 translation %{=bt/2}% %{=h/2}% %{=l/2-fht/2}%
 	 children [
 	   Shape {
                 appearance IS frameAppearance
-	     geometry Box {
-	       size %{=bt}% %{=h}% %{=fht}%
+	     geometry Plane {
+	       size %{=h-2*ft}% %{=fht}%
 	     }
                 castShadows IS castShadows
 	   }
 	 ]
           }
           Transform {
-	 translation 0 %{=h/2}% %{=-l/2+fht/2}%
+            rotation 0 0 1 4.71238
+	 translation %{=bt/2}% %{=h/2}% %{=-l/2+fht/2}%
 	 children [
 	   Shape {
                 appearance IS frameAppearance
-	     geometry Box {
-	       size %{=bt}% %{=h}% %{=fht}%
+	     geometry Plane {
+	       size %{=h-2*ft}% %{=fht}%
 	     }
                 castShadows IS castShadows
 	   }

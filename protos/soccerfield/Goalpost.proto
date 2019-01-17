@@ -27,7 +27,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_top_re.png"
@@ -47,7 +49,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_top_re.png"
@@ -72,7 +76,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_back_re.png"
@@ -92,7 +98,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_back_re.png"
@@ -117,7 +125,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_re.png"
@@ -137,7 +147,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_re.png"
@@ -162,7 +174,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_re.png"
@@ -182,7 +196,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_re.png"
@@ -207,7 +223,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_2_re.png"
@@ -227,7 +245,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_3_re.png"
@@ -252,7 +272,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_2_re.png"
@@ -272,7 +294,9 @@ PROTO Goalpost [
             children [
               Shape {
                 appearance Appearance {
-                  material Material {}
+                  material Material {
+                    ambientIntensity 1
+                  }
                   texture ImageTexture {
                     url [
                       "textures/net_side_3_re.png"

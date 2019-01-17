@@ -27,7 +27,7 @@ PROTO VisualWall [
   field SFFloat    cornerLength 0.07
 
 
-  field SFNode     frameAppearance White { }
+  field SFNode     frameAppearance LightGray { }
   
   field MFString   url ["textures/kaist.png"]
   field SFString   name "banner_wall"

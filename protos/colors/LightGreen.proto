@@ -1,5 +1,4 @@
-#VRML_SIM R2018a utf8
-#Author(s):         Inbae Jeong
+#VRML_SIM R2019a utf8
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO LightGreen [
@@ -7,7 +6,7 @@ PROTO LightGreen [
 {
   Appearance {
     material Material {
-      diffuseColor 0.435 0.592 0.145
+      diffuseColor 0.335 0.655 0.185
     }
   }
 }
