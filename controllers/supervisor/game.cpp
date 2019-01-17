@@ -281,8 +281,8 @@ void game::run()
           timeinfo = localtime(&rawtime);
 
           // Start game recording
-          record_fullpath = record_path + std::string("/[") + std::to_string(timeinfo->tm_mon + 1) + "-" + std::to_string(timeinfo->tm_mday) + " " + std::to_string(timeinfo->tm_hour) + ":" + std::to_string(timeinfo->tm_min) + ":" + std::to_string(timeinfo->tm_sec) + std::string("]") + team_name[T_RED] + "_vs_" + team_name[T_BLUE] + ".mp4";
-          sv_.movieStartRecording(record_fullpath, 1280, 720, 0, 90, 1, false);
+          record_fullpath = record_path + std::string("/[") + std::to_string(timeinfo->tm_mon + 1) + "-" + std::to_string(timeinfo->tm_mday) + " " + std::to_string(timeinfo->tm_hour) + ":" + std::to_string(timeinfo->tm_min) + std::string("]") + team_name[T_RED] + "_" + team_name[T_BLUE] + ".mp4";
+          sv_.movieStartRecording(record_fullpath, 1920, 1080, 0, 100, 1, false);
         }
 
         std::cout << "Starting a new game" << std::endl;
