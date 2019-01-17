@@ -195,7 +195,7 @@ namespace constants {
   constexpr std::size_t DEADLOCK_SENTOUT_NUMBER = 2; // number of robots sent out when a deadlock happens
   constexpr std::size_t SENTOUT_DURATION_MS = 5 * 1000; // ms
   constexpr std::size_t FALL_TIME_MS = 3 * 1000; // ms
-  constexpr std::size_t DEADLOCK_DURATION_MS  = 2 * 1000; // ms
+  constexpr std::size_t DEADLOCK_DURATION_MS  = 4 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
   constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr double      BACKPASS_BORDER = 0.5; // m
