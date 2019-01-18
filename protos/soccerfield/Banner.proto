@@ -11,7 +11,7 @@ PROTO Banner [
   field SFFloat    bannerThickness 0.025
   field SFFloat    frameThickness 0.01
   field SFVec3f    scale 1 1 1
-  field SFNode     frameAppearance Gray { }
+  field SFNode     frameAppearance LightGray { }
   field SFBool     castShadows TRUE
   field SFBool     bannerBehind TRUE
   field SFString   url "textures/kaist.png"

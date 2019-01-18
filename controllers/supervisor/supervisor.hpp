@@ -410,6 +410,23 @@ private: // private member functions
       }
     }
     
+    // Robot's black body is visible only to robots
+    {
+      for(const auto& team : {T_RED, T_BLUE}) {
+        for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
+          const auto* pn_robot = getFromDef(robot_name(team == T_RED, id));
+
+          auto* pf_camBody = pn_robot->getField("camBody");
+
+          assert(pf_camBody && (pf_camBody->getCount() == 1));
+
+          //number patch for decoration exists
+          auto* pn_camBody  = pf_camBody->getMFNode(0);
+
+          pn_camBody->setVisibility(pn_cams_[N_VIEWPOINT], false);
+        }
+      }
+    }
     // Wall is visible only to robots
     {
       auto* pn_wall = getFromDef(DEF_WALL);

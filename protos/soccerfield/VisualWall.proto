@@ -71,6 +71,7 @@ PROTO VisualWall [
           height IS bannerHeight
           bannerThickness IS bannerThickness
           frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
@@ -89,6 +90,7 @@ PROTO VisualWall [
           height IS bannerHeight
           bannerThickness IS bannerThickness
           frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
@@ -107,6 +109,7 @@ PROTO VisualWall [
           height IS bannerHeight
           bannerThickness IS bannerThickness
           frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
@@ -125,6 +128,7 @@ PROTO VisualWall [
           height IS bannerHeight
           bannerThickness IS bannerThickness
           frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
@@ -143,6 +147,7 @@ PROTO VisualWall [
           height IS bannerHeight
           bannerThickness IS bannerThickness
           frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind
@@ -161,6 +166,7 @@ PROTO VisualWall [
           height IS bannerHeight
           bannerThickness IS bannerThickness
           frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
           bannerBehind IS bannerBehind

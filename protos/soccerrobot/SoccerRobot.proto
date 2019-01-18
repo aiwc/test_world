@@ -1,4 +1,4 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static
@@ -97,6 +97,10 @@ PROTO SoccerRobot [
     SoccerRobotIDPatch { isTeamTagRed TRUE id 0 name "id_patch_red" }
     SoccerRobotIDPatch { isTeamTagRed FALSE id 0 name "id_patch_blue" }
   ]
+
+  field MFNode camBody [
+    SoccerRobotCamBody { }
+  ]
 ]
 {
   %{
@@ -118,7 +122,7 @@ PROTO SoccerRobot [
     local sc = fields.sideCover.value
     local wp = fields.weightPlate.value
     local df = fields.distanceToFloor.value
-    local dp = fields.distanceToPatch.value
+    local dp = 2*fields.distanceToPatch.value
     local dw = fields.distanceToWheel.value
 
     local kinematic = fields.kinematic.value
@@ -139,6 +143,10 @@ PROTO SoccerRobot [
         translation 0 %{=h / 2}% 0
         rotation 0 1 0 %{=math.pi / 2}%
         children IS patches
+      }
+      DEF CAMBODY Transform {
+        rotation 0 1 0 %{=math.pi / 2}%
+        children IS camBody
       }
       DEF BODYSHAPE Transform {
         rotation 0 1 0 %{=math.pi / 2}%
