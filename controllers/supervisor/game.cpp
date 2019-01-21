@@ -281,7 +281,7 @@ void game::run()
           timeinfo = localtime(&rawtime);
 
           // Start game recording
-          record_fullpath = record_path + std::string("/[") + std::to_string(timeinfo->tm_mon + 1) + "-" + std::to_string(timeinfo->tm_mday) + " " + std::to_string(timeinfo->tm_hour) + ":" + std::to_string(timeinfo->tm_min) + std::string("]") + team_name[T_RED] + "_" + team_name[T_BLUE] + ".mp4";
+          record_fullpath = record_path + "/[" + std::to_string(timeinfo->tm_year + 1900) + "-" + std::to_string(timeinfo->tm_mon + 1) + "-" + std::to_string(timeinfo->tm_mday) + "T" + std::to_string(timeinfo->tm_hour) + "_" + std::to_string(timeinfo->tm_min) + "_" + std::to_string(timeinfo->tm_sec) + "]" + team_name[T_RED] + "_" + team_name[T_BLUE] + ".mp4";
           sv_.movieStartRecording(record_fullpath, 1920, 1080, 0, 100, 1, false);
         }
 
