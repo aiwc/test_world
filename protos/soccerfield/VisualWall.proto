@@ -19,6 +19,7 @@ PROTO VisualWall [
   field SFFloat    gpScale 1
 
   field SFBool     castShadows FALSE
+  field SFBool     bannerFront FALSE
   field SFBool     bannerBehind FALSE
 
   field SFInt32    bannerHorizontal 8
@@ -74,6 +75,7 @@ PROTO VisualWall [
           frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
+          bannerFront IS bannerFront
           bannerBehind IS bannerBehind
           name "%{='t_banner_' .. i}%"
         }
@@ -93,6 +95,7 @@ PROTO VisualWall [
           frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
+          bannerFront IS bannerFront
           bannerBehind IS bannerBehind
           name "%{='rt_banner_' .. i}%"
         }
@@ -112,6 +115,7 @@ PROTO VisualWall [
           frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
+          bannerFront IS bannerFront
           bannerBehind IS bannerBehind
           name "%{='rb_banner_' .. i}%"
         }
@@ -131,6 +135,7 @@ PROTO VisualWall [
           frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
+          bannerFront IS bannerFront
           bannerBehind IS bannerBehind
           name "%{='b_banner_' .. i}%"
         }
@@ -150,6 +155,7 @@ PROTO VisualWall [
           frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
+          bannerFront IS bannerFront
           bannerBehind IS bannerBehind
           name "%{='lb_banner_' .. i}%"
         }
@@ -169,6 +175,7 @@ PROTO VisualWall [
           frameAppearance IS frameAppearance
           url "%{=u}%"
           castShadows IS castShadows
+          bannerFront IS bannerFront
           bannerBehind IS bannerBehind
           name "%{='lt_banner_' .. i}%"
         }

@@ -13,6 +13,7 @@ PROTO Banner [
   field SFVec3f    scale 1 1 1
   field SFNode     frameAppearance LightGray { }
   field SFBool     castShadows TRUE
+  field SFBool     bannerFront TRUE
   field SFBool     bannerBehind TRUE
   field SFString   url "textures/kaist.png"
   field SFString   name "banner"
@@ -27,6 +28,7 @@ PROTO Banner [
     end
     local ft = fields.frameThickness.value
     local url = fields.url.value
+    local bf = fields.bannerFront.value
     local bb = fields.bannerBehind.value
     
     local bl = math.min(l-ft, l)
@@ -53,6 +55,7 @@ PROTO Banner [
                 rotation 0 0 1 -1.57
                 children [
                   Shape {
+                  %{if bf then}%
                     appearance Appearance {
                       material Material {
                         ambientIntensity 1
@@ -64,6 +67,9 @@ PROTO Banner [
                         ]
                       }
                     }
+                  %{else}%
+                    appearance IS frameAppearance
+                  %{end}%
                     geometry Plane {
                       size %{=bl}% %{=bh}%
                     }
