@@ -12,6 +12,13 @@ PROTO SoccerFieldGrass [
   field SFFloat  blockSize 0.25
   field SFFloat  length 4.6
   field SFFloat  width 3.4
+
+  # fields specific to the floor logo
+  field SFBool   useBanner TRUE
+  field SFString url "textures/logo.png"
+  field SFFloat  bannerLength 0.3
+  field SFFloat  bannerWidth  1.2
+  field SFFloat  bannerHeight 0.0004
 ]
 {
   %{
@@ -21,6 +28,12 @@ PROTO SoccerFieldGrass [
 
     local bn = math.floor(l / (2 * bs))
     local ll = math.max(0, l / 2 - bs * bn)
+
+    local ub = fields.useBanner.value
+    local url = fields.url.value
+    local bl = fields.bannerLength.value
+    local bw = fields.bannerWidth.value
+    local bh = fields.bannerHeight.value
   }%
   Slot {
     type "soccer_field_grass"
@@ -76,6 +89,42 @@ PROTO SoccerFieldGrass [
           %{ end }%
 
           %{ m = -1 }%
+        %{ end }%
+        %{ if ub then}%
+        %{ for i = -1, 1, 2 do }%
+        %{ for j = -1, 1, 2 do }%
+          Transform {
+            %{
+              local bias
+              if j < 0 then
+                bias = w/24
+              else
+                bias = w/24
+              end
+            }%
+            translation %{=i*(l/2 - ll/2)}% %{=bh}% %{=j*(w/3.5) - bias}%
+            rotation 0 1 0 %{=-i*math.pi/2}%
+            children [
+              Shape {
+                appearance Appearance {
+                  material Material {
+                    ambientIntensity 1
+                    diffuseColor 1 1 1
+                  }
+                  texture ImageTexture {
+                    url [
+                      "%{=url}%"
+                    ]
+                  }
+                }
+                geometry Plane {
+                  size %{=bw}% %{=bl}%
+                }
+              }
+            ]
+          }
+        %{ end }%
+        %{ end }%
         %{ end }%
       ]
     }

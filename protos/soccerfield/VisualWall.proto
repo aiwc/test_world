@@ -19,6 +19,7 @@ PROTO VisualWall [
   field SFFloat    gpScale 1
 
   field SFBool     castShadows FALSE
+  field SFBool     bannerWall  FALSE
   field SFBool     bannerFront FALSE
   field SFBool     bannerBehind FALSE
 
@@ -42,6 +43,7 @@ PROTO VisualWall [
     local bt   = fields.bannerThickness.value
     local gpt  = fields.gpTranslation.value
     local gps  = fields.gpScale.value
+    local bw   = fields.bannerWall.value
     local bhor = fields.bannerHorizontal.value
     local bver = fields.bannerVertical.value
     local cl   = fields.cornerLength.value
@@ -62,6 +64,29 @@ PROTO VisualWall [
     rotation IS rotation
     name IS name
     children [
+      %{ if bw then }%
+        Transform {
+          translation 0 %{=bh/2}% %{=-w/2 + 0.0005}%
+          rotation 1 0 0 %{=math.pi/2}%
+          children [
+            Shape {
+              appearance Appearance {
+                material Material {
+                  ambientIntensity 1
+                  diffuseColor 1 1 1
+                }
+                texture ImageTexture {
+                  url "%{=url[1]}%"
+                }
+              }
+              geometry Plane {
+                  size %{=5.7377*(bh - 2*fields.frameThickness.value)}% %{=bh - 2*fields.frameThickness.value}%
+              }
+              castShadows IS castShadows
+            }
+          ]
+        }
+      %{ end }%
       #top
       %{ for i = 0, (bhor - 1) do }%
       %{ u = url[banner_counter % n_urls + 1] }%
