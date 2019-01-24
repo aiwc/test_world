@@ -392,7 +392,7 @@ void game::run_participant()
       // and pass the script path as an argument to run python scripts
       if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
-      ti.c = bp::child(bp::exe = ti.executable,
+      ti.c = bp::child(bp::exe = p_exe.filename().string(),
                        bp::args = {c::SERVER_IP,
                            std::to_string(rs_port_),
                            c::REALM,
@@ -403,7 +403,7 @@ void game::run_participant()
       }
       else { // if python script, enter special handler
         ti.c = bp::child(bp::exe = bp::search_path("python").string(),
-                         bp::args = {ti.executable,
+                         bp::args = {p_exe.filename().string(),
                              c::SERVER_IP,
                              std::to_string(rs_port_),
                              c::REALM,
