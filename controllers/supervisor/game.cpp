@@ -16,6 +16,8 @@
 namespace c = constants;
 namespace bp = boost::process;
 
+#define _unused(x) ((void)(x))
+
 namespace /* anonymous */ {
 
   enum {
@@ -169,8 +171,6 @@ void game::run()
   const auto path_prefix = std::string("../../");
 
   // gets the teams' information from 'config.json'
-  assert(config_json.HasMember("team_a") && config_json["team_a"].IsObject());
-  assert(config_json.HasMember("team_b") && config_json["team_b"].IsObject());
   for(const auto& team : {T_RED, T_BLUE}) {
     const auto tc = ((team == T_RED) ? "team_a" : "team_b");
     const auto tc_op = ((team != T_RED) ? "team_a" : "team_b");
@@ -192,6 +192,7 @@ void game::run()
                                                 );
 
     assert(ret.second);
+    _unused(ret);
 
     std::cout << ((team == T_RED) ? "Team A: " : "Team B: ") << std::endl;
     std::cout << "  team name - " << name << std::endl;
@@ -267,6 +268,7 @@ void game::run()
       const auto it = std::find_if(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
                                    [](const auto& kv) { return kv.second.is_ready == true; });
       assert(it != std::cend(player_team_infos_));
+      _unused(it);
     }
     else {
       try {
