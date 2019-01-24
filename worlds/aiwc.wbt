@@ -384,8 +384,8 @@ DEF DEF_ROBOTR0 SoccerRobot {
   }
   bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
-  camBody [
-    DEF DEF_CAMBODYR0 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERR0 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -418,8 +418,8 @@ DEF DEF_ROBOTR1 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYR1 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERR1 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -452,8 +452,8 @@ DEF DEF_ROBOTR2 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYR2 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERR2 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -495,8 +495,8 @@ DEF DEF_ROBOTR3 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYR3 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERR3 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -538,8 +538,8 @@ DEF DEF_ROBOTR4 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYR4 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERR4 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -583,8 +583,8 @@ DEF DEF_ROBOTB0 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYB0 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERB0 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -618,8 +618,8 @@ DEF DEF_ROBOTB1 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYB1 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERB1 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -653,8 +653,8 @@ DEF DEF_ROBOTB2 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYB2 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERB2 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -697,8 +697,8 @@ DEF DEF_ROBOTB3 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYB3 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERB3 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001
@@ -741,8 +741,8 @@ DEF DEF_ROBOTB4 SoccerRobot {
       name "id_patch_blue"
     }
   ]
-  camBody [
-    DEF DEF_CAMBODYB4 SoccerRobotCamBody {
+  cover [
+    DEF DEF_COVERB4 SoccerRobotCover {
       height 0.09
       bodySize 0.15
       distanceToPatch 0.001

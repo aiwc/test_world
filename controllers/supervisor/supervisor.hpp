@@ -410,20 +410,19 @@ private: // private member functions
       }
     }
     
-    // Robot's black body is visible only to robots
+    // Robot's gray cover is visible only to robots
     {
       for(const auto& team : {T_RED, T_BLUE}) {
         for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
           const auto* pn_robot = getFromDef(robot_name(team == T_RED, id));
 
-          auto* pf_camBody = pn_robot->getField("camBody");
+          auto* pf_cover = pn_robot->getField("cover");
 
-          assert(pf_camBody && (pf_camBody->getCount() == 1));
+          assert(pf_cover && (pf_cover->getCount() == 1));
 
-          //number patch for decoration exists
-          auto* pn_camBody  = pf_camBody->getMFNode(0);
+          auto* pn_cover  = pf_cover->getMFNode(0);
 
-          pn_camBody->setVisibility(pn_cams_[N_VIEWPOINT], false);
+          pn_cover->setVisibility(pn_cams_[N_VIEWPOINT], false);
         }
       }
     }
