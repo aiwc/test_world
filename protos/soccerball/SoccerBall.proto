@@ -1,9 +1,9 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
-# A soccer ball with no shape. Shape should be added in the slot.
-# It's to control visibility to cameras.
+# A soccer ball with no shape. Shapes should be added in the slot.
+# This is for visibility control on cameras.
 PROTO SoccerBall [
   # fields inherited from Solid: Default values are set according to the corresponding default values of Solid
   field SFVec3f    translation 0 0 0

@@ -1,6 +1,10 @@
 #VRML_SIM R2019a utf8
 #Author(s):         Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
+
+# SoccerRobot's body that is visible to the camera
+# recording images sent to participant algorithms
 
 PROTO SoccerRobotCamBody [
   field SFFloat height 0.09
