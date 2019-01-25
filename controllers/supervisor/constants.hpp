@@ -67,7 +67,7 @@ namespace constants {
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.04, 0.04, 0.04, 0.04, 0.04};
   constexpr std::array<double, 5> WHEEL_MASS = {0.15, 0.10, 0.10, 0.10, 0.10};
 
-  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.8, 2.1, 2.1, 2.5, 2.5};
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.8, 2.1, 2.1, 2.55, 2.55};
   constexpr std::array<double, 5> MAX_TORQUE = {0.8, 1.2, 1.2, 0.4, 0.4};
 
   constexpr double ROBOT_FORMATION[14][NUMBER_OF_ROBOTS][3] = {
