@@ -98,8 +98,8 @@ PROTO SoccerRobot [
     SoccerRobotIDPatch { isTeamTagRed FALSE id 0 name "id_patch_blue" }
   ]
 
-  field MFNode camBody [
-    SoccerRobotCamBody { }
+  field MFNode cover [
+    SoccerRobotCover { }
   ]
 ]
 {
@@ -144,9 +144,9 @@ PROTO SoccerRobot [
         rotation 0 1 0 %{=math.pi / 2}%
         children IS patches
       }
-      DEF CAMBODY Transform {
+      DEF COVER Transform {
         rotation 0 1 0 %{=math.pi / 2}%
-        children IS camBody
+        children IS cover
       }
       DEF BODYSHAPE Transform {
         rotation 0 1 0 %{=math.pi / 2}%

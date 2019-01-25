@@ -1,8 +1,12 @@
 #VRML_SIM R2019a utf8
 #Author(s):         Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
 
-PROTO SoccerRobotCamBody [
+# SoccerRobot's cover that hides robot body color differences
+# from camera recording images sent to participant algorithms
+
+PROTO SoccerRobotCover [
   field SFFloat height 0.09
   field SFFloat bodySize 0.15
   field SFFloat distanceToPatch 0.001

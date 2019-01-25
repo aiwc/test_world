@@ -1,4 +1,4 @@
-#VRML_SIM R2018b utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Seung-Jae Lee, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static
@@ -30,11 +30,11 @@ PROTO Banner [
     local url = fields.url.value
     local bf = fields.bannerFront.value
     local bb = fields.bannerBehind.value
-    
+
     local bl = math.min(l-ft, l)
     local blb = l
     local bh = math.min(h-2*ft, h)
-    
+
     local fvt = math.min(ft, h/2)
     local fht = math.min(ft/2, l/2)
   }%

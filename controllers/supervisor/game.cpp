@@ -16,6 +16,8 @@
 namespace c = constants;
 namespace bp = boost::process;
 
+#define _unused(x) ((void)(x))
+
 namespace /* anonymous */ {
 
   enum {
@@ -169,8 +171,6 @@ void game::run()
   const auto path_prefix = std::string("../../");
 
   // gets the teams' information from 'config.json'
-  assert(config_json.HasMember("team_a") && config_json["team_a"].IsObject());
-  assert(config_json.HasMember("team_b") && config_json["team_b"].IsObject());
   for(const auto& team : {T_RED, T_BLUE}) {
     const auto tc = ((team == T_RED) ? "team_a" : "team_b");
     const auto tc_op = ((team != T_RED) ? "team_a" : "team_b");
@@ -192,6 +192,7 @@ void game::run()
                                                 );
 
     assert(ret.second);
+    _unused(ret);
 
     std::cout << ((team == T_RED) ? "Team A: " : "Team B: ") << std::endl;
     std::cout << "  team name - " << name << std::endl;
@@ -267,6 +268,7 @@ void game::run()
       const auto it = std::find_if(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
                                    [](const auto& kv) { return kv.second.is_ready == true; });
       assert(it != std::cend(player_team_infos_));
+      _unused(it);
     }
     else {
       try {
@@ -392,7 +394,7 @@ void game::run_participant()
       // and pass the script path as an argument to run python scripts
       if (ti.executable.compare(ti.executable.length() - 3, 3, ".py") || !boost::filesystem::exists(ti.executable)) {
 #endif
-      ti.c = bp::child(bp::exe = ti.executable,
+      ti.c = bp::child(bp::exe = p_exe.filename().string(),
                        bp::args = {c::SERVER_IP,
                            std::to_string(rs_port_),
                            c::REALM,
@@ -403,7 +405,7 @@ void game::run_participant()
       }
       else { // if python script, enter special handler
         ti.c = bp::child(bp::exe = bp::search_path("python").string(),
-                         bp::args = {ti.executable,
+                         bp::args = {p_exe.filename().string(),
                              c::SERVER_IP,
                              std::to_string(rs_port_),
                              c::REALM,
@@ -1107,7 +1109,7 @@ void game::run_game()
 
             reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
         }
-        // ball sent out of the field - proceed to corner freekick or goal kick
+        // ball sent out of the field - proceed to corner kick or goal kick
         else if(!ball_in_field()){
           pause();
           stop_robots();
@@ -1146,10 +1148,10 @@ void game::run_game()
 
               reset_reason = c::GOALKICK;
             }
-            // otherwise, proceed to freekick
+            // otherwise, proceed to corner kick
             else {
-              game_state_ = c::STATE_FREEKICK;
-              freekick_time_ = time_ms_;
+              game_state_ = c::STATE_CORNERKICK;
+              cornerkick_time_ = time_ms_;
 
               if(ball_y > 0) {
                 // upper left corner
@@ -1163,10 +1165,10 @@ void game::run_game()
               lock_all_robots();
               unlock_robot(ball_ownership_, 4);
 
-              reset_reason = c::FREEKICK;
+              reset_reason = c::CORNERKICK;
             }
           }
-          // freekick happened on the right side
+          // cornerkick happened on the right side
           else {
             // if the blue gets the ball, proceed to goalkick
             if(ball_ownership_ == T_BLUE) {
@@ -1180,10 +1182,10 @@ void game::run_game()
 
               reset_reason = c::GOALKICK;
             }
-            // otherwise, proceed to freekick
+            // otherwise, proceed to corenerkick
             else {
-              game_state_ = c::STATE_FREEKICK;
-              freekick_time_ = time_ms_;
+              game_state_ = c::STATE_CORNERKICK;
+              cornerkick_time_ = time_ms_;
 
               if(ball_y > 0) {
                 // upper right corner
@@ -1197,7 +1199,7 @@ void game::run_game()
               lock_all_robots();
               unlock_robot(ball_ownership_, 4);
 
-              reset_reason = c::FREEKICK;
+              reset_reason = c::CORNERKICK;
             }
           }
 
@@ -1371,9 +1373,9 @@ void game::run_game()
               stop_robots();
               step(c::WAIT_STABLE_MS);
 
-              game_state_ = c::STATE_FREEKICK;
+              game_state_ = c::STATE_CORNERKICK;
 
-              freekick_time_ = time_ms_;
+              cornerkick_time_ = time_ms_;
 
               // determine where to place the robots and the ball
               if (ball_x < 0) { // on Team Red's side
@@ -1419,7 +1421,7 @@ void game::run_game()
               step(c::WAIT_STABLE_MS);
               resume();
 
-              reset_reason = c::FREEKICK;
+              reset_reason = c::CORNERKICK;
               deadlock_time_ = time_ms_;
             }
           }
@@ -1493,10 +1495,10 @@ void game::run_game()
         deadlock_time_ = time_ms_;
       }
       break;
-    case c::STATE_FREEKICK:
+    case c::STATE_CORNERKICK:
       {
         // time limit has passed
-        if (time_ms_ - freekick_time_ >= c::FREEKICK_TIME_LIMIT_MS) {
+        if (time_ms_ - cornerkick_time_ >= c::CORNERKICK_TIME_LIMIT_MS) {
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }

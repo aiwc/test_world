@@ -118,28 +118,28 @@ public:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
       case c::FORMATION_CAD_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CAD_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CAD_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CAD_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_PENALTYKICK_A:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
@@ -409,21 +409,20 @@ private: // private member functions
         pn_stadium->setVisibility(pn_cams_[N_CAMB], false);
       }
     }
-    
-    // Robot's black body is visible only to robots
+
+    // Robot's gray cover is visible only to robots
     {
       for(const auto& team : {T_RED, T_BLUE}) {
         for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
           const auto* pn_robot = getFromDef(robot_name(team == T_RED, id));
 
-          auto* pf_camBody = pn_robot->getField("camBody");
+          auto* pf_cover = pn_robot->getField("cover");
 
-          assert(pf_camBody && (pf_camBody->getCount() == 1));
+          assert(pf_cover && (pf_cover->getCount() == 1));
 
-          //number patch for decoration exists
-          auto* pn_camBody  = pf_camBody->getMFNode(0);
+          auto* pn_cover  = pf_cover->getMFNode(0);
 
-          pn_camBody->setVisibility(pn_cams_[N_VIEWPOINT], false);
+          pn_cover->setVisibility(pn_cams_[N_VIEWPOINT], false);
         }
       }
     }
@@ -434,7 +433,7 @@ private: // private member functions
         pn_wall->setVisibility(pn_cams_[N_VIEWPOINT], false);
       }
     }
-    
+
     // VisualWall is visible only to viewpoint, optional
     {
       auto* pn_viswall = getFromDef(DEF_VISWALL);

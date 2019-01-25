@@ -1,4 +1,4 @@
-#VRML_SIM R2018b utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static
@@ -7,14 +7,14 @@ PROTO VisualWall [
   field SFVec3f    translation 0 0 0
   field SFRotation rotation 0 1 0 0
   field SFVec3f    scale 1 1 1
-  
+
   field SFFloat    length 2.2
   field SFFloat    width 1.8
   field SFFloat    bannerHeight 0.2
   field SFFloat    goalWidth 0.4
   field SFFloat    bannerThickness 0.025
   field SFFloat    frameThickness 0.01
-  
+
   field SFFloat    gpTranslation 1.21
   field SFFloat    gpScale 1
 
@@ -30,7 +30,7 @@ PROTO VisualWall [
 
 
   field SFNode     frameAppearance LightGray { }
-  
+
   field MFString   url ["textures/kaist.png"]
   field SFString   name "banner_wall"
 ]
@@ -48,15 +48,15 @@ PROTO VisualWall [
     local bver = fields.bannerVertical.value
     local cl   = fields.cornerLength.value
     local url  = fields.url.value
-    
+
     local n_urls = 0
     for _,_ in pairs(url) do
       n_urls = n_urls + 1
     end
-    
+
     local l_trim = l - 2*cl
     local w_trim = w - 2*cl - 2*bt - gw
-    
+
     local banner_counter = 0
   }%
   Solid {
@@ -106,7 +106,7 @@ PROTO VisualWall [
         }
       %{banner_counter = banner_counter + 1}%
       %{end}%
-      
+
       #right-top
       %{ for i = 0, (bver - 1) do }%
       %{ u = url[banner_counter % n_urls + 1] }%
@@ -126,7 +126,7 @@ PROTO VisualWall [
         }
       %{banner_counter = banner_counter + 1}%
       %{end}%
-      
+
       #right-bottom
       %{ for i = 0, (bver - 1) do }%
       %{ u = url[banner_counter % n_urls + 1] }%
@@ -146,7 +146,7 @@ PROTO VisualWall [
         }
       %{banner_counter = banner_counter + 1}%
       %{end}%
-      
+
       #bottom
       %{ for i = 0, (bhor - 1) do }%
       %{ u = url[banner_counter % n_urls + 1] }%
@@ -166,7 +166,7 @@ PROTO VisualWall [
         }
       %{banner_counter = banner_counter + 1}%
       %{end}%
-      
+
       #left-bottom
       %{ for i = 0, (bver - 1) do }%
       %{ u = url[banner_counter % n_urls + 1] }%
@@ -186,7 +186,7 @@ PROTO VisualWall [
         }
       %{banner_counter = banner_counter + 1}%
       %{end}%
-      
+
       #left-top
       %{ for i = 0, (bver - 1) do }%
       %{ u = url[banner_counter % n_urls + 1] }%

@@ -67,7 +67,7 @@ namespace constants {
   constexpr std::array<double, 5> WHEEL_RADIUS = {0.04, 0.04, 0.04, 0.04, 0.04};
   constexpr std::array<double, 5> WHEEL_MASS = {0.15, 0.10, 0.10, 0.10, 0.10};
 
-  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.8, 2.1, 2.1, 2.5, 2.5};
+  constexpr std::array<double, 5> MAX_LINEAR_VELOCITY = {1.8, 2.1, 2.1, 2.55, 2.55};
   constexpr std::array<double, 5> MAX_TORQUE = {0.8, 1.2, 1.2, 0.4, 0.4};
 
   constexpr double ROBOT_FORMATION[14][NUMBER_OF_ROBOTS][3] = {
@@ -200,7 +200,7 @@ namespace constants {
   constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr double      BACKPASS_BORDER = 0.5; // m
   constexpr std::size_t GOALKICK_TIME_LIMIT_MS = 3 * 1000; // ms
-  constexpr std::size_t FREEKICK_TIME_LIMIT_MS = 3 * 1000; // ms
+  constexpr std::size_t CORNERKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr std::size_t PENALTYKICK_TIME_LIMIT_MS = 3 * 1000; // ms
 
   constexpr std::size_t MSG_MAX_SIZE = 90000; // bytes
@@ -213,7 +213,7 @@ namespace constants {
     GAME_END = 4,
     DEADLOCK = 5,
     GOALKICK = 6,
-    FREEKICK = 7,
+    CORNERKICK = 7,
     PENALTYKICK = 8,
     HALFTIME = 9,
     EPISODE_END = 10,
@@ -223,7 +223,7 @@ namespace constants {
     STATE_DEFAULT = 0,
     STATE_BACKPASS = 1,
     STATE_GOALKICK = 2,
-    STATE_FREEKICK = 3,
+    STATE_CORNERKICK = 3,
     STATE_PENALTYKICK = 4,
   };
 
@@ -251,7 +251,7 @@ namespace constants {
     BALL_RELOCATION_B = 3,
     BALL_RELOCATION_C = 4,
     BALL_RELOCATION_D = 5,
-    BALL_FREEKICK = 6,
+    BALL_CORNERKICK = 6,
     BALL_PENALTYKICK = 7,
   };
 
