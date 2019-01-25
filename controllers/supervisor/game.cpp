@@ -1109,7 +1109,7 @@ void game::run_game()
 
             reset_reason = (ball_x > 0) ? c::SCORE_RED_TEAM : c::SCORE_BLUE_TEAM;
         }
-        // ball sent out of the field - proceed to corner freekick or goal kick
+        // ball sent out of the field - proceed to corner kick or goal kick
         else if(!ball_in_field()){
           pause();
           stop_robots();
@@ -1148,10 +1148,10 @@ void game::run_game()
 
               reset_reason = c::GOALKICK;
             }
-            // otherwise, proceed to freekick
+            // otherwise, proceed to corner kick
             else {
-              game_state_ = c::STATE_FREEKICK;
-              freekick_time_ = time_ms_;
+              game_state_ = c::STATE_CORNERKICK;
+              cornerkick_time_ = time_ms_;
 
               if(ball_y > 0) {
                 // upper left corner
@@ -1165,10 +1165,10 @@ void game::run_game()
               lock_all_robots();
               unlock_robot(ball_ownership_, 4);
 
-              reset_reason = c::FREEKICK;
+              reset_reason = c::CORNERKICK;
             }
           }
-          // freekick happened on the right side
+          // cornerkick happened on the right side
           else {
             // if the blue gets the ball, proceed to goalkick
             if(ball_ownership_ == T_BLUE) {
@@ -1182,10 +1182,10 @@ void game::run_game()
 
               reset_reason = c::GOALKICK;
             }
-            // otherwise, proceed to freekick
+            // otherwise, proceed to corenerkick
             else {
-              game_state_ = c::STATE_FREEKICK;
-              freekick_time_ = time_ms_;
+              game_state_ = c::STATE_CORNERKICK;
+              cornerkick_time_ = time_ms_;
 
               if(ball_y > 0) {
                 // upper right corner
@@ -1199,7 +1199,7 @@ void game::run_game()
               lock_all_robots();
               unlock_robot(ball_ownership_, 4);
 
-              reset_reason = c::FREEKICK;
+              reset_reason = c::CORNERKICK;
             }
           }
 
@@ -1373,9 +1373,9 @@ void game::run_game()
               stop_robots();
               step(c::WAIT_STABLE_MS);
 
-              game_state_ = c::STATE_FREEKICK;
+              game_state_ = c::STATE_CORNERKICK;
 
-              freekick_time_ = time_ms_;
+              cornerkick_time_ = time_ms_;
 
               // determine where to place the robots and the ball
               if (ball_x < 0) { // on Team Red's side
@@ -1421,7 +1421,7 @@ void game::run_game()
               step(c::WAIT_STABLE_MS);
               resume();
 
-              reset_reason = c::FREEKICK;
+              reset_reason = c::CORNERKICK;
               deadlock_time_ = time_ms_;
             }
           }
@@ -1495,10 +1495,10 @@ void game::run_game()
         deadlock_time_ = time_ms_;
       }
       break;
-    case c::STATE_FREEKICK:
+    case c::STATE_CORNERKICK:
       {
         // time limit has passed
-        if (time_ms_ - freekick_time_ >= c::FREEKICK_TIME_LIMIT_MS) {
+        if (time_ms_ - cornerkick_time_ >= c::CORNERKICK_TIME_LIMIT_MS) {
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }

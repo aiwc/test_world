@@ -118,28 +118,28 @@ public:
         reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
         break;
       case c::FORMATION_CAD_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CAD_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_AD:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_DA:
-        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CAD_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CAD_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_AA:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_CBC_DD:
-        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_FREEKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_FREEKICK][1]);
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
         break;
       case c::FORMATION_PENALTYKICK_A:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
@@ -409,7 +409,7 @@ private: // private member functions
         pn_stadium->setVisibility(pn_cams_[N_CAMB], false);
       }
     }
-    
+
     // Robot's gray cover is visible only to robots
     {
       for(const auto& team : {T_RED, T_BLUE}) {
@@ -433,7 +433,7 @@ private: // private member functions
         pn_wall->setVisibility(pn_cams_[N_VIEWPOINT], false);
       }
     }
-    
+
     // VisualWall is visible only to viewpoint, optional
     {
       auto* pn_viswall = getFromDef(DEF_VISWALL);
