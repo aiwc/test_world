@@ -77,7 +77,7 @@ namespace constants {
     {-2.25, -1.0, 0},
     {-0.65,  0.3, 0},
     {-0.65, -0.3, 0},},
-    // x, y, th - Backpass Formation
+    // x, y, th - Kickoff Formation
    {{-3.8,   0.0, PI / 2},
     {-2.25,  1.0, 0},
     {-2.25, -1.0, 0},
@@ -197,8 +197,8 @@ namespace constants {
   constexpr std::size_t FALL_TIME_MS = 3 * 1000; // ms
   constexpr std::size_t DEADLOCK_DURATION_MS  = 4 * 1000; // ms
   constexpr double      DEADLOCK_THRESHOLD = 0.4; // m/s
-  constexpr std::size_t BACKPASS_TIME_LIMIT_MS = 3 * 1000; // ms
-  constexpr double      BACKPASS_BORDER = 0.5; // m
+  constexpr std::size_t KICKOFF_TIME_LIMIT_MS = 3 * 1000; // ms
+  constexpr double      KICKOFF_BORDER = 0.5; // m
   constexpr std::size_t GOALKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr std::size_t CORNERKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr std::size_t PENALTYKICK_TIME_LIMIT_MS = 3 * 1000; // ms
@@ -221,7 +221,7 @@ namespace constants {
 
   enum game_state {
     STATE_DEFAULT = 0,
-    STATE_BACKPASS = 1,
+    STATE_KICKOFF = 1,
     STATE_GOALKICK = 2,
     STATE_CORNERKICK = 3,
     STATE_PENALTYKICK = 4,
@@ -229,7 +229,7 @@ namespace constants {
 
   enum robot_formation {
     FORMATION_DEFAULT = 0,
-    FORMATION_BACKPASS = 1,
+    FORMATION_KICKOFF = 1,
     FORMATION_GOALKICK_A = 2,
     FORMATION_GOALKICK_D = 3,
     FORMATION_CAD_AA = 4,

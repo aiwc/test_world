@@ -176,7 +176,7 @@ private:
   std::vector<autobahn::wamp_invocation> bootup_waiting_list_;
 
   std::size_t deadlock_time_ = 0;
-  std::size_t backpass_time_ = 0;
+  std::size_t kickoff_time_ = 0;
   std::size_t goalkick_time_ = 0;
   std::size_t cornerkick_time_ = 0;
   std::size_t penaltykick_time_ = 0;

@@ -962,12 +962,12 @@ void game::run_game()
   // reset and wait 1s for stabilizing
   pause();
 
-  // game starts with a backpass by T_RED
+  // game starts with a kickoff by T_RED
   ball_ownership_ = T_RED;
-  game_state_ = c::STATE_BACKPASS;
-  backpass_time_ = time_ms_;
+  game_state_ = c::STATE_KICKOFF;
+  kickoff_time_ = time_ms_;
 
-  reset(c::FORMATION_BACKPASS, c::FORMATION_DEFAULT);
+  reset(c::FORMATION_KICKOFF, c::FORMATION_DEFAULT);
 
   lock_all_robots();
   unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
@@ -1007,12 +1007,12 @@ void game::run_game()
         sv_.mark_half_passed();
         time_ms_ = 0;
 
-        // second half starts with a backpass by T_BLUE
+        // second half starts with a kickoff by T_BLUE
         ball_ownership_ = T_BLUE;
-        game_state_ = c::STATE_BACKPASS;
-        backpass_time_ = time_ms_;
+        game_state_ = c::STATE_KICKOFF;
+        kickoff_time_ = time_ms_;
 
-        reset(c::FORMATION_DEFAULT, c::FORMATION_BACKPASS);
+        reset(c::FORMATION_DEFAULT, c::FORMATION_KICKOFF);
 
         lock_all_robots();
         unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
@@ -1092,14 +1092,14 @@ void game::run_game()
             stop_robots();
             step(c::WAIT_GOAL_MS);
 
-            game_state_ = c::STATE_BACKPASS;
-            // backpass_foul_flag_ = false;
+            game_state_ = c::STATE_KICKOFF;
+            // kickoff_foul_flag_ = false;
 
             ball_ownership_ = (ball_x > 0) ? T_BLUE : T_RED;
-            backpass_time_ = time_ms_;
+            kickoff_time_ = time_ms_;
 
             // reset and wait until stabilized
-            reset(((ball_ownership_ == T_RED) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_BACKPASS : c::FORMATION_DEFAULT));
+            reset(((ball_ownership_ == T_RED) ? c::FORMATION_KICKOFF : c::FORMATION_DEFAULT), ((ball_ownership_ == T_BLUE) ? c::FORMATION_KICKOFF : c::FORMATION_DEFAULT));
 
             lock_all_robots();
             unlock_robot(ball_ownership_, c::NUMBER_OF_ROBOTS - 1);
@@ -1460,10 +1460,10 @@ void game::run_game()
         }
       }
       break;
-    case c::STATE_BACKPASS:
+    case c::STATE_KICKOFF:
       {
         // time limit has passed
-        if (time_ms_ - backpass_time_ >= c::BACKPASS_TIME_LIMIT_MS) {
+        if (time_ms_ - kickoff_time_ >= c::KICKOFF_TIME_LIMIT_MS) {
           game_state_ = c::STATE_DEFAULT;
           unlock_all_robots();
         }
@@ -1471,7 +1471,7 @@ void game::run_game()
           const auto ball_x = std::get<0>(sv_.get_ball_position());
           const auto ball_y = std::get<1>(sv_.get_ball_position());
           // ball has left the center circle
-          if (ball_x*ball_x + ball_y*ball_y > c::BACKPASS_BORDER*c::BACKPASS_BORDER) {
+          if (ball_x*ball_x + ball_y*ball_y > c::KICKOFF_BORDER*c::KICKOFF_BORDER) {
             unlock_all_robots();
             game_state_ = c::STATE_DEFAULT;
           }

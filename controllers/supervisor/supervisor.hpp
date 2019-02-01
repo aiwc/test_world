@@ -108,7 +108,7 @@ public:
       case c::FORMATION_DEFAULT:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_DEFAULT][1]);
         break;
-      case c::FORMATION_BACKPASS:
+      case c::FORMATION_KICKOFF:
         reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_DEFAULT][1]);
         break;
       case c::FORMATION_GOALKICK_A:
