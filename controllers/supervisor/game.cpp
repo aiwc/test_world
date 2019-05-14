@@ -240,6 +240,62 @@ void game::run()
     info_[team] = msgpack::object(info, z_info_);
   }
 
+  // gets commentator information from 'config.json' (commentator is optional)
+  if (config_json.HasMember("commentator") && config_json["commentator"].IsObject()) {
+    const std::string& name   = ((config_json["commentator"].HasMember("name") && config_json["commentator"]["name"].IsString()) ? config_json["commentator"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["commentator"].HasMember("executable") && config_json["commentator"]["executable"].IsString()) ? config_json["commentator"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["commentator"].HasMember("datapath") && config_json["commentator"]["datapath"].IsString()) ? config_json["commentator"]["datapath"].GetString() : "");
+
+    if(!exe.empty()) {
+      // commentator is treated as red team with rating 0
+      const auto ret = player_team_infos_.emplace(std::piecewise_construct,
+                                                  std::make_tuple(random_string(c::KEY_LENGTH)),
+                                                  std::make_tuple(name, 0, path_prefix + exe, path_prefix + data,
+                                                                  ROLE_COMMENTATOR, true)
+                                                  );
+
+      assert(ret.second);
+      _unused(ret);
+
+      std::cout << "Commentator: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
+    }
+    else
+      std::cout << "Commentator \"executable\" is missing: skipping commentator" << std::endl;
+  }
+  else
+    std::cout << "\"commentator\" section of 'config.json' seems to be missing: skipping commentator" << std::endl;
+
+  // gets reporter information from 'config.json' (reporter is optional)
+  if (config_json.HasMember("reporter") && config_json["reporter"].IsObject()) {
+    const std::string& name   = ((config_json["reporter"].HasMember("name") && config_json["reporter"]["name"].IsString()) ? config_json["reporter"]["name"].GetString() : "");
+    const std::string& exe    = ((config_json["reporter"].HasMember("executable") && config_json["reporter"]["executable"].IsString()) ? config_json["reporter"]["executable"].GetString() : "");
+    const std::string& data   = ((config_json["reporter"].HasMember("datapath") && config_json["reporter"]["datapath"].IsString()) ? config_json["reporter"]["datapath"].GetString() : "");
+
+    if(!exe.empty()) {
+      // reporter is treated as red team with rating 0
+      const auto ret = player_team_infos_.emplace(std::piecewise_construct,
+                                                  std::make_tuple(random_string(c::KEY_LENGTH)),
+                                                  std::make_tuple(name, 0, path_prefix + exe, path_prefix + data,
+                                                                  ROLE_REPORTER, true)
+                                                  );
+
+      assert(ret.second);
+      _unused(ret);
+
+      std::cout << "Reporter: " << std::endl;
+      std::cout << "  team name - " << name << std::endl;
+      std::cout << " executable - " << exe << std::endl;
+      std::cout << "  data path - " << data << std::endl << std::endl;
+    }
+    else
+      std::cout << "Reporter \"executable\" is missing: skipping reporter" << std::endl;
+  }
+  else
+    std::cout << "\"reporter\" section of 'config.json' seems to be missing: skipping reporter" << std::endl;
+
   // initialize promises and futures
   bootup_promise_ = {};
   ready_promise_ = {};
@@ -313,7 +369,7 @@ void game::run()
         }
 
         if (record) {
-          // Steop game recording
+          // Stop game recording
           std::cout << "Saving the recorded game as: " << record_fullpath << std::endl;
           std::cout << "Please wait until the message \033[36m\"INFO: Video creation finished.\"\033[0m is shown." << std::endl;
           sv_.movieStopRecording();
@@ -323,6 +379,14 @@ void game::run()
         terminate_participant();
       }
     }
+  }
+
+  // save the report if anything has been written
+  if (report.size() > 0) {
+    std::ofstream rfile(std::string("../../reports/") + config_json["reporter"]["name"].GetString() + ".txt");
+    for (auto& line : report)
+      rfile << line << std::endl;
+    rfile.close();
   }
 
   // stop publishing and wait until publish thread stops
@@ -367,6 +431,8 @@ void game::connect_to_server()
   session_->provide("aiwc.ready",     [&](autobahn::wamp_invocation i) { return on_ready(i); }).get();
   session_->provide("aiwc.get_info",  [&](autobahn::wamp_invocation i) { return on_info(i); }).get();
   session_->provide("aiwc.set_speed", [&](autobahn::wamp_invocation i) { return on_set_speed(i); }).get();
+  session_->provide("aiwc.commentate", [&](autobahn::wamp_invocation i) { return on_commentate(i); }).get();
+  session_->provide("aiwc.report",    [&](autobahn::wamp_invocation i) { return on_report(i); }).get();
 }
 
 void game::run_participant()
@@ -439,7 +505,7 @@ void game::terminate_participant()
 void game::update_label()
 {
   if(half_passed_ == false) {
-    sv_.setLabel(1, "1st Half", 0.45, 0, 0.10, 0x00000000, 0, "Arial");
+    sv_.setLabel(1, "1st Half", 0.45, 0.9, 0.10, 0x00000000, 0, "Arial");
     sv_.setLabel(0,
                  (boost::format("score %d:%d, time %.2f") % score_[0] % score_[1] % (time_ms_ / 1000.)).str(),
                  0.4, 0.95, // x, y
@@ -448,11 +514,23 @@ void game::update_label()
                  );
   }
   else {
-    sv_.setLabel(1, "2nd Half", 0.45, 0, 0.10, 0x00000000, 0, "Arial");
+    sv_.setLabel(1, "2nd Half", 0.45, 0.9, 0.10, 0x00000000, 0, "Arial");
     sv_.setLabel(0,
-                 (boost::format("score %d:%d, time %.2f") % score_[1] % score_[0] % (time_ms_ / 1000.)).str(),
+                 (boost::format("score %d:%d, time %.2f") % score_[1] % score_[0] % ((game_time_ms_ + time_ms_) / 1000.)).str(),
                  0.4, 0.95, // x, y
                  0.10, 0x00000000, // size, color
+                 0, "Arial" // transparency, font
+                 );
+}
+
+  constexpr std::size_t comments_start = 2;
+
+  std::unique_lock<std::mutex> lck(m_comments_);
+  for(std::size_t i = 0; i < comments_.size(); ++i) {
+    sv_.setLabel(comments_start + i,
+                 comments_[i],
+                 0.01, 0.01 + 0.04 * i, // x, y
+                 0.08, 0x00000000, // size, color
                  0, "Arial" // transparency, font
                  );
   }
@@ -918,11 +996,11 @@ void game::publish_current_frame(std::size_t reset_reason)
           }
         }
       }
-      msg.emplace_back("EOF",          msgpack::object(true, z));
       msg.emplace_back("coordinates",
                        msgpack::object(std::make_tuple(robots[T_RED],
                                                        robots[T_BLUE],
                                                        ball), z));
+      msg.emplace_back("EOF",          msgpack::object(true, z));
 
       events.emplace_back(topic,
                           msgpack::object(std::make_tuple(msg), z),
@@ -1643,6 +1721,50 @@ void game::on_set_speed(autobahn::wamp_invocation invocation)
 
     wheel_speed_.write(io_thread_wheel_speed_);
   }
+
+  invocation->empty_result();
+}
+
+// called from io thread.
+void game::on_commentate(autobahn::wamp_invocation invocation)
+{
+  const auto caller      = invocation->argument<std::string>(0);
+
+  // if the caller is not a commentator, then error
+  auto it = player_team_infos_.find(caller);
+  if((it == std::cend(player_team_infos_))
+     || (it->second.role != ROLE_COMMENTATOR)
+     ) {
+    invocation->error("wamp.error.invalid_argument");
+    return;
+  }
+
+  std::unique_lock<std::mutex> lck(m_comments_);
+  if(half_passed_ == false)
+    comments_.push_back((boost::format("[%.2f] ") % (time_ms_ / 1000.)).str() + invocation->argument<std::string>(1));
+  else
+    comments_.push_back((boost::format("[%.2f] ") % ((game_time_ms_ + time_ms_) / 1000.)).str() + invocation->argument<std::string>(1));
+
+  invocation->empty_result();
+}
+
+// called from io thread.
+void game::on_report(autobahn::wamp_invocation invocation)
+{
+  const auto caller      = invocation->argument<std::string>(0);
+
+  // if the caller is not a reporter, then error
+  auto it = player_team_infos_.find(caller);
+  if((it == std::cend(player_team_infos_))
+     || (it->second.role != ROLE_REPORTER)
+     ) {
+    invocation->error("wamp.error.invalid_argument");
+    return;
+  }
+
+  report = invocation->argument<std::vector<std::string>>(1);
+
+  // we will handle this report internally.
 
   invocation->empty_result();
 }

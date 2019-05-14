@@ -44,6 +44,8 @@ class game
 
   enum role_t {
     ROLE_PLAYER = 0,
+    ROLE_COMMENTATOR = 1,
+    ROLE_REPORTER = 2,
   };
 
 public:
@@ -93,6 +95,8 @@ private:
   void on_ready(autobahn::wamp_invocation invocation);
   void on_info(autobahn::wamp_invocation invocation);
   void on_set_speed(autobahn::wamp_invocation invocation);
+  void on_commentate(autobahn::wamp_invocation invocation);
+  void on_report(autobahn::wamp_invocation invocation);
 
 private:
   supervisor& sv_;
@@ -115,6 +119,8 @@ private:
   std::mutex events_mutex_;
   std::condition_variable events_cv_;
   std::deque<std::tuple<std::string, msgpack::object, msgpack::zone> > events_;
+
+  std::vector<std::string> report; // reporter's report if reporter exists
 
   struct team_info
   {
@@ -185,6 +191,9 @@ private:
 
   wheel_speed_t io_thread_wheel_speed_ = {};          // only used in io_thread
   aiwc::spsc_buffer<wheel_speed_t> wheel_speed_ = {}; // producer: io thread, consumer: game thread
+
+  std::mutex m_comments_;
+  boost::circular_buffer<std::string> comments_{constants::NUM_COMMENTS};
 
   std::promise<void> bootup_promise_;
   std::promise<void> ready_promise_;

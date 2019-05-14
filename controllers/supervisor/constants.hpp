@@ -203,6 +203,8 @@ namespace constants {
   constexpr std::size_t CORNERKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr std::size_t PENALTYKICK_TIME_LIMIT_MS = 3 * 1000; // ms
 
+  constexpr std::size_t NUM_COMMENTS = 3;
+
   constexpr std::size_t MSG_MAX_SIZE = 90000; // bytes
 
   enum reason_code {
