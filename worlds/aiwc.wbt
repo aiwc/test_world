@@ -306,6 +306,7 @@ Referee {
       ]
     }
   ]
+  controller "supervisor"
 }
 SoccerField5v5 {
   fieldLength 7.8
@@ -363,12 +364,8 @@ DEF DEF_ROBOTR0 SoccerRobot {
   translation -3.8 0.045 0
   name "R0"
   customData "0 0"
-<<<<<<< HEAD
-  maxSpeed 50
-=======
   controller "soccer_robot"
   maxSpeed 45
->>>>>>> upstream/develop
   slipNoise 0.05
   maxTorque 0.8
   bodyAppearance DarkRed { }
