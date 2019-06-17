@@ -1,9 +1,6 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Inbae Jeong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
-
-# A black and white soccer ball with customizable radius and subdivision
-# Imported and modified by inbae.jeong@gmail.com
 
 PROTO SoccerBallShape [
   field SFFloat radius 0.02135
@@ -15,6 +12,9 @@ PROTO SoccerBallShape [
     children [
       Shape {
         appearance Appearance {
+          material Material {
+            ambientIntensity 0.5
+          }
           texture ImageTexture {
             url [
               "textures/football.jpg"

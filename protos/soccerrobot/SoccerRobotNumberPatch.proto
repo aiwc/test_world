@@ -1,4 +1,4 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static
@@ -7,25 +7,17 @@ PROTO SoccerRobotNumberPatch [
   # fields inherited from Shape
 
   # fields specific to Patch
-  field SFFloat radius 0.0575
-  field SFFloat scale 0.8
-  field SFInt32 id 0 # should be >= 0
+  field SFFloat length 0.15
+  field SFFloat width 0.15
+  # field SFFloat radius 0.0575
+  field SFString role "GK"
   field SFBool isTeamTagRed TRUE
   field SFString name "number_patch"
 ]
 {
   %{
-    -- local variables
-    local radius = fields.radius.value
-    local scale = fields.scale.value
-    local id = fields.id.value
+    -- local variable
     local isTeamTagRed = fields.isTeamTagRed.value
-
-    -- invariants
-    if id < 0 then
-      print("id must be nonnegative. Setting id to 0.\n")
-      id = 0
-    end
   }%
   Solid {
     name IS name
@@ -35,16 +27,17 @@ PROTO SoccerRobotNumberPatch [
         children [
           Shape {
             appearance Appearance {
+              material Material {}
               texture ImageTexture {
                 %{
                   local color
                   if isTeamTagRed then color = 'red' else color = 'blue' end
                 }%
-                url [ "textures/%{=color}%_%{=fields.id.value}%.png" ]
+                url [ "textures/%{=color}%_%{=fields.role.value}%.png" ]
               }
             }
             geometry Plane {
-              size %{=2*radius}% %{=2*radius}%
+              size %{=fields.width.value}% %{=fields.length.value}%
             }
           }
         ]

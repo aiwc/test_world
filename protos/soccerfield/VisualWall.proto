@@ -1,0 +1,283 @@
+#VRML_SIM R2019a utf8
+#Author(s):         Chansol Hong
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
+
+PROTO VisualWall [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFVec3f    scale 1 1 1
+
+  field SFFloat    length 2.2
+  field SFFloat    width 1.8
+  field SFFloat    bannerHeight 0.2
+  field SFFloat    goalWidth 0.4
+  field SFFloat    bannerThickness 0.025
+  field SFFloat    frameThickness 0.01
+
+  field SFFloat    gpTranslation 1.21
+  field SFFloat    gpScale 1
+
+  field SFBool     castShadows FALSE
+  field SFBool     bannerWall  FALSE
+  field SFBool     bannerFront FALSE
+  field SFBool     bannerBehind FALSE
+
+  field SFInt32    bannerHorizontal 8
+  field SFInt32    bannerVertical   2
+
+  field SFFloat    cornerLength 0.07
+
+
+  field SFNode     frameAppearance LightGray { }
+
+  field MFString   url ["textures/kaist.png"]
+  field SFString   name "banner_wall"
+]
+{
+  %{
+    local l    = fields.length.value
+    local w    = fields.width.value
+    local bh   = fields.bannerHeight.value
+    local gw   = fields.goalWidth.value
+    local bt   = fields.bannerThickness.value
+    local gpt  = fields.gpTranslation.value
+    local gps  = fields.gpScale.value
+    local bw   = fields.bannerWall.value
+    local bhor = fields.bannerHorizontal.value
+    local bver = fields.bannerVertical.value
+    local cl   = fields.cornerLength.value
+    local url  = fields.url.value
+
+    local n_urls = 0
+    for _,_ in pairs(url) do
+      n_urls = n_urls + 1
+    end
+
+    local l_trim = l - 2*cl
+    local w_trim = w - 2*cl - 2*bt - gw
+
+    local banner_counter = 0
+  }%
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    children [
+      %{ if bw then }%
+        Transform {
+          translation 0 %{=bh/2}% %{=-w/2 + 0.0005}%
+          rotation 1 0 0 %{=math.pi/2}%
+          children [
+            Shape {
+              appearance Appearance {
+                material Material {
+                  ambientIntensity 1
+                  diffuseColor 1 1 1
+                }
+                texture ImageTexture {
+                  url "%{=url[1]}%"
+                }
+              }
+              geometry Plane {
+                  size %{=5.7377*(bh - 2*fields.frameThickness.value)}% %{=bh - 2*fields.frameThickness.value}%
+              }
+              castShadows IS castShadows
+            }
+          ]
+        }
+      %{ end }%
+      #top
+      %{ for i = 0, (bhor - 1) do }%
+      %{ u = url[banner_counter % n_urls + 1] }%
+        Banner {
+          translation %{=-l_trim/2 + l_trim/(2*bhor) + i*l_trim/bhor}% 0 %{=-w/2 - bt/2}%
+          rotation 0 1 0 %{=3*math.pi/2}%
+          length %{=l_trim/bhor}%
+          height IS bannerHeight
+          bannerThickness IS bannerThickness
+          frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerFront IS bannerFront
+          bannerBehind IS bannerBehind
+          name "%{='t_banner_' .. i}%"
+        }
+      %{banner_counter = banner_counter + 1}%
+      %{end}%
+
+      #right-top
+      %{ for i = 0, (bver - 1) do }%
+      %{ u = url[banner_counter % n_urls + 1] }%
+        Banner {
+          translation %{=l/2 + bt/2}% 0 %{=-w_trim/2 - gw/2 - bt + w_trim/(4*bver) + i*w_trim/(2*bver)}%
+          rotation 0 1 0 %{=math.pi}%
+          length %{=w_trim/(2*bver)}%
+          height IS bannerHeight
+          bannerThickness IS bannerThickness
+          frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerFront IS bannerFront
+          bannerBehind IS bannerBehind
+          name "%{='rt_banner_' .. i}%"
+        }
+      %{banner_counter = banner_counter + 1}%
+      %{end}%
+
+      #right-bottom
+      %{ for i = 0, (bver - 1) do }%
+      %{ u = url[banner_counter % n_urls + 1] }%
+        Banner {
+          translation %{=l/2 + bt/2}% 0 %{=w_trim/2 + gw/2 + bt - w_trim/(4*bver) - (bver - 1 - i)*w_trim/(2*bver)}%
+          rotation 0 1 0 %{=math.pi}%
+          length %{=w_trim/(2*bver)}%
+          height IS bannerHeight
+          bannerThickness IS bannerThickness
+          frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerFront IS bannerFront
+          bannerBehind IS bannerBehind
+          name "%{='rb_banner_' .. i}%"
+        }
+      %{banner_counter = banner_counter + 1}%
+      %{end}%
+
+      #bottom
+      %{ for i = 0, (bhor - 1) do }%
+      %{ u = url[banner_counter % n_urls + 1] }%
+        Banner {
+          translation %{=-l_trim/2 + l_trim/(2*bhor) + (bhor - 1 - i)*l_trim/bhor}% 0 %{=w/2 + bt/2}%
+          rotation 0 1 0 %{=math.pi/2}%
+          length %{=l_trim/bhor}%
+          height IS bannerHeight
+          bannerThickness IS bannerThickness
+          frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerFront IS bannerFront
+          bannerBehind IS bannerBehind
+          name "%{='b_banner_' .. i}%"
+        }
+      %{banner_counter = banner_counter + 1}%
+      %{end}%
+
+      #left-bottom
+      %{ for i = 0, (bver - 1) do }%
+      %{ u = url[banner_counter % n_urls + 1] }%
+        Banner {
+          translation %{=-l/2 - bt/2}% 0 %{=w_trim/2 + gw/2 + bt - w_trim/(4*bver) - i*w_trim/(2*bver)}%
+          rotation 0 1 0 0
+          length %{=w_trim/(2*bver)}%
+          height IS bannerHeight
+          bannerThickness IS bannerThickness
+          frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerFront IS bannerFront
+          bannerBehind IS bannerBehind
+          name "%{='lb_banner_' .. i}%"
+        }
+      %{banner_counter = banner_counter + 1}%
+      %{end}%
+
+      #left-top
+      %{ for i = 0, (bver - 1) do }%
+      %{ u = url[banner_counter % n_urls + 1] }%
+        Banner {
+          translation %{=-l/2 - bt/2}% 0 %{=-w_trim/2 - gw/2 - bt + w_trim/(4*bver) + (bver - 1 - i)*w_trim/(2*bver)}%
+          rotation 0 1 0 0
+          length %{=w_trim/(2*bver)}%
+          height IS bannerHeight
+          bannerThickness IS bannerThickness
+          frameThickness IS frameThickness
+          frameAppearance IS frameAppearance
+          url "%{=u}%"
+          castShadows IS castShadows
+          bannerFront IS bannerFront
+          bannerBehind IS bannerBehind
+          name "%{='lt_banner_' .. i}%"
+        }
+      %{banner_counter = banner_counter + 1}%
+      %{end}%
+
+      #corners
+      Transform { # left_top_corner
+        translation %{=-l / 2}% 0 %{=-w / 2}%
+        children [
+          DEF LEFT_TOP_CORNER Group {
+            children [
+              Shape {
+                appearance IS frameAppearance
+                geometry IndexedFaceSet {
+                  coord Coordinate {
+                    point [
+                      %{=cl}%     0    %{=-bt}%, # 0
+                      %{=cl}%     0           0, # 1
+                      0           0     %{=cl}%, # 2
+                      %{=-bt}%    0     %{=cl}%, # 3
+                      %{=cl}%  %{=bh}% %{=-bt}%, # 4
+                      %{=cl}%  %{=bh}%        0, # 5
+                      0        %{=bh}%  %{=cl}%, # 6
+                      %{=-bt}% %{=bh}%  %{=cl}%, # 7
+                    ]
+                  }
+                  coordIndex [
+                    7 6 5 4 -1 #top
+                    0 1 2 3 -1 #bottom
+                    5 6 2 1 -1 #inner
+                    0 3 7 4 -1 #outer
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+      Transform { # left_bottom_corner
+        translation %{=-l / 2}% 0 %{=w / 2}%
+        rotation 0 1 0 %{=math.pi / 2}%
+        children [
+          USE LEFT_TOP_CORNER
+        ]
+      }
+      Transform { # right_top_corner
+        translation %{=l / 2}% 0 %{=-w / 2}%
+        rotation 0 1 0 %{=-math.pi / 2}%
+        children [
+          USE LEFT_TOP_CORNER
+        ]
+      }
+      Transform { # right_bottom_corner
+        translation %{=l / 2}% 0 %{=w / 2}%
+        rotation 0 1 0 %{=math.pi}%
+        children [
+          USE LEFT_TOP_CORNER
+        ]
+      }
+      Group { # goalposts
+        children [
+          Goalpost {
+            translation %{=-gpt}% 0 0
+            scale %{=gps}% %{=gps}% %{=gps}%
+            castShadows IS castShadows
+            name "goalpost_left"
+          }
+          Goalpost {
+            translation %{=gpt}% 0 0
+            scale %{=gps}% %{=gps}% %{=gps}%
+            rotation 0 1 0 3.141592635
+            castShadows IS castShadows
+            name "goalpost_right"
+          }
+        ]
+      }
+    ]
+  }
+}

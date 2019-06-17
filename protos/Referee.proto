@@ -1,4 +1,4 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
@@ -16,7 +16,7 @@ PROTO Referee [
   field SFBool     synchronization     TRUE
 ]
 {
-  Supervisor {
+  Robot {
     translation     IS translation
     rotation        IS rotation
     scale           IS scale
@@ -28,5 +28,6 @@ PROTO Referee [
     controllerArgs  IS controllerArgs
     synchronization IS synchronization
     controller      "supervisor"
+    supervisor      TRUE
   }
 }

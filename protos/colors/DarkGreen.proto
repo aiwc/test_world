@@ -1,5 +1,5 @@
-#VRML_SIM R2018a utf8
-#Author(s):         Inbae Jeong
+#VRML_SIM R2019a utf8
+#Author(s):         Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 
 PROTO DarkGreen [
@@ -7,7 +7,7 @@ PROTO DarkGreen [
 {
   Appearance {
     material Material {
-      diffuseColor 0.263 0.416 0.098
+      diffuseColor 0.26 0.53 0.17
     }
   }
 }
