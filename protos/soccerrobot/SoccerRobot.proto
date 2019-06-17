@@ -28,6 +28,7 @@ PROTO SoccerRobot [
   field SFFloat    translationStep     0.01        # m
   field SFFloat    rotationStep        0.261799387 # pi/12 rad
   field SFFloat    radarCrossSection   0.0
+  field SFString   controller          "void"
   # field SFString   controllerArgs      ""
   field SFBool     synchronization     TRUE
   field MFFloat    battery             [ ]
@@ -551,7 +552,7 @@ PROTO SoccerRobot [
     translationStep     IS translationStep
     rotationStep        IS rotationStep
     radarCrossSection   IS radarCrossSection
-    controller          "soccer_robot"
+    controller          IS controller
     controllerArgs      "%{=sn}%"
     synchronization     IS synchronization
     battery             IS battery
