@@ -12,6 +12,7 @@ PROTO Referee [
   field SFString   model               ""
   field SFString   description         ""
   field SFString   customData          ""
+  field SFString   controller          ""
   field SFString   controllerArgs      ""
   field SFBool     synchronization     TRUE
 ]
@@ -25,9 +26,9 @@ PROTO Referee [
     model           IS model
     description     IS description
     customData      IS customData
+    controller      IS controller
     controllerArgs  IS controllerArgs
     synchronization IS synchronization
-    controller      "supervisor"
-    supervisor      TRUE
+    supervisor         TRUE
   }
 }
