@@ -63,7 +63,20 @@ class GameSupervisor (Supervisor):
 
     def run(self):
         config_file = open('../../config.json')
-        self.config = json.loads(config_file.read())
+        config = json.loads(config_file.read())
+        game_time_ms = constants.DEFAULT_GAME_TIME_MS / constants.PERIOD_MS * constants.PERIOD_MS
+        deadlock_flag = True
+        if config['rule']:
+            if config['rule']['game_time']:
+                game_time_ms = config['rule']['game_time'] * 1000 / constants.PERIOD_MS * constants.PERIOD_MS
+            if config['rule']['deadlock']:
+                deadlock_flag = config['rule']['deadlock']
+        else:
+            print('"rule" section of \'config.json\' seems to be missing: using default options\n')
+        print('Rules:\n')
+        print('     game duration - ' + str(game_time_ms / 1000) + ' seconds\n')
+        print('          deadlock - ' + str(deadlock_flag) + '\n')
+
         tcp_server = TcpServer(constants.SERVER_IP, constants.SERVER_PORT)
         while True:
             tcp_server.spin()
