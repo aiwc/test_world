@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import os
 import select
 import socket
 
@@ -122,7 +123,7 @@ class GameSupervisor (Supervisor):
             if config[tc_op]:
                 if config[tc_op]['name']:
                     name_op = config[tc_op]['name']
-            player_team_infos.append({name, rating, path_prefix + exe, path_prefix, 'ROLE_PLAYER', team == 'T_RED'})
+            player_team_infos.append([name, rating, path_prefix + exe, path_prefix, 'ROLE_PLAYER', team == 'T_RED'])
             if team == 'T_RED':
                 print('Team A:\n')
             else:
@@ -164,7 +165,7 @@ class GameSupervisor (Supervisor):
             if config['commentator']['datapath']:
                 data = config['commentator']['datapath']
             if exe:  # commentator is treated as red team with rating 0
-                player_team_infos.append({name, 0, path_prefix + exe, path_prefix + data, 'ROLE_COMMENTATOR', True})
+                player_team_infos.append([name, 0, path_prefix + exe, path_prefix + data, 'ROLE_COMMENTATOR', True])
                 print('Commentator:\n')
                 print('  team name - ' + name + '\n')
                 print(' executable - ' + exe + '\n')
@@ -183,7 +184,7 @@ class GameSupervisor (Supervisor):
             if config['reporter']['datapath']:
                 data = config['reporter']['datapath']
             if exe:  # reporter is treated as red team with rating 0
-                player_team_infos.append({name, 0, path_prefix + exe, path_prefix + data, 'ROLE_REPORTER', True})
+                player_team_infos.append([name, 0, path_prefix + exe, path_prefix + data, 'ROLE_REPORTER', True])
                 print('Reporter:\n')
                 print('  team name - ' + name + '\n')
                 print(' executable - ' + exe + '\n')
@@ -197,7 +198,18 @@ class GameSupervisor (Supervisor):
 
         # start participants
         for player_team_info in player_team_infos:
-            print(player_team_info)
+            exe = player_team_info[2]
+            if not os.path.exists(exe):
+                print('Participant controller not found: ' + exe)
+            else:
+                command_line = ''
+                if exe.endswith('.py'):
+                    command_line += 'python '
+                command_line += exe + ' ' + constants.SERVER_IP + ' '
+                command_line += str(constants.SERVER_PORT) + ' '
+                command_line += player_team_info[3] + ' &'
+                print(command_line)
+                os.system(command_line)
         while True:
             tcp_server.spin()
             if self.step(self.timeStep) == -1:
