@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+import json
 import select
 import socket
+
+import constants
 
 from controller import Supervisor
 
@@ -59,7 +62,9 @@ class GameSupervisor (Supervisor):
     timeStep = 10
 
     def run(self):
-        tcp_server = TcpServer('localhost', 5000)
+        config_file = open('../../config.json')
+        self.config = json.loads(config_file.read())
+        tcp_server = TcpServer(constants.SERVER_IP, constants.SERVER_PORT)
         while True:
             tcp_server.spin()
             if self.step(self.timeStep) == -1:
