@@ -47,11 +47,14 @@ class TcpServer:
                     self.connections.append(connection)
                     print('Accepted ', client_address)
                 else:
+                    success = True
                     try:
                         data = s.recv(1024)
                     except socket.error as e:
-                        print('Error caught: ', e.args[0])
-                    if data:
+                        if e.args[0] != 10053:
+                            print('Error caught: ', e.args[0])
+                        success = False
+                    if data and success:
                         print('Received data: ', data)
                         self.send(s, data.decode('utf-8').lower())
                     else:
@@ -217,8 +220,6 @@ class GameSupervisor (Supervisor):
             tcp_server.spin()
             if self.step(self.timeStep) == -1:
                 break
-
-
 
 
 controller = GameSupervisor()
