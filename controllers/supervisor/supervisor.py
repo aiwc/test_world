@@ -25,7 +25,10 @@ class TcpServer:
             self.send(client, message)
 
     def send(self, client, message):  # send message to a single client
-        client.sendall(message.encode('utf-8'))
+        try:
+            client.sendall(message.encode('utf-8'))
+        except ConnectionAbortedError:
+            self.connections.remove(client)
 
     def spin(self):  # handle asynchronous requests from clients
         def cleanup(s):
