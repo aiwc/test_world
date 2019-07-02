@@ -32,7 +32,7 @@ class TcpServer:
         except ConnectionAbortedError:
             self.connections.remove(client)
 
-    def spin(self):  # handle asynchronous requests from clients
+    def spin(self, game_supervisor):  # handle asynchronous requests from clients
         def cleanup(s):
             print('Cleanup')
             if s in self.connections:
@@ -57,8 +57,7 @@ class TcpServer:
                             print('Error caught: ', e.args[0])
                         success = False
                     if data and success:
-                        print('Received data: ', data)
-                        self.send(s, data.decode('utf-8').lower())
+                        game_supervisor.callback(s, data)
                     else:
                         print('Closing')
                         cleanup(s)
@@ -69,6 +68,16 @@ class TcpServer:
 
 class GameSupervisor (Supervisor):
     timeStep = 10
+
+    def callback(self, client, message):
+        if message == b'aiwc.get_info':
+            print('Server receive aiwc.get_info, answering...')
+            client.sendall(json.dumps(self.team_info['T_RED']).encode('utf-8'))
+        elif message == b'aiwc.ready':
+            print('Server receive aiwc.ready, answering...')
+            client.sendall(b'OK')
+        else:
+            print('Server received unknown message', message)
 
     def run(self):
         config_file = open('../../config.json')
@@ -104,7 +113,7 @@ class GameSupervisor (Supervisor):
                 record_path = config['tool']['record_path']
             path_prefix = '../../'
         team_name = {}
-        team_info = {}
+        self.team_info = {}
         # gets the teams' information from 'config.json'
         for team in ['T_RED', 'T_BLUE']:
             if team == 'T_RED':
@@ -162,7 +171,7 @@ class GameSupervisor (Supervisor):
             info['codewords'] = constants.CODEWORDS
             info['game_time'] = game_time_ms / 1000
             info['team_info'] = [[['name', name], ['rating', rating]], [['name', name_op], ['rating', rating_op]]]
-            team_info[team] = info
+            self.team_info[team] = info
 
         # gets commentator information from 'config.json' (commentator is optional)
         if config['commentator']:
@@ -221,7 +230,7 @@ class GameSupervisor (Supervisor):
                 subprocess.Popen(command_line)
         while True:
             sys.stdout.flush()
-            tcp_server.spin()
+            tcp_server.spin(self)
             print("spinning...")
             if self.step(self.timeStep) == -1:
                 break
