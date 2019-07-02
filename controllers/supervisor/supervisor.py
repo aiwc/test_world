@@ -4,10 +4,12 @@ import json
 import os
 import select
 import socket
-
-import constants
+import subprocess
+import sys
 
 from controller import Supervisor
+
+import constants
 
 
 class TcpServer:
@@ -208,16 +210,19 @@ class GameSupervisor (Supervisor):
             if not os.path.exists(exe):
                 print('Participant controller not found: ' + exe)
             else:
-                command_line = ''
+                command_line = []
                 if exe.endswith('.py'):
-                    command_line += 'python '
-                command_line += exe + ' ' + constants.SERVER_IP + ' '
-                command_line += str(constants.SERVER_PORT) + ' '
-                command_line += player_team_info[3] + ' &'
+                    command_line.append('python')
+                command_line.append(exe)
+                command_line.append(constants.SERVER_IP)
+                command_line.append(str(constants.SERVER_PORT))
+                command_line.append(player_team_info[3])
                 print(command_line)
-                os.system(command_line)
+                subprocess.Popen(command_line)
         while True:
+            sys.stdout.flush()
             tcp_server.spin()
+            print("spinning...")
             if self.step(self.timeStep) == -1:
                 break
 
