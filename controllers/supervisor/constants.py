@@ -159,6 +159,8 @@ BALL_POSTURE = [
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 5000
 
+KEY_LENGTH = 10
+
 # Game settings
 WAIT_READY_MS = 30 * 1000  # ms
 WAIT_KILL_MS = 30 * 1000  # ms

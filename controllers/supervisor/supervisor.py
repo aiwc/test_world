@@ -2,14 +2,28 @@
 
 import json
 import os
+import random
 import select
 import socket
+import string
 import subprocess
 import sys
 
 from controller import Supervisor
 
 import constants
+
+
+def random_string(length):
+    """Generate a random string with the combination of lowercase and uppercase letters."""
+    letters = string.ascii_letters
+    return ''.join(random.choice(letters) for i in range(length))
+
+
+def get_key(rpc):
+    """The key is the first argument of the RPC."""
+    first = rpc.find('"') + 1
+    return rpc[first:rpc.find('"', first)]
 
 
 class TcpServer:
@@ -28,9 +42,12 @@ class TcpServer:
 
     def send(self, client, message):  # send message to a single client
         try:
-            client.sendall(message.encode('utf-8'))
+            client.sendall(message.encode())
         except ConnectionAbortedError:
             self.connections.remove(client)
+
+    def ready(self):  # return true when two players are connected
+        return len(self.connections) == 3  # contains the server and two players
 
     def spin(self, game_supervisor):  # handle asynchronous requests from clients
         def cleanup(s):
@@ -57,7 +74,7 @@ class TcpServer:
                             print('Error caught: ', e.args[0])
                         success = False
                     if data and success:
-                        game_supervisor.callback(s, data)
+                        game_supervisor.callback(s, data.decode())
                     else:
                         print('Closing')
                         cleanup(s)
@@ -69,15 +86,41 @@ class TcpServer:
 class GameSupervisor (Supervisor):
     timeStep = 10
 
+    def get_team_color(self, rpc):
+        if self.team_info['T_RED']['key'] == get_key(rpc):
+            return 'T_RED'
+        else:
+            return 'T_BLUE'
+
     def callback(self, client, message):
-        if message == b'aiwc.get_info':
-            print('Server receive aiwc.get_info, answering...')
-            client.sendall(json.dumps(self.team_info['T_RED']).encode('utf-8'))
-        elif message == b'aiwc.ready':
-            print('Server receive aiwc.ready, answering...')
+        if not message.startswith('aiwc.'):
+            print('Error, AIWC RPC messages should start with "aiwc.".')
+            return
+        message = message[5:]
+        color = self.get_team_color(message)
+        self.team_client[color] = client
+        if message.startswith('get_info('):
+            print('Server receive aiwc.get_info from ' + color)
+            client.sendall(json.dumps(self.team_info[color]).encode())
+        elif message.startswith('ready('):
+            self.ready[color] = True
+            print('Server receive aiwc.ready from ' + color)
             client.sendall(b'OK')
+        elif message.startswith('set_speeds('):
+            start = message.find('",') + 2
+            end = message.find(')', start)
+            speed = message[start:end]
+            speed = [float(i) for i in speed.split(',')]
+            print('speeds =', speed)
+            def_robot_prefix = constants.DEF_ROBOT_PREFIX + color[2]
+            for i in range(0, 5):
+                robot = self.getFromDef(def_robot_prefix + str(i))
+                robot.getField('customData').setSFString("%f %f" % (speed[i * 2], speed[i * 2 + 1]))
         else:
             print('Server received unknown message', message)
+
+    def send(self, color, message):
+        self.team_client[color].sendall(message.encode())
 
     def run(self):
         config_file = open('../../config.json')
@@ -114,6 +157,10 @@ class GameSupervisor (Supervisor):
             path_prefix = '../../'
         team_name = {}
         self.team_info = {}
+        self.team_client = {}
+        self.ready = {}
+        self.ready['T_RED'] = False
+        self.ready['T_BLUE'] = False
         # gets the teams' information from 'config.json'
         for team in ['T_RED', 'T_BLUE']:
             if team == 'T_RED':
@@ -171,6 +218,7 @@ class GameSupervisor (Supervisor):
             info['codewords'] = constants.CODEWORDS
             info['game_time'] = game_time_ms / 1000
             info['team_info'] = [[['name', name], ['rating', rating]], [['name', name_op], ['rating', rating_op]]]
+            info['key'] = random_string(constants.KEY_LENGTH)
             self.team_info[team] = info
 
         # gets commentator information from 'config.json' (commentator is optional)
@@ -211,11 +259,12 @@ class GameSupervisor (Supervisor):
         else:
             print('"reporter" section of \'config.json\' seems to be missing: skipping reporter\n')
 
-        tcp_server = TcpServer(constants.SERVER_IP, constants.SERVER_PORT)
+        self.tcp_server = TcpServer(constants.SERVER_IP, constants.SERVER_PORT)
 
         # start participants
         for player_team_info in player_team_infos:
             exe = player_team_info[2]
+            color = 'T_RED' if player_team_info[5] else 'T_BLUE'
             if not os.path.exists(exe):
                 print('Participant controller not found: ' + exe)
             else:
@@ -225,13 +274,25 @@ class GameSupervisor (Supervisor):
                 command_line.append(exe)
                 command_line.append(constants.SERVER_IP)
                 command_line.append(str(constants.SERVER_PORT))
+                command_line.append(self.team_info[color]['key'])
                 command_line.append(player_team_info[3])
                 print(command_line)
                 subprocess.Popen(command_line)
+        self.started = False
+        print('Waiting for player to be ready...')
+        ball = self.getFromDef(constants.DEF_BALL)
         while True:
             sys.stdout.flush()
-            tcp_server.spin(self)
-            print("spinning...")
+            self.tcp_server.spin(self)
+            if not self.started:
+                if self.ready['T_RED'] and self.ready['T_BLUE']:
+                    print('Starting match.')
+                    self.started = True
+            else:
+                for team in ['T_RED', 'T_BLUE']:
+                    # here we should sends more information than just ball position
+                    ball_position = ball.getPosition()
+                    self.send(team, json.dumps(ball_position))
             if self.step(self.timeStep) == -1:
                 break
 

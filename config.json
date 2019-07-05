@@ -10,7 +10,7 @@
   },
   "team_b": {
     "name": "teamB",
-    "executable": "examples/player_rulebased-B_py/player_rulebased-B.py",
+    "executable": "examples_new/player_skeleton.py",
     "datapath": "examples/team_b_data"
   },
   "commentator": {

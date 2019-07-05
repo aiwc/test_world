@@ -1,21 +1,40 @@
 #!/usr/bin/env python
 
+import random
 import socket
 import sys
 
 host = sys.argv[1]
 port = int(sys.argv[2])
-data = sys.argv[3]
+key = sys.argv[3]
+data = sys.argv[4]
 
-print("port = " + str(port))
+
+def send(message, arguments=[]):
+    message = 'aiwc.' + message + '("%s"' % key
+    for argument in arguments:
+        if isinstance(argument, str):  # string
+            message += ', "%s"' % argument
+        else:  # number
+            message += ', %s' % argument
+    message += ')'
+    s.sendall(message.encode())
+
+
+def receive():
+    data = s.recv(1024)
+    return data.decode()
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((host, port))
 print('Client sending aiwc.get_info')
-s.sendall('aiwc.get_info'.encode('utf-8'))
-data = s.recv(1024)
-print('Client received data: ', data.decode('utf-8'))
+send('get_info')
+r = receive()
+print('Client received data: %s' % r)
 print('Client sending aiwc.ready')
-s.sendall('aiwc.ready'.encode('utf-8'))
-data = s.recv(1024)
-print('Client received data: ', data.decode('utf-8'))
+send('ready')
+while True:
+    r = receive()
+    print('Client received data, ball coordinates: %s' % r)
+    send('set_speeds', [random.uniform(-2, 2), random.uniform(-2, 2), 1, 1, 1, -1, -1, 1, -1, -1])
