@@ -96,12 +96,16 @@ class GameSupervisor (Supervisor):
     def __init__(self):
         Supervisor.__init__(self)
         self.receiver = self.getReceiver(constants.NAME_RECV)
+        self.receiver.enable(constants.RECV_PERIOD_MS)
+
+        self.cameraA = self.getCamera(constants.NAME_CAMA)
+        self.cameraA.enable(constants.CAM_PERIOD_MS)
+        self.cameraB = self.getCamera(constants.NAME_CAMB)
+        self.cameraB.enable(constants.CAM_PERIOD_MS)
+
         self.cameraANode = self.getFromDef(constants.DEF_CAMA)
         self.cameraBNode = self.getFromDef(constants.DEF_CAMB)
         self.viewpointNode = self.getFromDef(constants.DEF_AUDVIEW)
-        self.cameraA = self.getCamera(constants.NAME_CAMA)
-        self.cameraA = self.getCamera(constants.NAME_CAMB)
-
         # DEF_GRASS is not visible to cam a and cam b, optional
         grass = self.getFromDef(constants.DEF_GRASS)
         grass.setVisibility(self.cameraANode, False)
