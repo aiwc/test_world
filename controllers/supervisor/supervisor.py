@@ -26,6 +26,13 @@ def get_key(rpc):
     return rpc[first:rpc.find('"', first)]
 
 
+def robot_name(red, id):
+    name = constants.DEF_ROBOT_PREFIX
+    name += 'R' if red else 'B'
+    name += str(id)
+    return name
+
+
 class TcpServer:
     def __init__(self, host, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -85,6 +92,72 @@ class TcpServer:
 
 class GameSupervisor (Supervisor):
     timeStep = 10
+
+    def __init__(self):
+        Supervisor.__init__(self)
+        self.receiver = self.getReceiver(constants.NAME_RECV)
+        self.cameraANode = self.getFromDef(constants.DEF_CAMA)
+        self.cameraBNode = self.getFromDef(constants.DEF_CAMB)
+        self.viewpointNode = self.getFromDef(constants.DEF_AUDVIEW)
+        self.cameraA = self.getCamera(constants.NAME_CAMA)
+        self.cameraA = self.getCamera(constants.NAME_CAMB)
+
+        # DEF_GRASS is not visible to cam a and cam b, optional
+        grass = self.getFromDef(constants.DEF_GRASS)
+        grass.setVisibility(self.cameraANode, False)
+        grass.setVisibility(self.cameraBNode, False)
+        # BALLSHAPE is visible only to viewpoint, ORANGESHAPE is to cam_a and cam_b, mandatory
+        ball = self.getFromDef(constants.DEF_BALLSHAPE)
+        orange = self.getFromDef(constants.DEF_ORANGESHAPE)
+        ball.setVisibility(self.cameraANode, False)
+        ball.setVisibility(self.cameraBNode, False)
+        if orange:
+            orange.setVisibility(self.viewpointNode, False)
+        # Stadium is visible only to viewpoint, optional
+        stadium = self.getFromDef(constants.DEF_STADIUM)
+        if stadium:
+            stadium.setVisibility(self.cameraANode, False)
+            stadium.setVisibility(self.cameraBNode, False)
+        # Robot's gray cover is visible only to robots
+        for team in range(0, 2):
+            for id in range(0, constants.NUMBER_OF_ROBOTS):
+                print(robot_name(True if team == 0 else False, id))
+                robot = self.getFromDef(robot_name(team == 0, id))
+                cover = robot.getField('cover')
+                cover0 = cover.getMFNode(0)
+                cover0.setVisibility(self.viewpointNode, False)
+        # Wall is visible only to robots
+        wall = self.getFromDef(constants.DEF_WALL)
+        if wall:
+            wall.setVisibility(self.viewpointNode, False)
+        # VisualWall is visible only to viewpoint, optional
+        visual_wall = self.getFromDef(constants.DEF_VISWALL)
+        if visual_wall:
+            visual_wall.setVisibility(self.cameraANode, False)
+            visual_wall.setVisibility(self.cameraBNode, False)
+        # patches'
+        for team in range(0, 2):
+            for id in range(0, constants.NUMBER_OF_ROBOTS):
+                robot = self.getFromDef(robot_name(team == 0, id))
+                patches = robot.getField('patches')
+                # number patch for decoration exists
+                if patches.getCount() == 3:
+                    number = patches.getMFNode(0)
+                    id_red = patches.getMFNode(1)
+                    id_blue = patches.getMFNode(2)
+                    number.setVisibility(self.cameraANode, False)
+                    number.setVisibility(self.cameraBNode, False)
+                    id_red.setVisibility(self.viewpointNode, False)
+                    id_red.setVisibility(self.cameraBNode, False)
+                    id_blue.setVisibility(self.viewpointNode, False)
+                    id_blue.setVisibility(self.cameraANode, False)
+                else:  # no decorations
+                    id_red = patches.getMFNode(0)
+                    id_blue = patches.getMFNode(1)
+                    id_red.setVisibility(self.viewpointNode, True)  # useless ?
+                    id_red.setVisibility(self.cameraBNode, False)
+                    id_blue.setVisibility(self.viewpointNode, False)
+                    id_blue.setVisibility(self.cameraANode, False)
 
     def get_team_color(self, rpc):
         if self.team_info['T_RED']['key'] == get_key(rpc):
