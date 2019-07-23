@@ -10,7 +10,6 @@ from player import Player
 
 class RandomWalkPlayer(Player):
     def get_info(self, info):
-        print('get_info data received', info)
         self.number_of_robots = info['number_of_robots']
         self.max_linear_velocity = info['max_linear_velocity']
 
