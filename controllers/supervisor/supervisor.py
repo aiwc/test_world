@@ -48,6 +48,8 @@ class TcpServer:
             self.send(client, message)
 
     def send(self, client, message):  # send message to a single client
+        if client.fileno() == -1:  # was closed
+            return
         try:
             client.sendall(message.encode())
         except ConnectionAbortedError:
@@ -178,26 +180,21 @@ class GameSupervisor (Supervisor):
         self.team_client[color] = client
         if message.startswith('get_info('):
             print('Server receive aiwc.get_info from ' + color)
-            client.sendall(json.dumps(self.team_info[color]).encode())
+            self.tcp_server.send(client, json.dumps(self.team_info[color]))
         elif message.startswith('ready('):
             self.ready[color] = True
             print('Server receive aiwc.ready from ' + color)
-            client.sendall(b'OK')
         elif message.startswith('set_speeds('):
             start = message.find('",') + 2
             end = message.find(')', start)
             speed = message[start:end]
             speed = [float(i) for i in speed.split(',')]
-            print('speeds =', speed)
             def_robot_prefix = constants.DEF_ROBOT_PREFIX + color[2]
             for i in range(0, 5):
                 robot = self.getFromDef(def_robot_prefix + str(i))
                 robot.getField('customData').setSFString("%f %f" % (speed[i * 2], speed[i * 2 + 1]))
         else:
             print('Server received unknown message', message)
-
-    def send(self, color, message):
-        self.team_client[color].sendall(message.encode())
 
     def run(self):
         config_file = open('../../config.json')
@@ -369,7 +366,7 @@ class GameSupervisor (Supervisor):
                 for team in ['T_RED', 'T_BLUE']:
                     # here we should sends more information than just ball position
                     ball_position = ball.getPosition()
-                    self.send(team, json.dumps(ball_position))
+                    self.tcp_server.send(self.team_client[team], json.dumps(ball_position))
             if self.step(self.timeStep) == -1:
                 break
 

@@ -3,15 +3,14 @@
 # Author(s): Luiz Felipe Vecchietti, Chansol Hong, Inbae Jeong
 # Maintainer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
-from __future__ import print_function
-
+import base64
+import json
+import numpy as np
 import random
 import socket
 import sys
 import time
 
-import base64
-import numpy as np
 
 # reset_reason
 NONE = 0
@@ -44,12 +43,12 @@ ACTIVE = 3
 TOUCH = 4
 
 
-class Received_Image(object):
-    def __init__(self, resolution, colorChannels):
+class ReceivedImage(object):
+    def __init__(self, resolution, color_channels):
         self.resolution = resolution
-        self.colorChannels = colorChannels
+        self.color_channels = color_channels
         # need to initialize the matrix at timestep 0
-        self.ImageBuffer = np.zeros((resolution[1], resolution[0], colorChannels))  # rows, columns, colorchannels
+        self.image_buffer = np.zeros((resolution[1], resolution[0], color_channels))  # rows, columns, color channels
 
     def update_image(self, received_parts):
         self.received_parts = received_parts
@@ -59,9 +58,9 @@ class Received_Image(object):
             reshaped_msg = np_msg.reshape((self.received_parts[i].height, self.received_parts[i].width, 3))
             for j in range(0, self.received_parts[i].height):  # y axis
                 for k in range(0, self.received_parts[i].width):  # x axis
-                    self.ImageBuffer[j+self.received_parts[i].y, k+self.received_parts[i].x, 0] = reshaped_msg[j, k, 0]  # blue
-                    self.ImageBuffer[j+self.received_parts[i].y, k+self.received_parts[i].x, 1] = reshaped_msg[j, k, 1]  # green
-                    self.ImageBuffer[j+self.received_parts[i].y, k+self.received_parts[i].x, 2] = reshaped_msg[j, k, 2]  # red
+                    self.image_buffer[j+self.received_parts[i].y, k+self.received_parts[i].x, 0] = reshaped_msg[j, k, 0]  # b
+                    self.image_buffer[j+self.received_parts[i].y, k+self.received_parts[i].x, 1] = reshaped_msg[j, k, 1]  # g
+                    self.image_buffer[j+self.received_parts[i].y, k+self.received_parts[i].x, 2] = reshaped_msg[j, k, 2]  # r
 
 
 class SubImage(object):
@@ -83,11 +82,7 @@ class Frame(object):
         self.half_passed = None
 
 
-class Session():
-    """
-    AI Base + Random Walk
-    """
-
+class Player():
     def __init__(self):
         self.host = sys.argv[1]
         self.port = int(sys.argv[2])
@@ -107,10 +102,14 @@ class Session():
         self.socket.sendall(message.encode())
 
     def receive(self):
-        data = self.socket.recv(1024).decode()
-        return data
+        data = self.socket.recv(1024)
+        return data.decode()
 
-    def init_variables(self, info):
+    def set_speeds(self, speeds):
+        self.send('set_speeds', speeds)
+
+    def get_info(self, info):  # you should override this method
+        print("get_info() method called", info)
         # Here you have the information of the game (virtual init() in random_walk.cpp)
         # List: game_time, number_of_robots
         #       field, goal, penalty_area, goal_area, resolution Dimension: [x, y]
@@ -119,45 +118,27 @@ class Session():
         #       wheel_radius, wheel_mass, ID: [0, 1, 2, 3, 4]
         #       max_linear_velocity, max_torque, codewords, ID: [0, 1, 2, 3, 4]
         # self.game_time = info['game_time']
-        self.number_of_robots = info['number_of_robots']
-
+        # self.number_of_robots = info['number_of_robots']
         # self.field = info['field']
         # self.goal = info['goal']
         # self.penalty_area = info['penalty_area']
         # self.goal_area = info['goal_area']
-        self.resolution = info['resolution']
-
+        # self.resolution = info['resolution']
         # self.ball_radius = info['ball_radius']
         # self.ball_mass = info['ball_mass']
-
         # self.robot_size = info['robot_size']
         # self.robot_height = info['robot_height']
         # self.axle_length = info['axle_length']
         # self.robot_body_mass = info['robot_body_mass']
-
         # self.wheel_radius = info['wheel_radius']
         # self.wheel_mass = info['wheel_mass']
-
-        self.max_linear_velocity = info['max_linear_velocity']
+        # self.max_linear_velocity = info['max_linear_velocity']
         # self.max_torque = info['max_torque']
         # self.codewords = info['codewords']
+        # self.colorChannels = 3
+        # self.image = ReceivedImage(self.resolution, self.colorChannels)
 
-        self.colorChannels = 3
-        self.end_of_frame = False
-        self.image = Received_Image(self.resolution, self.colorChannels)
-        return
-
-    def start(self):
-        self.send('get_info')
-        info = self.receive()
-        self.init_variables(info)
-        self.send('ready')
-        self.receive()
-
-    def set_wheel(self, robot_wheels):
-        self.send('set_speed', robot_wheels)
-
-    def receive_frame(self, f):
+    def get_frame(self, f):  # you should override this method
         # initiate empty frame
         received_frame = Frame()
         received_subimages = []
@@ -182,32 +163,52 @@ class Session():
             self.image.update_image(received_subimages)
         if 'coordinates' in f:
             received_frame.coordinates = f['coordinates']
-        if 'EOF' in f:
-            self.end_of_frame = f['EOF']
 
-        # self.printConsole(received_frame.time)
-        # self.printConsole(received_frame.score)
-        # self.printConsole(received_frame.reset_reason)
-        # self.printConsole(self.end_of_frame)
+        if received_frame.reset_reason == GAME_END:
+            # (virtual finish() in random_walk.cpp)
+            # save your data
+            with open(self.data + '/result.txt', 'w') as output:
+                # output.write('yourvariables')
+                output.close()
+            return False
+        return True
 
-        if (self.end_of_frame):
-            # To get the image at the end of each frame use the variable:
-            # self.image.ImageBuffer
+    def run(self):
+        self.send('get_info')
+        info = self.receive()
+        self.get_info(json.loads(info))
+        self.send('ready')
+        while True:
+            print('RandomWalk step')
+            frame = self.receive()
+            if frame:
+                if not self.get_frame(json.loads(frame)):  # return False if we need to quit
+                    break
 
-            # (virtual update() in random_walk.cpp)
-            wheels = []
-            for i in range(self.number_of_robots):
-                wheels.append(random.uniform(-self.max_linear_velocity[i], self.max_linear_velocity[i]))
-                wheels.append(random.uniform(-self.max_linear_velocity[i], self.max_linear_velocity[i]))
-            self.set_wheel(wheels)
 
-            if received_frame.reset_reason == GAME_END:
-                # (virtual finish() in random_walk.cpp)
-                # save your data
-                with open(self.data + '/result.txt', 'w') as output:
-                    # output.write('yourvariables')
-                    output.close()
-            self.end_of_frame = False
+class RandomWalkPlayer(Player):
+    def get_info(self, info):
+        print('get_info data received', info)
+        self.number_of_robots = info['number_of_robots']
+        self.resolution = info['resolution']
+        self.max_linear_velocity = info['max_linear_velocity']
+        self.color_channels = 3
+        self.image = ReceivedImage(self.resolution, self.color_channels)
+
+    def get_frame(self, frame):
+        if 'reset_reason' in frame and frame['reset_reason'] == GAME_END:
+            return False
+        speeds = []
+        for i in range(self.number_of_robots):
+            speeds.append(random.uniform(-self.max_linear_velocity[i], self.max_linear_velocity[i]))
+            speeds.append(random.uniform(-self.max_linear_velocity[i], self.max_linear_velocity[i]))
+        self.set_speeds(speeds)
+        return True
+
+    def time_callback(self, current_time):
+        print("Time callback: %f" % current_time)
+        return True
+
 
 
 if __name__ == '__main__':
@@ -222,9 +223,7 @@ if __name__ == '__main__':
     def to_unicode(s):
         return unicode(s, "utf-8")
 
-    # create a TCP/IP session object
-    session = Session()
-    session.start()
-    while True:
-        if session.spin(0.05):  # run for 50 ms
-            break
+    # create a player object and run it
+    player = RandomWalkPlayer()
+    print('Started random walk')
+    player.run()
