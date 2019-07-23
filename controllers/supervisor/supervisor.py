@@ -344,6 +344,7 @@ class GameSupervisor (Supervisor):
             else:
                 command_line = []
                 if exe.endswith('.py'):
+                    os.environ['PYTHONPATH'] += os.pathsep + os.path.join(os.getcwd(), 'player_py')
                     command_line.append('python')
                 command_line.append(exe)
                 command_line.append(constants.SERVER_IP)
