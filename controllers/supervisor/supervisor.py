@@ -11,7 +11,7 @@ import sys
 
 from controller import Supervisor
 
-from player_py.player import Frame
+from player_py.player import Game
 
 import constants
 
@@ -78,6 +78,7 @@ class TcpServer:
                     print('Accepted ', client_address)
                 else:
                     success = True
+                    data = None
                     try:
                         data = s.recv(1024)
                     except socket.error as e:
@@ -129,7 +130,6 @@ class GameSupervisor (Supervisor):
         # Robot's gray cover is visible only to robots
         for team in range(0, 2):
             for id in range(0, constants.NUMBER_OF_ROBOTS):
-                print(robot_name(True if team == 0 else False, id))
                 robot = self.getFromDef(robot_name(team == 0, id))
                 cover = robot.getField('cover')
                 cover0 = cover.getMFNode(0)
@@ -168,10 +168,10 @@ class GameSupervisor (Supervisor):
                     id_blue.setVisibility(self.cameraANode, False)
 
     def get_team_color(self, rpc):
-        if self.team_info['T_RED']['key'] == get_key(rpc):
-            return 'T_RED'
+        if self.team_info[0]['key'] == get_key(rpc):
+            return 0
         else:
-            return 'T_BLUE'
+            return 1
 
     def callback(self, client, message):
         if not message.startswith('aiwc.'):
@@ -181,22 +181,60 @@ class GameSupervisor (Supervisor):
         color = self.get_team_color(message)
         self.team_client[color] = client
         if message.startswith('get_info('):
-            print('Server receive aiwc.get_info from ' + color)
+            print('Server receive aiwc.get_info from team ' + str(color))
             self.tcp_server.send(client, json.dumps(self.team_info[color]))
         elif message.startswith('ready('):
             self.ready[color] = True
-            print('Server receive aiwc.ready from ' + color)
+            print('Server receive aiwc.ready from team ' + str(color))
         elif message.startswith('set_speeds('):
             start = message.find('",') + 2
             end = message.find(')', start)
             speed = message[start:end]
             speed = [float(i) for i in speed.split(',')]
-            def_robot_prefix = constants.DEF_ROBOT_PREFIX + color[2]
+            letter = 'R' if color == 0 else 'B'
+            def_robot_prefix = constants.DEF_ROBOT_PREFIX + letter
             for i in range(0, 5):
                 robot = self.getFromDef(def_robot_prefix + str(i))
                 robot.getField('customData').setSFString("%f %f" % (speed[i * 2], speed[i * 2 + 1]))
         else:
             print('Server received unknown message', message)
+
+    def update_positions(self):
+        for t in range(0, 2):
+            for id in range(0, constants.NUMBER_OF_ROBOTS):
+                node = self.robot[t][id]['node']
+                position = node.getPosition()
+                self.robot[t][id]['x'] = position[0]
+                self.robot[t][id]['y'] = position[2]
+                orientation = node.getOrientation()
+                self.robot[t][id]['th'] = orientation[3]
+        self.ball_position = self.ball.getPosition()
+
+    def generate_frame(self, team):
+        opponent = 1 if team == 0 else 0
+        frame = {}
+        frame['time'] = self.getTime()
+        frame['score'] = [self.score[team], self.score[opponent]]
+        frame['reset_reason'] = self.reset_reason
+        frame['game_state'] = self.game_state
+        frame['ball_ownership'] = True if self.ball_ownership == team else False
+        frame['half_passed'] = self.half_passed
+        frame['subimages'] = []
+        frame['opt-coordinates'] = {}
+        frame['opt-coordinates']['robots'] = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
+        for t in range(0, 2):
+            c = team if t == 0 else opponent
+            for id in range(0, constants.NUMBER_OF_ROBOTS):
+                frame['opt-coordinates']['robots'][t][id] = {}
+                frame['opt-coordinates']['robots'][t][id]['x'] = self.robot[c][id]['x']
+                frame['opt-coordinates']['robots'][t][id]['y'] = self.robot[c][id]['y']
+                frame['opt-coordinates']['robots'][t][id]['th'] = self.robot[c][id]['th']
+                frame['opt-coordinates']['robots'][t][id]['active'] = self.robot[c][id]['active']
+                frame['opt-coordinates']['robots'][t][id]['touch'] = self.robot[c][id]['touch']
+        frame['opt-coordinates']['ball'] = {}
+        frame['opt-coordinates']['ball']['x'] = self.ball_position[0]
+        frame['opt-coordinates']['ball']['y'] = self.ball_position[2]
+        return frame
 
     def run(self):
         config_file = open('../../config.json')
@@ -235,11 +273,11 @@ class GameSupervisor (Supervisor):
         self.team_info = {}
         self.team_client = {}
         self.ready = {}
-        self.ready['T_RED'] = False
-        self.ready['T_BLUE'] = False
+        self.ready[0] = False
+        self.ready[1] = False
         # gets the teams' information from 'config.json'
-        for team in ['T_RED', 'T_BLUE']:
-            if team == 'T_RED':
+        for team in [0, 1]:
+            if team == 0:
                 tc = 'team_a'
                 tc_op = 'team_b'
             else:
@@ -263,8 +301,8 @@ class GameSupervisor (Supervisor):
             if config[tc_op]:
                 if config[tc_op]['name']:
                     name_op = config[tc_op]['name']
-            player_team_infos.append([name, rating, path_prefix + exe, path_prefix, 'ROLE_PLAYER', team == 'T_RED'])
-            if team == 'T_RED':
+            player_team_infos.append([name, rating, path_prefix + exe, path_prefix, 'ROLE_PLAYER', team == 0])
+            if team == 0:
                 print('Team A:\n')
             else:
                 print('Team B:\n')
@@ -336,11 +374,29 @@ class GameSupervisor (Supervisor):
             print('"reporter" section of \'config.json\' seems to be missing: skipping reporter\n')
 
         self.tcp_server = TcpServer(constants.SERVER_IP, constants.SERVER_PORT)
-
+        self.ball = self.getFromDef(constants.DEF_BALL)
+        self.score = [0, 0]
+        self.reset_reason = Game.GAME_START
+        self.game_state = Game.STATE_KICKOFF
+        self.ball_ownership = 0  # red
+        self.half_passed = False
+        self.robot = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
+        for t in range(2):
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                node = self.getFromDef(robot_name(t == 0, id))
+                self.robot[t][id] = {}
+                self.robot[t][id]['node'] = node
+                position = node.getPosition()
+                self.robot[t][id]['x'] = position[0]
+                self.robot[t][id]['y'] = position[2]
+                orientation = node.getOrientation()
+                self.robot[t][id]['th'] = orientation[3]
+                self.robot[t][id]['active'] = True
+                self.robot[t][id]['touch'] = False
         # start participants
         for player_team_info in player_team_infos:
             exe = player_team_info[2]
-            color = 'T_RED' if player_team_info[5] else 'T_BLUE'
+            color = 0 if player_team_info[5] else 1
             if not os.path.exists(exe):
                 print('Participant controller not found: ' + exe)
             else:
@@ -357,19 +413,18 @@ class GameSupervisor (Supervisor):
                 subprocess.Popen(command_line)
         self.started = False
         print('Waiting for player to be ready...')
-        ball = self.getFromDef(constants.DEF_BALL)
         while True:
             sys.stdout.flush()
             self.tcp_server.spin(self)
             if not self.started:
-                if self.ready['T_RED'] and self.ready['T_BLUE']:
+                if self.ready[0] and self.ready[1]:
                     print('Starting match.')
                     self.started = True
-            else:
-                for team in ['T_RED', 'T_BLUE']:
-                    # send the frame message
-                    frame = Frame()
-                    frame.ball_position = ball.getPosition()
+            else:  # send the frame message
+                self.update_positions()
+                for team in [0, 1]:
+                    frame = self.generate_frame(team)
+                    print(frame)
                     self.tcp_server.send(self.team_client[team], json.dumps(frame))
             if self.step(self.timeStep) == -1:
                 break

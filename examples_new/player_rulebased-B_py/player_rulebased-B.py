@@ -8,7 +8,7 @@ import numpy as np
 
 import helper
 
-from player import Player, Frame
+from player import Player, Game, Frame
 
 # shotcuts
 X = Player.X
@@ -62,13 +62,13 @@ class RuleBasedBPlayer(Player):
             self.end_of_frame = f['EOF']
 
         if self.end_of_frame:
-            if received_frame.reset_reason != Player.NONE:
+            if received_frame.reset_reason != Game.NONE:
                 self.previous_frame = received_frame
 
             self.get_coord(received_frame)
             self.find_closest_robot()
 
-            if received_frame.reset_reason == Player.EPISODE_END:
+            if received_frame.reset_reason == Game.EPISODE_END:
                 # EPISODE_END is sent instead of GAME_END when 'repeat' option is set to 'true'
                 # to mark the end of episode
                 # you can reinitialize the parameters, count the number of episodes done, etc. here
@@ -76,7 +76,7 @@ class RuleBasedBPlayer(Player):
                 # this example does not do anything at episode end
                 pass
 
-            if received_frame.reset_reason == Player.HALFTIME:
+            if received_frame.reset_reason == Game.HALFTIME:
                 # halftime is met - from next frame, received_frame.half_passed will be set to True
                 # although the simulation switches sides,
                 # coordinates and images given to your AI soccer algorithm will stay the same
@@ -86,7 +86,7 @@ class RuleBasedBPlayer(Player):
                 pass
 
             ##############################################################################
-            if received_frame.game_state == Player.STATE_DEFAULT:
+            if received_frame.game_state == Game.STATE_DEFAULT:
                 # robot functions in STATE_DEFAULT
                 self.goalkeeper(0)
                 self.defender(1)
@@ -96,14 +96,14 @@ class RuleBasedBPlayer(Player):
 
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Player.STATE_KICKOFF:
+        elif received_frame.game_state == Game.STATE_KICKOFF:
                 #  if the ball belongs to my team, initiate kickoff
                 if (received_frame.ball_ownership):
                     self.set_target_position(4, 0, 0, 1.4, 3.0, 0.4, False)
 
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Player.STATE_GOALKICK:
+        elif received_frame.game_state == Game.STATE_GOALKICK:
                 # if the ball belongs to my team,
                 # drive the goalkeeper to kick the ball
                 if (received_frame.ball_ownership):
@@ -111,7 +111,7 @@ class RuleBasedBPlayer(Player):
 
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Player.STATE_CORNERKICK:
+        elif received_frame.game_state == Game.STATE_CORNERKICK:
                 # just play as simple as possible
                 self.goalkeeper(0)
                 self.defender(1)
@@ -120,7 +120,7 @@ class RuleBasedBPlayer(Player):
                 self.forward(4)
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Player.STATE_PENALTYKICK:
+        elif received_frame.game_state == Game.STATE_PENALTYKICK:
             # if the ball belongs to my team,
             # drive the forward to kick the ball
             if received_frame.ball_ownership:

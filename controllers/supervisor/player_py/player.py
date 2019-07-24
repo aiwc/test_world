@@ -14,7 +14,7 @@ class Frame():
         self.half_passed = None
 
 
-class Player():
+class Game():
     # reset_reason
     NONE = 0
     GAME_START = 1
@@ -35,6 +35,8 @@ class Player():
     STATE_CORNERKICK = 3
     STATE_PENALTYKICK = 4
 
+
+class Player():
     # coordinates
     MY_TEAM = 0
     OP_TEAM = 1
@@ -64,7 +66,7 @@ class Player():
         self.socket.sendall(message.encode())
 
     def receive(self):
-        data = self.socket.recv(1024)
+        data = self.socket.recv(4096)
         return data.decode()
 
     def set_speeds(self, speeds):
@@ -101,7 +103,7 @@ class Player():
         # self.image = ReceivedImage(self.resolution, self.colorChannels)
 
     def get_frame(self, frame):  # you should override this method
-        if 'reset_reason' in frame and frame['reset_reason'] == self.GAME_END:
+        if 'reset_reason' in frame and frame['reset_reason'] == Game.GAME_END:
             return False
         return True
 
