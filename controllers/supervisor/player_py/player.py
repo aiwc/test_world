@@ -3,6 +3,17 @@ import socket
 import sys
 
 
+class Frame():
+    def __init__(self):
+        self.time = None
+        self.score = None
+        self.reset_reason = None
+        self.game_state = None
+        self.subimages = None
+        self.coordinates = None
+        self.half_passed = None
+
+
 class Player():
     # reset_reason
     NONE = 0

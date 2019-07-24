@@ -11,6 +11,8 @@ import sys
 
 from controller import Supervisor
 
+from player_py.player import Frame
+
 import constants
 
 
@@ -52,7 +54,7 @@ class TcpServer:
             return
         try:
             client.sendall(message.encode())
-        except ConnectionAbortedError:
+        except socket.ConnectionAbortedError:
             self.connections.remove(client)
 
     def ready(self):  # return true when two players are connected
@@ -365,9 +367,10 @@ class GameSupervisor (Supervisor):
                     self.started = True
             else:
                 for team in ['T_RED', 'T_BLUE']:
-                    # here we should sends more information than just ball position
-                    ball_position = ball.getPosition()
-                    self.tcp_server.send(self.team_client[team], json.dumps(ball_position))
+                    # send the frame message
+                    frame = Frame()
+                    frame.ball_position = ball.getPosition()
+                    self.tcp_server.send(self.team_client[team], json.dumps(frame))
             if self.step(self.timeStep) == -1:
                 break
 
