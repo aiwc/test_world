@@ -5,12 +5,12 @@
   },
   "team_a": {
     "name": "teamA",
-    "executable": "examples_new/player_random-walk_py/player_random-walk.py",
+    "executable": "examples_new/player_rulebased-B_py/player_rulebased-B.py",
     "datapath": "examples/team_a_data"
   },
   "team_b": {
     "name": "teamB",
-    "executable": "examples_new/player_rulebased-B_py/player_rulebased-B.py",
+    "executable": "examples_new/player_random-walk_py/player_random-walk.py",
     "datapath": "examples/team_b_data"
   },
   "commentator": {

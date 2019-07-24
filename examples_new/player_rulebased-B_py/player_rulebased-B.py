@@ -98,6 +98,7 @@ class RuleBasedBPlayer(Player):
             ##############################################################################
         elif received_frame.game_state == Game.STATE_KICKOFF:
                 #  if the ball belongs to my team, initiate kickoff
+                print("Kick off!")
                 if (received_frame.ball_ownership):
                     self.set_target_position(4, 0, 0, 1.4, 3.0, 0.4, False)
 

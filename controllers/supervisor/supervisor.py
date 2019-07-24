@@ -80,7 +80,7 @@ class TcpServer:
                     success = True
                     data = None
                     try:
-                        data = s.recv(1024)
+                        data = s.recv(4096)
                     except socket.error as e:
                         if e.args[0] != 10053:
                             print('Error caught: ', e.args[0])
@@ -198,6 +198,41 @@ class GameSupervisor (Supervisor):
                 robot.getField('customData').setSFString("%f %f" % (speed[i * 2], speed[i * 2 + 1]))
         else:
             print('Server received unknown message', message)
+
+    def reset_ball(self, formation):
+        translation = self.ball.getField('translation')
+        y = 1.5 * constants.BALL_RADIUS
+        f = -1.0 if self.half_passed else 1.0
+        if formation == 'DEFAULT' or formation == 'KICKOFF':
+            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_DEFAULT][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_DEFAULT][1])
+        elif formation == 'GOALKICK_A':
+            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_GOALKICK][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
+        elif formation == 'GOALKICK_D':
+            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_GOALKICK][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
+        elif formation == 'CAD_AD' or formation == 'CAD_DA':
+            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif formation == 'CBC_AD' or formation == 'CBC_DA':
+            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
+                                 f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif formation == 'CAD_AA' or formation == 'CAD_DD':
+            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
+                                 f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif formation == 'CBC_AA' or formation == 'CBC_DD':
+            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif formation == 'PENALTYKICK_A':
+            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
+        elif formation == 'PENALTYKICK_D':
+            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0], y,
+                                 -f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
+
+    def reset(self, red_formation, blue_formation):
+        self.reset_ball(red_formation)
 
     def update_positions(self):
         for t in range(0, 2):
@@ -424,7 +459,6 @@ class GameSupervisor (Supervisor):
                 self.update_positions()
                 for team in [0, 1]:
                     frame = self.generate_frame(team)
-                    print(frame)
                     self.tcp_server.send(self.team_client[team], json.dumps(frame))
             if self.step(self.timeStep) == -1:
                 break
