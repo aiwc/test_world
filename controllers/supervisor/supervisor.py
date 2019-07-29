@@ -173,6 +173,13 @@ class GameSupervisor (Supervisor):
         else:
             return 1
 
+    def set_speeds(self, team, speeds):
+        letter = 'R' if team == 0 else 'B'
+        def_robot_prefix = constants.DEF_ROBOT_PREFIX + letter
+        for i in range(0, 5):
+            robot = self.getFromDef(def_robot_prefix + str(i))
+            robot.getField('customData').setSFString("%f %f" % (speeds[i * 2], speeds[i * 2 + 1]))
+
     def callback(self, client, message):
         if not message.startswith('aiwc.'):
             print('Error, AIWC RPC messages should start with "aiwc.".')
@@ -189,50 +196,90 @@ class GameSupervisor (Supervisor):
         elif message.startswith('set_speeds('):
             start = message.find('",') + 2
             end = message.find(')', start)
-            speed = message[start:end]
-            speed = [float(i) for i in speed.split(',')]
-            letter = 'R' if color == 0 else 'B'
-            def_robot_prefix = constants.DEF_ROBOT_PREFIX + letter
-            for i in range(0, 5):
-                robot = self.getFromDef(def_robot_prefix + str(i))
-                robot.getField('customData').setSFString("%f %f" % (speed[i * 2], speed[i * 2 + 1]))
+            speeds = message[start:end]
+            speeds = [float(i) for i in speeds.split(',')]
+            self.set_speeds(color, speeds)
         else:
             print('Server received unknown message', message)
 
-    def reset_ball(self, formation):
-        translation = self.ball.getField('translation')
-        y = 1.5 * constants.BALL_RADIUS
+    def reset_ball(self, x, z):
         f = -1.0 if self.half_passed else 1.0
-        if formation == 'DEFAULT' or formation == 'KICKOFF':
-            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_DEFAULT][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_DEFAULT][1])
-        elif formation == 'GOALKICK_A':
-            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_GOALKICK][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif formation == 'GOALKICK_D':
-            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_GOALKICK][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif formation == 'CAD_AD' or formation == 'CAD_DA':
-            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif formation == 'CBC_AD' or formation == 'CBC_DA':
-            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
-                                 f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif formation == 'CAD_AA' or formation == 'CAD_DD':
-            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
-                                 f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif formation == 'CBC_AA' or formation == 'CBC_DD':
-            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif formation == 'PENALTYKICK_A':
-            translation.setValue(f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
-        elif formation == 'PENALTYKICK_D':
-            translation.setValue(-f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0], y,
-                                 -f * constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
+        self.ball.getField('translation').setSFVec3f([f * x, 1.5 * constants.BALL_RADIUS, -f * z])
+        self.ball.getField('rotation').setSFRotation([0, 1, 0, 0])
+        self.ball.resetPhysics()
+
+    def reset_robot(self, team, id, x, y, z, th):
+        robot = self.getFromDef(robot_name(team, id))
+        f = -1 if self.half_passed else 1
+        translation = [f * x, y, f * -z]
+        rotation = [0, 1, 0, th + constants.PI if self.half_passed else 0]
+
+        al = robot.getField('axleLength').getSFFloat()
+        h = robot.getField('height').getSFFloat()
+        wr = robot.getField('wheelRadius').getSFFloat()
+
+        lwTranslation = [-al / 2, (-h + 2 * wr) / 2, 0]
+        rwTranslation = [al / 2, (-h + 2 * wr) / 2, 0]
+        wheelRotation = [1, 0, 0, constants.PI / 2]
+
+        robot.getField('translation').setSFVec3f(translation)
+        robot.getField('rotation').setSFRotation(rotation)
+        robot.getField('lwTranslation').setSFVec3f(lwTranslation)
+        robot.getField('lwRotation').setSFRotation(wheelRotation)
+        robot.getField('rwTranslation').setSFVec3f(rwTranslation)
+        robot.getField('rwRotation').setSFRotation(wheelRotation)
+        robot.resetPhysics()
+        self.robot[team][id]['x'] = translation[0]
+        self.robot[team][id]['y'] = translation[2]
+        self.robot[team][id]['th'] = rotation[3]
+        self.robot[team][id]['active'] = True
+        self.robot[team][id]['touch'] = False
+        self.robot[team][id]['fall_time'] = 0
+        self.robot[team][id]['sent_out_time'] = 0
+        self.deadlock_time = self.getTime()
+        self.set_speeds()
 
     def reset(self, red_formation, blue_formation):
-        self.reset_ball(red_formation)
+        # reset the ball
+        if red_formation == 'DEFAULT' or red_formation == 'KICKOFF':
+            self.reset_ball(constants.BALL_POSTURE[constants.BALL_DEFAULT][0],
+                            constants.BALL_POSTURE[constants.BALL_DEFAULT][1])
+        elif red_formation == 'GOALKICK_A':
+            self.reset_ball(constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
+                            constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
+        elif red_formation == 'GOALKICK_D':
+            self.reset_ball(-constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
+                            constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
+        elif red_formation == 'CAD_AD' or red_formation == 'CAD_DA':
+            self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
+                            constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif red_formation == 'CBC_AD' or red_formation == 'CBC_DA':
+            self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
+                            -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif red_formation == 'CAD_AA' or red_formation == 'CAD_DD':
+            self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
+                            -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif red_formation == 'CBC_AA' or red_formation == 'CBC_DD':
+            self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
+                            constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
+        elif red_formation == 'PENALTYKICK_A':
+            self.reset_ball(constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
+                            constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
+        elif red_formation == 'PENALTYKICK_D':
+            self.reset_ball(-constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
+                            constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
+
+        # reset the robots
+        for team in range(2):
+            s = 1 if team == 0 else -1
+            formation = red_formation if team == 0 else blue_formation
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                a = 0 if team == 0 else constants.PI
+                self.reset_robot(team, id,
+                                 constants.ROBOT_FORMATION[formation][id][0] * s,
+                                 constants.ROBOT_HEIGHT[id] / 2,
+                                 constants.ROBOT_FORMATION[formation][id][1] * s,
+                                 constants.ROBOT_FORMATION[formation][id][2] + a - constants.PI / 2)
 
     def update_positions(self):
         for t in range(0, 2):
