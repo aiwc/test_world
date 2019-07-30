@@ -5,6 +5,7 @@
 
 import math
 import numpy as np
+import sys
 
 import helper
 
@@ -64,7 +65,6 @@ class RuleBasedBPlayer(Player):
         if self.end_of_frame:
             if received_frame.reset_reason != Game.NONE:
                 self.previous_frame = received_frame
-
             self.get_coord(received_frame)
             self.find_closest_robot()
 
@@ -96,15 +96,14 @@ class RuleBasedBPlayer(Player):
 
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Game.STATE_KICKOFF:
+            elif received_frame.game_state == Game.STATE_KICKOFF:
                 #  if the ball belongs to my team, initiate kickoff
-                print("Kick off!")
                 if (received_frame.ball_ownership):
                     self.set_target_position(4, 0, 0, 1.4, 3.0, 0.4, False)
 
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Game.STATE_GOALKICK:
+            elif received_frame.game_state == Game.STATE_GOALKICK:
                 # if the ball belongs to my team,
                 # drive the goalkeeper to kick the ball
                 if (received_frame.ball_ownership):
@@ -112,7 +111,7 @@ class RuleBasedBPlayer(Player):
 
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Game.STATE_CORNERKICK:
+            elif received_frame.game_state == Game.STATE_CORNERKICK:
                 # just play as simple as possible
                 self.goalkeeper(0)
                 self.defender(1)
@@ -121,12 +120,12 @@ class RuleBasedBPlayer(Player):
                 self.forward(4)
                 self.set_speeds(self.wheels)
             ##############################################################################
-        elif received_frame.game_state == Game.STATE_PENALTYKICK:
-            # if the ball belongs to my team,
-            # drive the forward to kick the ball
-            if received_frame.ball_ownership:
-                self.set_wheel_velocity(4, self.max_linear_velocity[0], self.max_linear_velocity[0], True)
-            self.set_speeds(self.wheels)
+            elif received_frame.game_state == Game.STATE_PENALTYKICK:
+                # if the ball belongs to my team,
+                # drive the forward to kick the ball
+                if received_frame.ball_ownership:
+                    self.set_wheel_velocity(4, self.max_linear_velocity[0], self.max_linear_velocity[0], True)
+                self.set_speeds(self.wheels)
             ##############################################################################
 
         self.end_of_frame = False
@@ -345,12 +344,12 @@ class RuleBasedBPlayer(Player):
         damping = 0.35
         ka = 0
         sign = 1
-
         # calculate how far the target position is from the robot
         dx = x - self.cur_posture[id][X]
         dy = y - self.cur_posture[id][Y]
         d_e = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
-
+        print('id =', id, 'd_e =', d_e, 'cur = ', self.cur_posture[id][X], self.cur_posture[id][Y], 'delta =', dx, dy)
+        sys.stdout.flush()
         # calculate how much the direction is off
         desired_th = (math.pi / 2) if (dx == 0 and dy == 0) else math.atan2(dy, dx)
         d_th = desired_th - self.cur_posture[id][Player.TH]

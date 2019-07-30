@@ -28,9 +28,9 @@ def get_key(rpc):
     return rpc[first:rpc.find('"', first)]
 
 
-def robot_name(red, id):
+def robot_name(color, id):
     name = constants.DEF_ROBOT_PREFIX
-    name += 'R' if red else 'B'
+    name += 'R' if color == 0 else 'B'
     name += str(id)
     return name
 
@@ -128,9 +128,9 @@ class GameSupervisor (Supervisor):
             stadium.setVisibility(self.cameraANode, False)
             stadium.setVisibility(self.cameraBNode, False)
         # Robot's gray cover is visible only to robots
-        for team in range(0, 2):
-            for id in range(0, constants.NUMBER_OF_ROBOTS):
-                robot = self.getFromDef(robot_name(team == 0, id))
+        for team in range(2):
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                robot = self.getFromDef(robot_name(team, id))
                 cover = robot.getField('cover')
                 cover0 = cover.getMFNode(0)
                 cover0.setVisibility(self.viewpointNode, False)
@@ -144,9 +144,9 @@ class GameSupervisor (Supervisor):
             visual_wall.setVisibility(self.cameraANode, False)
             visual_wall.setVisibility(self.cameraBNode, False)
         # patches'
-        for team in range(0, 2):
-            for id in range(0, constants.NUMBER_OF_ROBOTS):
-                robot = self.getFromDef(robot_name(team == 0, id))
+        for team in range(2):
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                robot = self.getFromDef(robot_name(team, id))
                 patches = robot.getField('patches')
                 # number patch for decoration exists
                 if patches.getCount() == 3:
@@ -176,9 +176,10 @@ class GameSupervisor (Supervisor):
     def set_speeds(self, team, speeds):
         letter = 'R' if team == 0 else 'B'
         def_robot_prefix = constants.DEF_ROBOT_PREFIX + letter
-        for i in range(0, 5):
-            robot = self.getFromDef(def_robot_prefix + str(i))
-            robot.getField('customData').setSFString("%f %f" % (speeds[i * 2], speeds[i * 2 + 1]))
+        for id in range(5):
+            robot = self.getFromDef(def_robot_prefix + str(id))
+            if self.robot[team][id]['active']:
+                robot.getField('customData').setSFString("%f %f" % (speeds[id * 2], speeds[id * 2 + 1]))
 
     def callback(self, client, message):
         if not message.startswith('aiwc.'):
@@ -237,44 +238,49 @@ class GameSupervisor (Supervisor):
         self.robot[team][id]['fall_time'] = 0
         self.robot[team][id]['sent_out_time'] = 0
         self.deadlock_time = self.getTime()
-        self.set_speeds()
+        self.set_speeds(team, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def reset(self, red_formation, blue_formation):
         # reset the ball
-        if red_formation == 'DEFAULT' or red_formation == 'KICKOFF':
+        if red_formation == constants.ROBOT_DEFAULT or red_formation == constants.ROBOT_KICKOFF:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_DEFAULT][0],
                             constants.BALL_POSTURE[constants.BALL_DEFAULT][1])
-        elif red_formation == 'GOALKICK_A':
+        elif red_formation == constants.GOALKICK_A:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
                             constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif red_formation == 'GOALKICK_D':
+        elif red_formation == constants.GOALKICK_D:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
                             constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif red_formation == 'CAD_AD' or red_formation == 'CAD_DA':
+        elif red_formation == constants.CAD_AD or red_formation == constants.CAD_DA:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == 'CBC_AD' or red_formation == 'CBC_DA':
+        elif red_formation == constants.CBC_AD or red_formation == constants.CBC_DA:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == 'CAD_AA' or red_formation == 'CAD_DD':
+        elif red_formation == constants.CAD_AA or red_formation == constants.CAD_DD:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == 'CBC_AA' or red_formation == 'CBC_DD':
+        elif red_formation == constants.CBC_AA or red_formation == constants.CBC_DD:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == 'PENALTYKICK_A':
+        elif red_formation == constants.PENALTYKICK_A:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
-        elif red_formation == 'PENALTYKICK_D':
+        elif red_formation == constants.PENALTYKICK_D:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
 
         # reset the robots
         for team in range(2):
-            s = 1 if team == 0 else -1
-            formation = red_formation if team == 0 else blue_formation
+            if team == 0:
+                s = 1
+                a = 0
+                formation = red_formation
+            else:
+                s = -1
+                a = constants.PI
+                formation = blue_formation
             for id in range(constants.NUMBER_OF_ROBOTS):
-                a = 0 if team == 0 else constants.PI
                 self.reset_robot(team, id,
                                  constants.ROBOT_FORMATION[formation][id][0] * s,
                                  constants.ROBOT_HEIGHT[id] / 2,
@@ -282,8 +288,8 @@ class GameSupervisor (Supervisor):
                                  constants.ROBOT_FORMATION[formation][id][2] + a - constants.PI / 2)
 
     def update_positions(self):
-        for t in range(0, 2):
-            for id in range(0, constants.NUMBER_OF_ROBOTS):
+        for t in range(2):
+            for id in range(constants.NUMBER_OF_ROBOTS):
                 node = self.robot[t][id]['node']
                 position = node.getPosition()
                 self.robot[t][id]['x'] = position[0]
@@ -302,36 +308,56 @@ class GameSupervisor (Supervisor):
         frame['ball_ownership'] = True if self.ball_ownership == team else False
         frame['half_passed'] = self.half_passed
         frame['subimages'] = []
-        frame['opt-coordinates'] = {}
-        frame['opt-coordinates']['robots'] = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
-        for t in range(0, 2):
+        frame['coordinates'] = [None] * 3
+        for t in range(2):
+            frame['coordinates'][t] = [None] * constants.NUMBER_OF_ROBOTS
             c = team if t == 0 else opponent
-            for id in range(0, constants.NUMBER_OF_ROBOTS):
-                frame['opt-coordinates']['robots'][t][id] = {}
-                frame['opt-coordinates']['robots'][t][id]['x'] = self.robot[c][id]['x']
-                frame['opt-coordinates']['robots'][t][id]['y'] = self.robot[c][id]['y']
-                frame['opt-coordinates']['robots'][t][id]['th'] = self.robot[c][id]['th']
-                frame['opt-coordinates']['robots'][t][id]['active'] = self.robot[c][id]['active']
-                frame['opt-coordinates']['robots'][t][id]['touch'] = self.robot[c][id]['touch']
-        frame['opt-coordinates']['ball'] = {}
-        frame['opt-coordinates']['ball']['x'] = self.ball_position[0]
-        frame['opt-coordinates']['ball']['y'] = self.ball_position[2]
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                frame['coordinates'][t][id] = [None] * 5
+                frame['coordinates'][t][id][0] = self.robot[c][id]['x']
+                frame['coordinates'][t][id][1] = self.robot[c][id]['y']
+                frame['coordinates'][t][id][2] = self.robot[c][id]['th']
+                frame['coordinates'][t][id][3] = self.robot[c][id]['active']
+                frame['coordinates'][t][id][4] = self.robot[c][id]['touch']
+        frame['coordinates'][2] = [None] * 2
+        frame['coordinates'][2][0] = self.ball_position[0]
+        frame['coordinates'][2][1] = self.ball_position[2]
+        frame['EOF'] = True
         return frame
+
+    def lock_all_robots(self, locked):
+        for t in range(2):
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                self.robot[t][id]['active'] = not locked
+
+    def stop_robots(self):
+        for t in range(2):
+            self.set_speeds(t, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    def update_label(self):
+        if not self.half_passed:
+            self.setLabel(1, '1st Half', 0.45, 0.9, 0.10, 0x00000000, 0, 'Arial')
+            self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[0], self.score[1], self.time / 1000),
+                          0.4, 0.95, 0.1, 0x00000000, 0, 'Arial')
+        else:
+            self.setLabel(1, '2nd Half', 0.45, 0.9, 0.10, 0x00000000, 0, 'Arial')
+            self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[1], self.score[0], (self.game_time + self.time) / 1000),
+                          0.4, 0.95, 0.10, 0x00000000, 0, 'Arial')
 
     def run(self):
         config_file = open('../../config.json')
         config = json.loads(config_file.read())
-        game_time_ms = constants.DEFAULT_GAME_TIME_MS / constants.PERIOD_MS * constants.PERIOD_MS
+        self.game_time = constants.DEFAULT_GAME_TIME_MS / constants.PERIOD_MS * constants.PERIOD_MS
         deadlock_flag = True
         if config['rule']:
             if config['rule']['game_time']:
-                game_time_ms = config['rule']['game_time'] * 1000 / constants.PERIOD_MS * constants.PERIOD_MS
+                self.game_time = config['rule']['game_time'] * 1000 / constants.PERIOD_MS * constants.PERIOD_MS
             if config['rule']['deadlock']:
                 deadlock_flag = config['rule']['deadlock']
         else:
             print('"rule" section of \'config.json\' seems to be missing: using default options\n')
         print('Rules:\n')
-        print('     game duration - ' + str(game_time_ms / 1000) + ' seconds\n')
+        print('     game duration - ' + str(self.game_time / 1000) + ' seconds\n')
         print('          deadlock - ' + str(deadlock_flag) + '\n')
 
         # gets other options from 'config.json' (if no option is specified, default option is given)
@@ -412,7 +438,7 @@ class GameSupervisor (Supervisor):
             info['resolution'] = [constants.RESOLUTION_X, constants.RESOLUTION_Y]
             info['number_of_robots'] = constants.NUMBER_OF_ROBOTS
             info['codewords'] = constants.CODEWORDS
-            info['game_time'] = game_time_ms / 1000
+            info['game_time'] = self.game_time / 1000
             info['team_info'] = [[['name', name], ['rating', rating]], [['name', name_op], ['rating', rating_op]]]
             info['key'] = random_string(constants.KEY_LENGTH)
             self.team_info[team] = info
@@ -457,15 +483,17 @@ class GameSupervisor (Supervisor):
 
         self.tcp_server = TcpServer(constants.SERVER_IP, constants.SERVER_PORT)
         self.ball = self.getFromDef(constants.DEF_BALL)
+        self.time = 0
+        self.kickoff_time = self.time
         self.score = [0, 0]
+        self.half_passed = False
         self.reset_reason = Game.GAME_START
         self.game_state = Game.STATE_KICKOFF
         self.ball_ownership = 0  # red
-        self.half_passed = False
         self.robot = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
         for t in range(2):
             for id in range(constants.NUMBER_OF_ROBOTS):
-                node = self.getFromDef(robot_name(t == 0, id))
+                node = self.getFromDef(robot_name(t, id))
                 self.robot[t][id] = {}
                 self.robot[t][id]['node'] = node
                 position = node.getPosition()
@@ -475,6 +503,10 @@ class GameSupervisor (Supervisor):
                 self.robot[t][id]['th'] = orientation[3]
                 self.robot[t][id]['active'] = True
                 self.robot[t][id]['touch'] = False
+        self.reset(constants.ROBOT_KICKOFF, constants.ROBOT_DEFAULT)
+        self.lock_all_robots(True)
+        self.robot[0][4]['active'] = True
+
         # start participants
         for player_team_info in player_team_infos:
             exe = player_team_info[2]
@@ -495,6 +527,7 @@ class GameSupervisor (Supervisor):
                 subprocess.Popen(command_line)
         self.started = False
         print('Waiting for player to be ready...')
+        self.update_label()
         while True:
             sys.stdout.flush()
             self.tcp_server.spin(self)
@@ -502,13 +535,48 @@ class GameSupervisor (Supervisor):
                 if self.ready[0] and self.ready[1]:
                     print('Starting match.')
                     self.started = True
-            else:  # send the frame message
-                self.update_positions()
-                for team in [0, 1]:
-                    frame = self.generate_frame(team)
-                    self.tcp_server.send(self.team_client[team], json.dumps(frame))
+                else:
+                    if self.step(self.timeStep) == -1:
+                        break
+                    continue
+            self.update_positions()
+            for team in [0, 1]:
+                frame = self.generate_frame(team)
+                self.tcp_server.send(self.team_client[team], json.dumps(frame))
+            if self.game_state == Game.STATE_DEFAULT:
+                ball_x = self.ball_position[0]
+                ball_y = self.ball_position[2]
+                if abs(ball_x) > constants.FIELD_LENGTH / 2 and abs(ball_y) < constants.GOAL_WIDTH / 2:
+                    goaler = 0 if ball_x > 0 else 1
+                    self.score[goaler] += 1
+                    self.update_label()
+                    # stop all and wait for constants.WAIT_GOAL seconds
+                    self.stop_robots()
+                    self.step(constants.WAIT_GOAL_MS)
+                    self.game_state = Game.STATE_KICKOFF
+                    self.ball_ownership = 1 if ball_x > 0 else 0
+                    self.kickoff_time = self.time
+                    self.reset(constants.ROBOT_KICKOFF if self.ball_ownership == 1 else constants.ROBOT_DEFAULT,
+                               constants.ROBOT_KICKOFF if self.ball_ownership == 1 else constants.ROBOT_DEFAULT)
+                    self.lock_all_robots(True)
+                    self.robot[0 if self.ball_ownership == 0 else 1][4]['active'] = True
+                    self.step(constants.WAIT_STABLE_MS)
+                    self.reset_reason = constants.SCORE_RED_TEAM if ball_x > 0 else constants.SCORE_BLUE_TEAM
+
+            elif self.game_state == Game.STATE_KICKOFF:
+                if self.time - self.kickoff_time >= constants.KICKOFF_TIME_LIMIT_MS:
+                    self.game_state = Game.STATE_DEFAULT
+                    self.lock_all_robots(False)
+                else:
+                    ball_x = self.ball_position[0]
+                    ball_y = self.ball_position[2]
+                    if ball_x * ball_x + ball_y * ball_y > constants.KICKOFF_BORDER * constants.KICKOFF_BORDER:
+                        self.game_state = Game.STATE_DEFAULT
+                        self.lock_all_robots(False)
+                self.deadlock_time = self.time
             if self.step(self.timeStep) == -1:
                 break
+            self.time += self.timeStep
 
 
 controller = GameSupervisor()
