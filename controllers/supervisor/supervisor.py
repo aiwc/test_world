@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import math
 import os
 import random
 import select
@@ -344,6 +345,68 @@ class GameSupervisor (Supervisor):
             self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[1], self.score[0], (self.game_time + self.time) / 1000),
                           0.4, 0.95, 0.10, 0x00000000, 0, 'Arial')
 
+    def mark_half_passed(self):
+        self.cameraANode.getField('rotation').setSFRotation([0, 0, 1, constants.PI])
+        self.cameraBNode.getField('rotation').setSFRotation([0, 0, 1, 0])
+
+    def episode_restart(self):
+        self.cameraANode.getField('rotation').setSFRotation([0, 0, 1, 0])
+        self.cameraBNode.getField('rotation').setSFRotation([0, 0, 1, constants.PI])
+
+    def get_robot_touch_ball(self):
+        rc = [[False] * constants.NUMBER_OF_ROBOTS, [False] * constants.NUMBER_OF_ROBOTS]
+        while self.receiver.getQueueLength() > 0:
+            message = self.receiver.getData()
+            for team in range(2):
+                for id in range(constants.NUMBER_OF_ROBOTS):
+                    if message[2 * id + team] == '1':
+                        rc[team][id] = True
+            self.receiver.nextPacket()
+        return rc
+
+    def get_robot_posture(self, team, id):
+        position = self.robot[team][id]['node'].getPosition()
+        orientation = self.robot[team][id]['node'].getOrientation()
+        f = -1 if self.half_passed else 1
+        x = position[0]
+        y = -position[2]
+        th = (constants.PI if self.half_passed else 0) + math.atan2(orientation[2], orientation[8]) + constants.PI / 2
+        # Squeeze the orientation range to [-PI, PI]
+        while th > constants.PI:
+            th -= 2 * constants.PI
+        while th < -constants.PI:
+            th += 2 * constants.PI
+        stand = orientation[4] > 0.8
+        return [f * x, f * y, th, stand]
+
+    def send_to_foulzone(self, team, id):
+        f = -1 if self.half_passed else 1
+        s = 1 if team == 0 else -1
+        translation = [f * constants.ROBOT_FOUL_POSTURE[id][0] * s,
+                       constants.ROBOT_HEIGHT[id] / 2,
+                       f * -constants.ROBOT_FOUL_POSTURE[id][1] * s]
+        angle = constants.PI if self.half_passed else 0
+        angle += constants.ROBOT_FOUL_POSTURE[id][2]
+        angle += 0 if team == 0 else constants.PI
+        angle -= constants.PI / 2
+        rotation = [0, 1, 0, angle]
+
+        node = self.robot[team][id]['node']
+        al = node.getField('axleLength').getSFFloat()
+        h = node.getField('height').getSFFloat()
+        wr = node.getField('wheelRadius').getSFFloat()
+        lwTranslation = [-al / 2, (-h + 2 * wr) / 2, 0]
+        rwTranslation = [al / 2, (-h + 2 * wr) / 2, 0]
+        wheelRotation = [1, 0, 0, constants.PI / 2]
+        node.getField('translation').setSFVec3f(translation)
+        node.getField('rotation').setSFRotation(rotation)
+        node.getField('customData').setSFString('0 0')
+        node.getField('lwTranslation').setSFVec3f(lwTranslation)
+        node.getField('lwRotation').setSFRotation(wheelRotation)
+        node.getField('rwTranslation').setSFVec3f(rwTranslation)
+        node.getField('rwRotation').setSFRotation(wheelRotation)
+        node.resetPhysics()
+
     def run(self):
         config_file = open('../../config.json')
         config = json.loads(config_file.read())
@@ -527,8 +590,8 @@ class GameSupervisor (Supervisor):
                 subprocess.Popen(command_line)
         self.started = False
         print('Waiting for player to be ready...')
-        self.update_label()
         while True:
+            self.update_label()
             sys.stdout.flush()
             self.tcp_server.spin(self)
             if not self.started:
@@ -540,9 +603,49 @@ class GameSupervisor (Supervisor):
                         break
                     continue
             self.update_positions()
-            for team in [0, 1]:
+            if self.time > self.game_time:  # half of game over
+                if self.half_passed:  # game over
+                    if self.repeat:
+                        self.game_state = Game.EPISODE_END
+                        self.episode_restart()
+                    else:
+                        self.game_state = Game.GAME_END
+                else:  # second half starts with a kickoff by the blue team (1)
+                    self.game_state = Game.HALFTIME
+                    self.mark_half_passed()
+                    self.ball_ownership = 1
+                    self.game_state = Game.KICKOFF
+                    self.kickoff_time = self.time
+                    self.reset(constants.ROBOT_DEFAULT, constants.ROBOT_KICKOFF)
+                    self.lock_all_robots()
+                    self.robot[1][4]['active'] = True
+                self.half_passed = not self.half_passed
+                self.stop_robots()
+                self.step(constants.WAIT_END_MS)
+                self.time = 0
+                self.reset_reason = constants.GAME_START
+            for team in range(2):
                 frame = self.generate_frame(team)
                 self.tcp_server.send(self.team_client[team], json.dumps(frame))
+            # if any of the robots has touched the ball at this frame, update self.recent_touch
+            touch = self.get_robot_touch_ball()
+            for team in range(2):
+                for id in range(constants.NUMBER_OF_ROBOTS):
+                    if touch[team][id]:
+                        self.recent_touch = touch
+                        break
+            # check if any of robots has fallen
+            for team in range(2):
+                for id in range(constants.NUMBER_OF_ROBOTS):
+                    # if a robot has fallen and could not recover for c::FALL_TIME_MS, send the robot to foulzone
+                    if self.robot[team][id]['active'] \
+                       and self.time - self.robot[team][id]['fall_time'] >= constants.FALL_TIME_MS:
+                        self.robot[team][id]['active'] = False
+                        self.send_to_foulzone(team, id)
+                        self.robot[team][id]['sentout_time'] = self.time
+                    elif self.get_robot_posture(team, id)[3]:  # robot is standing properly
+                        self.robot[team][id]['fall_time'] = self.time
+
             if self.game_state == Game.STATE_DEFAULT:
                 ball_x = self.ball_position[0]
                 ball_y = self.ball_position[2]
@@ -550,13 +653,12 @@ class GameSupervisor (Supervisor):
                     goaler = 0 if ball_x > 0 else 1
                     self.score[goaler] += 1
                     self.update_label()
-                    # stop all and wait for constants.WAIT_GOAL seconds
                     self.stop_robots()
                     self.step(constants.WAIT_GOAL_MS)
                     self.game_state = Game.STATE_KICKOFF
                     self.ball_ownership = 1 if ball_x > 0 else 0
                     self.kickoff_time = self.time
-                    self.reset(constants.ROBOT_KICKOFF if self.ball_ownership == 1 else constants.ROBOT_DEFAULT,
+                    self.reset(constants.ROBOT_KICKOFF if self.ball_ownership == 0 else constants.ROBOT_DEFAULT,
                                constants.ROBOT_KICKOFF if self.ball_ownership == 1 else constants.ROBOT_DEFAULT)
                     self.lock_all_robots(True)
                     self.robot[0 if self.ball_ownership == 0 else 1][4]['active'] = True
