@@ -1146,7 +1146,6 @@ class GameSupervisor (Supervisor):
                                 self.relocate_ball(constants.BALL_RELOCATION_D)
                         self.flush_touch_ball()
                         self.step(constants.WAIT_STABLE_MS)
-                        self.resume()
                         self.reset_reason = constants.DEADLOCK
                         self.deadlock_time = self.time
             elif self.game_state == Game.STATE_KICKOFF:
