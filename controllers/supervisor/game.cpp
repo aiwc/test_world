@@ -600,6 +600,18 @@ void game::reset(c::robot_formation red_formation, c::robot_formation blue_forma
     }
   }
 
+  // reset not_in_opponent_penalty_area time
+  for(auto& team_niopa : niopa_time_) {
+    for(auto& robot_niopa : team_niopa) {
+      robot_niopa = time_ms_;
+    }
+  }
+
+  // reset goalkeeper in penalty_area time
+  for(auto& robot_ipa : gk_ipa_time_) {
+    robot_ipa = time_ms_;
+  }
+
   stop_robots();
 
   deadlock_time_ = time_ms_;
@@ -1155,12 +1167,91 @@ void game::run_game()
       }
     }
 
+    // check if any of robots are in the opponent's penalty area
+    {
+      constexpr auto is_in_opponent_goal = [](double x, double y) {
+        return (x > c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
+      };
+      constexpr auto is_in_opponent_penalty_area = [](double x, double y) {
+        return
+        (x <= c::FIELD_LENGTH / 2)
+        && (x > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH)
+        && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2);
+      };
+
+      for(const auto& team : {T_RED, T_BLUE}) {
+        for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; id++) {
+          const auto pos = sv_.get_robot_posture(team == T_RED, id);
+          const double sign = team == T_RED ? 1 : -1;
+
+          const auto x = sign * std::get<0>(pos);
+          const auto y = sign * std::get<1>(pos);
+
+          // if a robot has been in the opponent's penalty area for more than c::IOPA_TIME_LIMIT_MS seconds, the robot is relocated to the initial position
+          if(is_in_opponent_goal(x, y) || is_in_opponent_penalty_area(x,y)) {
+            if (time_ms_ - niopa_time_[team][id] >= c::IOPA_TIME_LIMIT_MS) {
+              const auto ix = sign * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][0];
+              const auto iy = sign * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1];
+              const auto r = 1.5 * c::ROBOT_SIZE[id];
+              // if any object is located within 1.5 * robot_size, the relocation is delayed
+              if(!any_object_nearby(ix, iy, r)) {
+                sv_.return_to_field(team == T_RED, id);
+                niopa_time_[team][id] = time_ms_;
+              }
+            }
+          }
+          else {
+            niopa_time_[team][id] = time_ms_;
+          }
+        }
+      }
+    }
+
+    // check if the goalkeeper is in the own penalty area
+    {
+      constexpr auto is_in_goal = [](double x, double y) {
+        return (x < -c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
+      };
+      constexpr auto is_in_penalty_area = [](double x, double y) {
+        return
+        (x >= -c::FIELD_LENGTH / 2)
+        && (x < -c::FIELD_LENGTH / 2 + c::PENALTY_AREA_DEPTH)
+        && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2);
+      };
+
+      for(const auto& team : {T_RED, T_BLUE}) {
+        const auto pos = sv_.get_robot_posture(team == T_RED, 0);
+        const double sign = team == T_RED ? 1 : -1;
+
+        const auto x = sign * std::get<0>(pos);
+        const auto y = sign * std::get<1>(pos);
+
+        if(is_in_goal(x, y) || is_in_penalty_area(x,y)) {
+          gk_ipa_time_[team] = time_ms_;
+        }
+        // if the goalkeeper has been not in the penalty area for more than c::GK_NIPA_TIME_LIMIT_MS seconds, the robot is returned to the initial position
+        else {
+          if (time_ms_ - gk_ipa_time_[team]>= c::GK_NIPA_TIME_LIMIT_MS) {
+            const auto ix = sign * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][0][0];
+            const auto iy = sign * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][0][1];
+            const auto r = 1.5 * c::ROBOT_SIZE[0];
+            // if any object is located within 1.5 * robot_size, the return is delayed
+            if(!any_object_nearby(ix, iy, r)) {
+              sv_.return_to_field(team == T_RED, 0);
+              gk_ipa_time_[team] = time_ms_;
+            }
+          }
+        }
+      }
+    }
+
     // check rules based on game states
     switch(game_state_) {
     case c::STATE_DEFAULT:
       {
         const auto ball_x = std::get<0>(sv_.get_ball_position());
         const auto ball_y = std::get<1>(sv_.get_ball_position());
+
         if((std::abs(ball_x) > c::FIELD_LENGTH / 2) && (std::abs(ball_y) < c::GOAL_WIDTH /2)) {
             ++score_[(ball_x > 0) ? T_RED : T_BLUE];
             update_label();

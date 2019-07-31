@@ -176,6 +176,8 @@ private:
   std::array<std::array<bool, constants::NUMBER_OF_ROBOTS>, 2> recent_touch_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> sentout_time_;
   std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> fall_time_;
+  std::array<std::array<std::size_t, constants::NUMBER_OF_ROBOTS>, 2> niopa_time_;
+  std::array<std::size_t, 2> gk_ipa_time_;
   std::atomic<bool> paused_{true};
   constants::game_state game_state_;
 
