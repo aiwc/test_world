@@ -566,6 +566,8 @@ class GameSupervisor (Supervisor):
                 self.robot[t][id]['th'] = orientation[3]
                 self.robot[t][id]['active'] = True
                 self.robot[t][id]['touch'] = False
+                self.robot[t][id]['niopa_time'] = self.time  # not_in_opponent_penalty_area time
+                self.robot[t][id]['ipa_time'] = self.time  # goalkeeper in_penalty_area time
         self.reset(constants.ROBOT_KICKOFF, constants.ROBOT_DEFAULT)
         self.lock_all_robots(True)
         self.robot[0][4]['active'] = True
@@ -645,6 +647,62 @@ class GameSupervisor (Supervisor):
                         self.robot[team][id]['sentout_time'] = self.time
                     elif self.get_robot_posture(team, id)[3]:  # robot is standing properly
                         self.robot[team][id]['fall_time'] = self.time
+
+            # check if any of robots are in the opponent's penalty area
+            def is_in_opponent_goal(x, y):
+                return (x > constants.FIELD_LENGTH / 2) and (abs(y) < constants.GOAL_WIDTH / 2)
+
+            def is_in_opponent_penalty_area(x, y):
+                return (x <= constants.FIELD_LENGTH / 2) \
+                   and (x > constants.FIELD_LENGTH / 2 - constants.PENALTY_AREA_DEPTH) \
+                   and (abs(y) < constants.PENALTY_AREA_WIDTH / 2)
+
+            for team in range(2):
+                for id in range(constants.NUMBER_OF_ROBOTS):
+                    pos = self.get_robot_posture(team, id)
+                    sign = 1 if team == 0 else -1
+                    x = sign * pos[0]
+                    y = sign * pos[1]
+                    # if a robot has been in the opponent's penalty area for more than constants.IOPA_TIME_LIMIT_MS seconds,
+                    # the robot is relocated to the initial position
+                    if is_in_opponent_goal(x, y) or is_in_opponent_penalty_area(x, y):
+                        if self.time - self.robot[team][id]['niopa_time'] >= constants.IOPA_TIME_LIMIT_MS:
+                            ix = sign * constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][id][0]
+                            iy = sign * constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][id][1]
+                            r = 1.5 * constants.ROBOT_SIZE[id]
+                            # if any object is located within 1.5 * robot_size, the relocation is delayed
+                            if not self.any_object_nearby(ix, iy, r):
+                                self.return_to_field(team, id)
+                                self.robot[team][id]['niopa_time'] = self.time
+                    else:
+                        self.robot[team][id]['niopa_time'] = self.time
+
+            # check if the goalkeeper is in the own penalty area
+            def is_in_goal(x, y):
+                return (x < -constants.FIELD_LENGTH / 2) and (abs(y) < constants.GOAL_WIDTH / 2)
+
+            def is_in_penalty_area(x, y):
+                return (x >= -constants.FIELD_LENGTH / 2) and \
+                       (x < -constants.FIELD_LENGTH / 2 + constants.PENALTY_AREA_DEPTH) and \
+                       (abs(y) < constants.PENALTY_AREA_WIDTH / 2)
+
+            for team in range(2):
+                pos = self.get_robot_posture(team, 0)
+                sign = 1 if team == 0 else -1
+                x = sign * pos[0]
+                y = sign * pos[1]
+                # if the goalkeeper has been not in the penalty area for more than constants.GK_NIPA_TIME_LIMIT_MS seconds,
+                # the robot is returned to the initial position
+                if is_in_goal(x, y) or is_in_penalty_area(x, y):
+                    self.robot[team][0]['ipa_time'] = self.time
+                elif self.time - self.robot[team][0]['ipa_time'] >= constants.GK_NIPA_TIME_LIMIT_MS:
+                    ix = sign * constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][0][0]
+                    iy = sign * constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][0][1]
+                    r = 1.5 * constants.ROBOT_SIZE[0]
+                    # if any object is located within 1.5 * robot_size, the return is delayed
+                    if not self.any_object_nearby(ix, iy, r):
+                        self.return_to_field(team, 0)
+                        self.robot[team][0]['ipa_time'] = self.time
 
             if self.game_state == Game.STATE_DEFAULT:
                 ball_x = self.ball_position[0]
