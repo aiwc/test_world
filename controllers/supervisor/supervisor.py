@@ -407,6 +407,60 @@ class GameSupervisor (Supervisor):
         node.getField('rwRotation').setSFRotation(wheelRotation)
         node.resetPhysics()
 
+    def return_to_field(self, team, id):
+        robot = self.robot[team][id]['node']
+        f = -1 if self.half_passed else 1
+        s = 1 if team == 0 else -1
+        translation = [f * constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][id][0] * s,
+                       constants.ROBOT_HEIGHT[id] / 2,
+                       f * -constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][id][1] * s]
+        angle = constants.PI if self.half_passed else 0
+        angle += constants.ROBOT_FORMATION[constants.ROBOT_DEFAULT][id][2]
+        angle += 0 if team == 0 else constants.PI
+        angle -= constants.PI / 2
+        rotation = [0, 1, 0, angle]
+        al = robot.getField('axleLength').getSFFloat()
+        h = robot.getField('height').getSFFloat()
+        wr = robot.getField('wheelRadius').getSFFloat()
+        lwTranslation = [-al / 2, (-h + 2 * wr) / 2, 0]
+        rwTranslation = [al / 2, (-h + 2 * wr) / 2, 0]
+        wheelRotation = [1, 0, 0, constants.PI / 2]
+        robot.getField('translation').setSFVec3f(translation)
+        robot.getField('rotation').setSFRotation(rotation)
+        robot.getField('customData').setSFString('0 0')
+        robot.getField('lwTranslation').setSFVec3f(lwTranslation)
+        robot.getField('lwRotation').setSFRotation(wheelRotation)
+        robot.getField('rwTranslation').setSFVec3f(rwTranslation)
+        robot.getField('rwRotation').setSFRotation(wheelRotation)
+        robot.resetPhysics()
+
+    def get_ball_position(self):
+        f = -1 if self.half_passed else 1
+        position = self.ball.getPosition()
+        x = position[0]
+        y = -position[2]
+        return [f * x, f * y]
+
+    def any_object_nearby(self, target_x, target_y, target_r):
+        # check ball position
+        pos = self.get_ball_position()
+        x = pos[0]
+        y = pos[1]
+        dist_sq = (target_x - x) * (target_x - x) + (target_y - y) * (target_y - y)
+        # the ball is within the region
+        if dist_sq < target_r * target_r:
+            return True
+        # check robot positions
+        for team in range(2):
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                pos = self.get_robot_posture(team, id)
+                x = pos[0]
+                y = pos[1]
+                dist_sq = (target_x - x) * (target_x - x) + (target_y - y) * (target_y - y)
+                # a robot is within the region
+                if dist_sq < target_r * target_r:
+                    return True
+
     def run(self):
         config_file = open('../../config.json')
         config = json.loads(config_file.read())
