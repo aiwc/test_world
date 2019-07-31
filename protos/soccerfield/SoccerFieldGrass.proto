@@ -14,7 +14,7 @@ PROTO SoccerFieldGrass [
   field SFFloat  width 3.4
 
   # fields specific to the floor logo
-  field SFBool   useBanner TRUE
+  field SFBool   useBanner FALSE
   field SFString url "textures/logo.png"
   field SFFloat  bannerLength 0.3
   field SFFloat  bannerWidth  1.2
