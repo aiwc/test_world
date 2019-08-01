@@ -348,7 +348,6 @@ class RuleBasedBPlayer(Player):
         dx = x - self.cur_posture[id][X]
         dy = y - self.cur_posture[id][Y]
         d_e = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
-        print('id =', id, 'd_e =', d_e, 'cur = ', self.cur_posture[id][X], self.cur_posture[id][Y], 'delta =', dx, dy)
         sys.stdout.flush()
         # calculate how much the direction is off
         desired_th = (math.pi / 2) if (dx == 0 and dy == 0) else math.atan2(dy, dx)

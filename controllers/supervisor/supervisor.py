@@ -12,7 +12,7 @@ import sys
 
 from controller import Supervisor
 
-from player_py.player import Game
+from player import Game
 
 import constants
 
@@ -169,7 +169,7 @@ class GameSupervisor (Supervisor):
                     id_blue.setVisibility(self.cameraANode, False)
 
     def get_team_color(self, rpc):
-        if self.team_info[0]['key'] == get_key(rpc):
+        if self.team_info[0]['key'] == get_key(rpc): # ISSUE: commentator and reporter will be able to set wheel speeds of blue team
             return 0
         else:
             return 1
@@ -180,7 +180,7 @@ class GameSupervisor (Supervisor):
         for id in range(5):
             robot = self.getFromDef(def_robot_prefix + str(id))
             if self.robot[team][id]['active']:
-                robot.getField('customData').setSFString("%f %f" % (speeds[id * 2], speeds[id * 2 + 1]))
+                robot.getField('customData').setSFString("%f %f" % (speeds[id * 2]/constants.WHEEL_RADIUS[id], speeds[id * 2 + 1]/constants.WHEEL_RADIUS[id]))
 
     def callback(self, client, message):
         if not message.startswith('aiwc.'):
@@ -214,7 +214,7 @@ class GameSupervisor (Supervisor):
         robot = self.getFromDef(robot_name(team, id))
         f = -1 if self.half_passed else 1
         translation = [f * x, y, f * -z]
-        rotation = [0, 1, 0, th + constants.PI if self.half_passed else 0]
+        rotation = [0, 1, 0, th + (constants.PI if self.half_passed else 0)]
 
         al = robot.getField('axleLength').getSFFloat()
         h = robot.getField('height').getSFFloat()

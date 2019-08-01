@@ -2,3 +2,4 @@ worlds/*.wbproj
 controllers/*/build
 plugins/physics/*/build
 *.cache
+*.pyc
