@@ -9,19 +9,16 @@ from player import Player
 
 
 class RandomWalkPlayer(Player):
-    def get_info(self, info):
+    def init(self, info):
         self.number_of_robots = info['number_of_robots']
         self.max_linear_velocity = info['max_linear_velocity']
 
-    def get_frame(self, frame):
-        if not Player.get_frame(self, frame):
-            return False
+    def update(self, frame):
         speeds = []
         for i in range(self.number_of_robots):
             speeds.append(random.uniform(-self.max_linear_velocity[i], self.max_linear_velocity[i]))
             speeds.append(random.uniform(-self.max_linear_velocity[i], self.max_linear_velocity[i]))
         self.set_speeds(speeds)
-        return True
 
 
 if __name__ == '__main__':

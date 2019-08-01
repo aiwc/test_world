@@ -1,40 +1,26 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
+
+# Author(s): Luiz Felipe Vecchietti, Chansol Hong, Inbae Jeong
+# Maintainer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
 import random
-import socket
-import sys
 
-host = sys.argv[1]
-port = int(sys.argv[2])
-key = sys.argv[3]
-data = sys.argv[4]
+from player import Player
 
 
-def send(message, arguments=[]):
-    message = 'aiwc.' + message + '("%s"' % key
-    for argument in arguments:
-        if isinstance(argument, str):  # string
-            message += ', "%s"' % argument
-        else:  # number
-            message += ', %s' % argument
-    message += ')'
-    s.sendall(message.encode())
+class RandomWalkPlayer(Player):
+    def init(self, info):
+        self.number_of_robots = info['number_of_robots']
+        self.max_linear_velocity = info['max_linear_velocity']
+
+    def update(self, frame):
+        speeds = []
+        for i in range(self.number_of_robots):
+            speeds.append(self.max_linear_velocity[i])
+            speeds.append(self.max_linear_velocity[i])
+        self.set_speeds(speeds)
 
 
-def receive():
-    data = s.recv(1024)
-    return data.decode()
-
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((host, port))
-# print('Client sending aiwc.get_info')
-send('get_info')
-r = receive()
-# print('Client received data: %s' % r)
-# print('Client sending aiwc.ready')
-send('ready')
-while True:
-    r = receive()
-    # print('Client received data, ball coordinates: %s' % r)
-    send('set_speeds', [random.uniform(-2, 2), random.uniform(-2, 2), 1, 1, 1, -1, -1, 1, -1, -1])
+if __name__ == '__main__':
+    player = RandomWalkPlayer()
+    player.run()

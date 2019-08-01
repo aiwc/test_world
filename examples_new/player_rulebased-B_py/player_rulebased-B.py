@@ -17,7 +17,7 @@ Y = Player.Y
 
 
 class RuleBasedBPlayer(Player):
-    def get_info(self, info):
+    def init(self, info):
         self.game_time = info['game_time']
         self.number_of_robots = info['number_of_robots']
         self.field = info['field']
@@ -39,9 +39,7 @@ class RuleBasedBPlayer(Player):
         self.atk_idx = 0
         self.wheels = [0 for _ in range(10)]
 
-    def get_frame(self, f):
-        if not Player.get_frame(self, f):
-            return False
+    def update(self, f):
         # initiate empty frame
         received_frame = Frame()
 

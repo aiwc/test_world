@@ -72,47 +72,32 @@ class Player():
     def set_speeds(self, speeds):
         self.send('set_speeds', speeds)
 
-    def get_info(self, info):  # you should override this method
-        print("get_info() method called", info)
-        # Here you have the information of the game
-        # List: game_time, number_of_robots
-        #       field, goal, penalty_area, goal_area, resolution Dimension: [x, y]
-        #       ball_radius, ball_mass,
-        #       robot_size, robot_height, axle_length, robot_body_mass, ID: [0, 1, 2, 3, 4]
-        #       wheel_radius, wheel_mass, ID: [0, 1, 2, 3, 4]
-        #       max_linear_velocity, max_torque, codewords, ID: [0, 1, 2, 3, 4]
-        # self.game_time = info['game_time']
-        # self.number_of_robots = info['number_of_robots']
-        # self.field = info['field']
-        # self.goal = info['goal']
-        # self.penalty_area = info['penalty_area']
-        # self.goal_area = info['goal_area']
-        # self.resolution = info['resolution']
-        # self.ball_radius = info['ball_radius']
-        # self.ball_mass = info['ball_mass']
-        # self.robot_size = info['robot_size']
-        # self.robot_height = info['robot_height']
-        # self.axle_length = info['axle_length']
-        # self.robot_body_mass = info['robot_body_mass']
-        # self.wheel_radius = info['wheel_radius']
-        # self.wheel_mass = info['wheel_mass']
-        # self.max_linear_velocity = info['max_linear_velocity']
-        # self.max_torque = info['max_torque']
-        # self.codewords = info['codewords']
-        # self.color_channels = 3
-        # self.image = ReceivedImage(self.resolution, self.colorChannels)
-
-    def get_frame(self, frame):  # you should override this method
+    def check_frame(self, frame):  # you should override this method
         if 'reset_reason' in frame and frame['reset_reason'] == Game.GAME_END:
             return False
         return True
 
+    def init(self, info):  # you should override this method
+        print("init() method called")
+
+    def update(self, frame): # you should override this method
+        print("update() method called")
+
+    def finish(self): # you should override this method
+        print("finish() method called")
+
     def run(self):
         self.send('get_info')
         info = self.receive()
-        self.get_info(json.loads(info))
+
+        self.init(json.loads(info))
+
         self.send('ready')
+
         while True:
             frame = self.receive()
-            if not frame or not self.get_frame(json.loads(frame)):  # return False if we need to quit
+            if frame and self.check_frame(json.loads(frame)): # return False if we need to quit
+                self.update(json.loads(frame))
+            else:
+                self.finish()
                 break
