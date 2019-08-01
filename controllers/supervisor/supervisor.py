@@ -815,28 +815,29 @@ class GameSupervisor (Supervisor):
             self.update_positions()
             if self.time > self.game_time:  # half of game over
                 if self.half_passed:  # game over
-                    if self.repeat:
-                        self.game_state = Game.EPISODE_END
+                    if repeat:
+                        self.reset_reason = Game.EPISODE_END
                         self.episode_restart()
                     else:
-                        self.game_state = Game.GAME_END
+                        self.reset_reason = Game.GAME_END
                 else:  # second half starts with a kickoff by the blue team (1)
-                    self.game_state = Game.HALFTIME
+                    self.reset_reason = Game.HALFTIME
                     self.mark_half_passed()
                     self.ball_ownership = 1
-                    self.game_state = Game.KICKOFF
+                    self.game_state = Game.STATE_KICKOFF
+                    self.time = 0
                     self.kickoff_time = self.time
                     self.reset(constants.FORMATION_DEFAULT, constants.FORMATION_KICKOFF)
-                    self.lock_all_robots()
+                    self.lock_all_robots(True)
                     self.robot[1][4]['active'] = True
                 self.half_passed = not self.half_passed
                 self.stop_robots()
                 self.step(constants.WAIT_END_MS)
-                self.time = 0
-                self.reset_reason = constants.GAME_START
             for team in range(2):
                 frame = self.generate_frame(team)
                 self.tcp_server.send(self.team_client[team], json.dumps(frame))
+            if self.reset_reason == Game.GAME_END:
+                return
             # if any of the robots has touched the ball at this frame, update self.recent_touch
             touch = self.get_robot_touch_ball()
             for team in range(2):
