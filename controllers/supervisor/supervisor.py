@@ -9,6 +9,7 @@ import socket
 import string
 import subprocess
 import sys
+import collections
 
 from controller import Supervisor
 
@@ -168,6 +169,12 @@ class GameSupervisor (Supervisor):
                     id_blue.setVisibility(self.viewpointNode, False)
                     id_blue.setVisibility(self.cameraANode, False)
 
+
+        # comment buffer
+        self.comments_ = collections.deque(maxlen=constants.NUM_COMMENTS)
+        for t in range(constants.NUM_COMMENTS): # fill with dummies
+            self.comments_.append('')
+
     def get_team_color(self, rpc):
         if self.team_info[0]['key'] == get_key(rpc): # ISSUE: commentator and reporter will be able to set wheel speeds of blue team
             return 0
@@ -201,6 +208,10 @@ class GameSupervisor (Supervisor):
             speeds = message[start:end]
             speeds = [float(i) for i in speeds.split(',')]
             self.set_speeds(color, speeds)
+        elif message.startswith('commentate('):
+            start = message.find('",') + 2
+            comment = '[{:.2f}] {}'.format(self.time / 1000., message[start:-1])
+            self.comments_.append(comment)
         else:
             print('Server received unknown message', message)
 
@@ -338,12 +349,17 @@ class GameSupervisor (Supervisor):
     def update_label(self):
         if not self.half_passed:
             self.setLabel(1, '1st Half', 0.45, 0.9, 0.10, 0x00000000, 0, 'Arial')
-            self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[0], self.score[1], self.time / 1000),
+            self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[0], self.score[1], self.time / 1000.),
                           0.4, 0.95, 0.1, 0x00000000, 0, 'Arial')
         else:
             self.setLabel(1, '2nd Half', 0.45, 0.9, 0.10, 0x00000000, 0, 'Arial')
-            self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[1], self.score[0], (self.game_time + self.time) / 1000),
+            self.setLabel(0, 'score %d:%d, time %.2f' % (self.score[1], self.score[0], (self.game_time + self.time) / 1000.),
                           0.4, 0.95, 0.10, 0x00000000, 0, 'Arial')
+
+        comments_start = 2
+
+        for t in range(constants.NUM_COMMENTS):
+            self.setLabel(comments_start + t, self.comments_[t], 0.01, 0.01 + 0.04 * t, 0.08, 0x00000000, 0, 'Arial')
 
     def mark_half_passed(self):
         self.cameraANode.getField('rotation').setSFRotation([0, 0, 1, constants.PI])
@@ -716,6 +732,10 @@ class GameSupervisor (Supervisor):
 
         # gets commentator information from 'config.json' (commentator is optional)
         if config['commentator']:
+            name = ''
+            exe = ''
+            data = ''
+
             if config['commentator']['name']:
                 name = config['commentator']['name']
             if config['commentator']['executable']:
@@ -735,6 +755,10 @@ class GameSupervisor (Supervisor):
 
         #  gets reporter information from 'config.json' (reporter is optional)
         if config['reporter']:
+            name = ''
+            exe = ''
+            data = ''
+
             if config['reporter']['name']:
                 name = config['reporter']['name']
             if config['reporter']['executable']:

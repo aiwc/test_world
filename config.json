@@ -15,7 +15,7 @@
   },
   "commentator": {
     "name": "commentator",
-    "executable": "examples/commentator_skeleton_py/commentator_skeleton.py",
+    "executable": "examples_new/commentator_skeleton_py/commentator_skeleton.py",
     "datapath": "examples/commentator_data"
   },
   "reporter": {
