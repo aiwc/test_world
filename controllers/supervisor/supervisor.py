@@ -22,6 +22,7 @@ TEAM_BLUE = 1
 COMMENTATOR = 2
 REPORTER = 3
 ROLES = [TEAM_RED, TEAM_BLUE, COMMENTATOR, REPORTER]
+TEAMS = [TEAM_RED, TEAM_BLUE]
 
 
 def random_string(length):
@@ -36,19 +37,23 @@ def get_key(rpc):
     return rpc[first:rpc.find('"', first)]
 
 
-def robot_name(color, id):
+def get_robot_name(color, id):
     name = constants.DEF_ROBOT_PREFIX
     if color == TEAM_RED:
         name += 'R'
     elif color == TEAM_BLUE:
         name += 'B'
     else:
-        sys.stderr.write("Error: robot_name: Invalid team color.\n")
+        sys.stderr.write("Error: get_robot_name: Invalid team color.\n")
     name += str(id)
     return name
 
 
-def role_name(role):
+def get_team(role):
+    return TEAM_BLUE if role == TEAM_BLUE else TEAM_RED
+
+
+def get_role_name(role):
     if role == TEAM_RED:
         return 'team red'
     if role == TEAM_BLUE:
@@ -57,7 +62,7 @@ def role_name(role):
         return 'commentator'
     if role == REPORTER:
         return 'reporter'
-    sys.stderr.write("Error: role_name: Invalid role.\n")
+    sys.stderr.write("Error: get_role_name: Invalid role.\n")
     return ''
 
 
@@ -153,9 +158,9 @@ class GameSupervisor (Supervisor):
             stadium.setVisibility(self.cameraANode, False)
             stadium.setVisibility(self.cameraBNode, False)
         # Robot's gray cover is visible only to robots
-        for team in range(2):
+        for team in TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
-                robot = self.getFromDef(robot_name(team, id))
+                robot = self.getFromDef(get_robot_name(team, id))
                 cover = robot.getField('cover')
                 cover0 = cover.getMFNode(0)
                 cover0.setVisibility(self.viewpointNode, False)
@@ -169,9 +174,9 @@ class GameSupervisor (Supervisor):
             visual_wall.setVisibility(self.cameraANode, False)
             visual_wall.setVisibility(self.cameraBNode, False)
         # patches'
-        for team in range(2):
+        for team in TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
-                robot = self.getFromDef(robot_name(team, id))
+                robot = self.getFromDef(get_robot_name(team, id))
                 patches = robot.getField('patches')
                 # number patch for decoration exists
                 if patches.getCount() == 3:
@@ -192,10 +197,9 @@ class GameSupervisor (Supervisor):
                     id_blue.setVisibility(self.viewpointNode, False)
                     id_blue.setVisibility(self.cameraANode, False)
 
-
         # comment buffer
         self.comments_ = collections.deque(maxlen=constants.NUM_COMMENTS)
-        for t in range(constants.NUM_COMMENTS): # fill with dummies
+        for t in range(constants.NUM_COMMENTS):  # fill with dummies
             self.comments_.append('')
 
     def get_role(self, rpc):
@@ -223,11 +227,11 @@ class GameSupervisor (Supervisor):
         role = self.get_role(message)
         self.role_client[role] = client
         if message.startswith('get_info('):
-            print('Server receive aiwc.get_info from ' + role_name(role))
-            self.tcp_server.send(client, json.dumps(self.role_info[role]))
+            print('Server receive aiwc.get_info from ' + get_role_name(role))
+            self.tcp_server.send(client, json.dumps(self.role_info[TEAM_RED]))
         elif message.startswith('ready('):
             self.ready[role] = True
-            print('Server receive aiwc.ready from ' + role_name(role))
+            print('Server receive aiwc.ready from ' + get_role_name(role))
         elif message.startswith('set_speeds('):
             if (role > TEAM_BLUE):
                 sys.stderr.write("Error, commentator and reporter cannot change robot speed.\n")
@@ -260,7 +264,7 @@ class GameSupervisor (Supervisor):
         self.ball.resetPhysics()
 
     def reset_robot(self, team, id, x, y, z, th):
-        robot = self.getFromDef(robot_name(team, id))
+        robot = self.getFromDef(get_robot_name(team, id))
         f = -1 if self.half_passed else 1
         translation = [f * x, y, f * -z]
         rotation = [0, 1, 0, th + (constants.PI if self.half_passed else 0)]
@@ -321,7 +325,7 @@ class GameSupervisor (Supervisor):
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
 
         # reset the robots
-        for team in range(2):
+        for team in TEAMS:
             if team == 0:
                 s = 1
                 a = 0
@@ -411,7 +415,7 @@ class GameSupervisor (Supervisor):
         rc = [[False] * constants.NUMBER_OF_ROBOTS, [False] * constants.NUMBER_OF_ROBOTS]
         while self.receiver.getQueueLength() > 0:
             message = self.receiver.getData()
-            for team in range(2):
+            for team in TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     if message[2 * id + team] == '1':
                         rc[team][id] = True
@@ -511,7 +515,7 @@ class GameSupervisor (Supervisor):
         s_x = 1 if ball_x > 0 else -1
         s_y = 1 if ball_y > 0 else -1
         # count the robots and distance from the ball in the corner region of concern
-        for team in range(2):
+        for team in TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 if not self.robot[team][id]['active']:
                     continue
@@ -544,7 +548,7 @@ class GameSupervisor (Supervisor):
         robot_distance = [0, 0]
         s_x = 1 if ball_x > 0 else -1
         # count the robots and distance from the ball in the penalty area of concern
-        for team in range(2):
+        for team in TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 if not self.robot[team][id]['active']:
                     continue
@@ -580,7 +584,7 @@ class GameSupervisor (Supervisor):
             return False
         s_x = 1 if ball_x > 0 else -1
         # count the robots and distance from the ball in the penalty area of concern
-        for team in range(2):
+        for team in TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 if not self.robot[team][id]['active']:
                     continue
@@ -659,7 +663,7 @@ class GameSupervisor (Supervisor):
         if dist_sq < target_r * target_r:
             return True
         # check robot positions
-        for team in range(2):
+        for team in TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 pos = self.get_robot_posture(team, id)
                 x = pos[0]
@@ -707,8 +711,8 @@ class GameSupervisor (Supervisor):
         self.role_client = {}
         self.ready = [False] * 4  # TEAM_RED, TEAM_BLUE, COMMENTATOR, REPORTER
         # gets the teams' information from 'config.json'
-        for team in [0, 1]:
-            if team == 0:
+        for team in TEAMS:
+            if team == TEAM_RED:
                 tc = 'team_a'
                 tc_op = 'team_b'
             else:
@@ -737,7 +741,7 @@ class GameSupervisor (Supervisor):
                 'rating': rating,
                 'exe': path_prefix + exe,
                 'path_prefix': path_prefix,
-                'role': TEAM_RED if team == 0 else TEAM_BLUE
+                'role': team
             })
 
             if team == 0:
@@ -852,7 +856,7 @@ class GameSupervisor (Supervisor):
         self.robot = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
         for t in range(2):
             for id in range(constants.NUMBER_OF_ROBOTS):
-                node = self.getFromDef(robot_name(t, id))
+                node = self.getFromDef(get_robot_name(t, id))
                 self.robot[t][id] = {}
                 self.robot[t][id]['node'] = node
                 position = node.getPosition()
@@ -920,9 +924,13 @@ class GameSupervisor (Supervisor):
                 self.half_passed = not self.half_passed
                 self.stop_robots()
                 self.step(constants.WAIT_END_MS)
-            for team in range(2):
-                frame = self.generate_frame(team)
-                self.tcp_server.send(self.role_client[team], json.dumps(frame))
+
+            frame_team_red = self.generate_frame(TEAM_RED)  # frame also sent to commentator and reporter
+            frame_team_blue = self.generate_frame(TEAM_BLUE)
+            for role in ROLES:
+                if role in self.role_client:
+                    frame = frame_team_blue if role == TEAM_BLUE else frame_team_red
+                    self.tcp_server.send(self.role_client[role], json.dumps(frame))
             if self.reset_reason == Game.GAME_END:
                 return
             # if any of the robots has touched the ball at this frame, update self.recent_touch
