@@ -40,7 +40,7 @@ Player::~Player() {
 void Player::sendToServer(std::string message, std::string arguments) {
   std::string toSend = "aiwc." + message + "(\"" + mKey + "\"";
   if (arguments.size() > 0)
-    toSend += ',' + arguments;
+    toSend += ", " + arguments;
   toSend += ")";
   const char *toSendString = toSend.c_str();
   send(mConnFd, (void *)toSendString, strlen(toSendString) * sizeof(char), 0);
@@ -56,8 +56,8 @@ json Player::receive() {
 void Player::setSpeeds(std::vector<double> speeds) {
   std::string arguments = "";
   for (unsigned i = 0; i < speeds.size(); i++)
-    arguments += std::to_string(speeds[i]) + ",";
-  arguments = arguments.substr(0, arguments.size() - 1);
+    arguments += std::to_string(speeds[i]) + ", ";
+  arguments = arguments.substr(0, arguments.size() - 2);
   sendToServer("set_speeds", arguments);
 }
 

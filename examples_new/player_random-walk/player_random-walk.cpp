@@ -14,7 +14,7 @@ public:
   void update(json frame) override {
     std::vector<double> speeds;
     for (int i = 0; i < 2 * mNumberOfRobots; ++i)
-      speeds.push_back(2.0 * mMaxSpeed * (0.5 - rand() / RAND_MAX));
+      speeds.push_back(2.0 * mMaxSpeed * (0.5 - (double)rand() / RAND_MAX));
     setSpeeds(speeds);
   }
 
