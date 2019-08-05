@@ -299,28 +299,28 @@ class GameSupervisor (Supervisor):
         if red_formation == constants.FORMATION_DEFAULT or red_formation == constants.FORMATION_KICKOFF:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_DEFAULT][0],
                             constants.BALL_POSTURE[constants.BALL_DEFAULT][1])
-        elif red_formation == constants.GOALKICK_A:
+        elif red_formation == constants.FORMATION_GOALKICK_A:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
                             constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif red_formation == constants.GOALKICK_D:
+        elif red_formation == constants.FORMATION_GOALKICK_D:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
                             constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif red_formation == constants.CAD_AD or red_formation == constants.CAD_DA:
+        elif red_formation == constants.FORMATION_CAD_AD or red_formation == constants.FORMATION_CAD_DA:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.CBC_AD or red_formation == constants.CBC_DA:
+        elif red_formation == constants.FORMATION_CBC_AD or red_formation == constants.FORMATION_CBC_DA:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.CAD_AA or red_formation == constants.CAD_DD:
+        elif red_formation == constants.FORMATION_CAD_AA or red_formation == constants.FORMATION_CAD_DD:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.CBC_AA or red_formation == constants.CBC_DD:
+        elif red_formation == constants.FORMATION_CBC_AA or red_formation == constants.FORMATION_CBC_DD:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.PENALTYKICK_A:
+        elif red_formation == constants.FORMATION_PENALTYKICK_A:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
-        elif red_formation == constants.PENALTYKICK_D:
+        elif red_formation == constants.FORMATION_PENALTYKICK_D:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
 
@@ -652,6 +652,10 @@ class GameSupervisor (Supervisor):
         x = position[0]
         y = -position[2]
         return [f * x, f * y]
+
+    def get_ball_velocity(self):
+        v = self.ball.getVelocity()
+        return math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
     def any_object_nearby(self, target_x, target_y, target_r):
         # check ball position
@@ -1146,7 +1150,7 @@ class GameSupervisor (Supervisor):
                         self.lock_all_robots(True)
                         self.robot[self.ball_ownership][4]['active'] = True
                     self.step(constants.WAIT_STABLE_MS)
-            if self.reset_reason == constants.NONE and self.deadlock_flag:
+            if self.reset_reason == constants.NONE and deadlock_flag:
                 if self.get_ball_velocity() >= constants.DEADLOCK_THRESHOLD:
                     self.deadlock_time = self.time
                 elif self.time - self.deadlock_time >= constants.DEADLOCK_DURATION_MS:
