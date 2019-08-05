@@ -3,6 +3,8 @@
 
 #include "json.hpp"
 
+using namespace nlohmann;
+
 class Player {
 
 public:
@@ -19,7 +21,7 @@ public:
 
 private:
   void sendToServer(std::string message, std::string arguments = "");
-  void receive();
+  std::string receive();
 
   std::string mKey;
   std::string mData;
