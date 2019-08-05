@@ -88,51 +88,18 @@ class BasicCommentator(Commentator):
         # self.printConsole(received_frame.half_passed)
         # self.printConsole(self.end_of_frame)
 
-        if (received_frame.reset_reason == Game.GAME_START):
-            if not received_frame.half_passed:
-                self.set_comment("Game has begun")
-            else:
-                self.set_comment("Second half has begun")
-
-        elif received_frame.reset_reason == Game.DEADLOCK:
-            self.set_comment("Position is reset since no one touched the ball")
-
-        elif received_frame.reset_reason == Game.GOALKICK:
-            self.set_comment("A goal kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
-
-        elif received_frame.reset_reason == Game.CORNERKICK:
-            self.set_comment("A corner kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
-
-        elif received_frame.reset_reason == Game.PENALTYKICK:
-            self.set_comment("A penalty kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
-        # To get the image at the end of each frame use the variable:
-        # self.image.ImageBuffer
-
-        if (received_frame.coordinates[BALL][X] >= (self.field[X] / 2) and
-                abs(received_frame.coordinates[BALL][Y]) <= (self.goal[Y] / 2)):
-            self.set_comment("Team Red scored!!")
-        elif (received_frame.coordinates[BALL][X] <= (-self.field[X] / 2) and
-                abs(received_frame.coordinates[BALL][Y]) <= (self.goal[Y] / 2)):
-            self.set_comment("Team Blue scored!!")
-
-        if received_frame.reset_reason == Game.HALFTIME:
-            self.set_comment("The halftime has met. Current score is: {} : {}".format(
-                received_frame.score[0], received_frame.score[1]))
-
     def finish(self, frame):
         scoreRed = frame['score'][0]
         scoreBlue = frame['score'][1]
         if (scoreRed > scoreBlue):
-            self.set_comment("Team Red won the game with score {} : {}".format(scoreRed, scoreBlue))
+            self.paragraphs.append("Team Red won the game with score {} : {}".format(scoreRed, scoreBlue))
         elif (scoreRed < scoreBlue):
-            self.set_comment("Team Blue won the game with score {} : {}".format(scoreBlue, scoreRed))
+            self.paragraphs.append("Team Blue won the game with score {} : {}".format(scoreBlue, scoreRed))
         else:
-            self.set_comment("The game ended in a tie with score {} : {}".format(scoreRed, scoreBlue))
+            self.paragraphs.append("The game ended in a tie with score {} : {}".format(scoreRed, scoreBlue))
 
-        # save your data
-        with open(self.datapath + '/result.txt', 'w') as output:
-            # output.write('yourvariables')
-            output.close()
+        self.paragraphs.append("It was really a great match!")
+        self.save_report()
 
 
 if __name__ == '__main__':
