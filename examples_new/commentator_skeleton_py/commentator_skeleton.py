@@ -28,8 +28,6 @@ class BasicCommentator(Commentator):
         # self.game_time = info['game_time']
         # self.number_of_robots = info['number_of_robots']
 
-        print(info)
-
         self.field = info['field']
         self.goal = info['goal']
         # self.penalty_area = info['penalty_area']

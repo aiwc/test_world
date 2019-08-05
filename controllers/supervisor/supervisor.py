@@ -49,10 +49,6 @@ def get_robot_name(color, id):
     return name
 
 
-def get_team(role):
-    return TEAM_BLUE if role == TEAM_BLUE else TEAM_RED
-
-
 def get_role_name(role):
     if role == TEAM_RED:
         return 'team red'
@@ -203,8 +199,9 @@ class GameSupervisor (Supervisor):
             self.comments_.append('')
 
     def get_role(self, rpc):
+        key = get_key(rpc)
         for role in ROLES:
-            if self.role_info[role]['key'] == get_key(rpc):
+            if role in self.role_info and 'key' in self.role_info[role] and self.role_info[role]['key'] == key:
                 return role
         sys.stderr.write("Error: get_role: invalid key.\n")
         return -1
@@ -223,39 +220,44 @@ class GameSupervisor (Supervisor):
         if not message.startswith('aiwc.'):
             print('Error, AIWC RPC messages should start with "aiwc.".')
             return
-        message = message[5:]
-        role = self.get_role(message)
-        self.role_client[role] = client
-        if message.startswith('get_info('):
-            print('Server receive aiwc.get_info from ' + get_role_name(role))
-            self.tcp_server.send(client, json.dumps(self.role_info[TEAM_RED]))
-        elif message.startswith('ready('):
-            self.ready[role] = True
-            print('Server receive aiwc.ready from ' + get_role_name(role))
-        elif message.startswith('set_speeds('):
-            if (role > TEAM_BLUE):
-                sys.stderr.write("Error, commentator and reporter cannot change robot speed.\n")
-                return
-            start = message.find('",') + 2
-            end = message.find(')', start)
-            speeds = message[start:end]
-            speeds = [float(i) for i in speeds.split(',')]
-            self.set_speeds(role, speeds)
-        elif message.startswith('commentate('):
-            if role != COMMENTATOR:
-                sys.stderr.write("Error, only commentator can commentate.\n")
-                return
-            start = message.find('",') + 2
-            comment = '[{:.2f}] {}'.format(self.time / 1000., message[start:-1])
-            self.comments_.append(comment)
-        elif message.startswith('report('):
-            if role != REPORTER:
-                sys.stderr.write("Error, only reporter can report.\n")
-                return
-            start = message.find('",') + 2
-            self.report = message[start:-1]
-        else:
-            print('Server received unknown message', message)
+
+        # Handle concatenated messages
+        data = message.split('aiwc.')
+        for command in data:
+            if not command:
+                continue
+            role = self.get_role(command)
+            self.role_client[role] = client
+            if command.startswith('get_info('):
+                print('Server receive aiwc.get_info from ' + get_role_name(role))
+                self.tcp_server.send(client, json.dumps(self.role_info[TEAM_RED]))
+            elif command.startswith('ready('):
+                self.ready[role] = True
+                print('Server receive aiwc.ready from ' + get_role_name(role))
+            elif command.startswith('set_speeds('):
+                if (role > TEAM_BLUE):
+                    sys.stderr.write("Error, commentator and reporter cannot change robot speed.\n")
+                    return
+                start = command.find('",') + 2
+                end = command.find(')', start)
+                speeds = command[start:end]
+                speeds = [float(i) for i in speeds.split(',')]
+                self.set_speeds(role, speeds)
+            elif command.startswith('commentate('):
+                if role != COMMENTATOR:
+                    sys.stderr.write("Error, only commentator can commentate.\n")
+                    return
+                start = command.find('",') + 2
+                comment = '[{:.2f}] {}'.format(self.time / 1000., command[start:-1])
+                self.comments_.append(comment)
+            elif command.startswith('report('):
+                if role != REPORTER:
+                    sys.stderr.write("Error, only reporter can report.\n")
+                    return
+                start = command.find('",') + 2
+                self.report = command[start:-1]
+            else:
+                print('Server received unknown message', message)
 
     def reset_ball(self, x, z):
         f = -1.0 if self.half_passed else 1.0

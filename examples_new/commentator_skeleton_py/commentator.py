@@ -79,14 +79,8 @@ class Commentator():
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
 
-    def send(self, message, arguments=[]):
-        message = 'aiwc.' + message + '("%s"' % self.key
-        for argument in arguments:
-            if isinstance(argument, str):  # string
-                message += ', "%s"' % argument
-            else:  # number
-                message += ', %s' % argument
-        message += ')'
+    def send(self, message, data = ''):
+        message = 'aiwc.' + message + '("%s"' % self.key + ', "%s"' % data + ')'
         self.socket.sendall(message.encode())
 
     def receive(self):
