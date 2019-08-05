@@ -38,11 +38,12 @@ Player::~Player() {
 }
 
 void Player::sendToServer(std::string message, std::string arguments) {
-  std::string toSend = "aiwc.(\"" + mKey + "\"";
+  std::string toSend = "aiwc." + message + "(\"" + mKey + "\"";
   if (arguments.size() > 0)
     toSend += ',' + arguments;
   toSend += ")";
-  send(mConnFd, (void *)toSend.c_str(), sizeof(toSend.c_str()), 0);
+  const char *toSendString = toSend.c_str();
+  send(mConnFd, (void *)toSendString, strlen(toSendString) * sizeof(char), 0);
 }
 
 std::string Player::receive() {
