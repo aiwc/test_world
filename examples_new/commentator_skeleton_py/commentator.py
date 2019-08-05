@@ -119,9 +119,22 @@ class Commentator():
         self.send('ready')
 
         while True:
-            frame = self.receive()
-            if frame and self.check_frame(json.loads(frame)):  # return False if we need to quit
-                self.update(json.loads(frame))
-            else:
-                self.finish(frame)
-                break
+            data = self.receive()
+            if data:
+                # data could contain multiple concatenated frames and last one could not be complete
+                try:
+                    frames = json.loads("[{}]".format(data.replace('}{', '},{')))
+                    print(frames)
+                    finished = False
+                    for frame in frames:
+                        if frame and self.check_frame(frame):  # return False if we need to quit
+                            self.update(frame)
+                        else:
+                            self.finish(frame)
+                            finished = True
+                            break
+
+                    if finished:
+                        break
+                except ValueError:
+                    sys.stderr.write("Error: commentator.py: Invalid JSON object.\n")
