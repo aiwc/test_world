@@ -46,19 +46,18 @@ void Player::sendToServer(std::string message, std::string arguments) {
   send(mConnFd, (void *)toSendString, strlen(toSendString) * sizeof(char), 0);
 }
 
-std::string Player::receive() {
+json Player::receive() {
   char buffer[4096];
-  memset(buffer, '0', sizeof(buffer));
+  memset(buffer, '\0', sizeof(buffer));
   int ret = read(mConnFd, (void *)buffer, sizeof(buffer) - 1);
-  if (ret > 0)
-    return std::string(buffer);
-  return std::string();
+  return json::parse(buffer);
 }
 
 void Player::setSpeeds(std::vector<double> speeds) {
   std::string arguments = "";
   for (unsigned i = 0; i < speeds.size(); i++)
     arguments += std::to_string(speeds[i]) + ",";
+  arguments = arguments.substr(0, arguments.size() - 1);
   sendToServer("set_speeds", arguments);
 }
 
@@ -77,14 +76,12 @@ void Player::finish() { printf("finish() method called...\n"); }
 
 void Player::run() {
   sendToServer("get_info");
-  json info = json::parse(receive().c_str());
-  init(info);
+  init(receive());
   sendToServer("ready");
 
   while (true) {
-    std::string frameString = receive();
-    if (frameString.size() > 0) {
-      json frame = json::parse(receive().c_str());
+    json frame = receive();
+    if (!frame.empty()) {
       if (check_frame(frame)) // return false if we need to quit
         update(frame);
       else

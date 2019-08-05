@@ -22,7 +22,7 @@ public:
 
 private:
   void sendToServer(std::string message, std::string arguments = "");
-  std::string receive();
+  json receive();
 
   std::string mKey;
   std::string mData;
