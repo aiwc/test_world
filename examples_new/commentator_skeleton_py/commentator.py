@@ -118,7 +118,6 @@ class Commentator():
                 # data could contain multiple concatenated frames and last one could not be complete
                 try:
                     frames = json.loads("[{}]".format(data.replace('}{', '},{')))
-                    print(frames)
                     finished = False
                     for frame in frames:
                         if frame and self.check_frame(frame):  # return False if we need to quit

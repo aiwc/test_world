@@ -82,11 +82,11 @@ class BasicCommentator(Commentator):
         if 'coordinates' in frame:
             received_frame.coordinates = frame['coordinates']
 
-        # self.printConsole(received_frame.time)
-        # self.printConsole(received_frame.score)
-        # self.printConsole(received_frame.reset_reason)
-        # self.printConsole(received_frame.half_passed)
-        # self.printConsole(self.end_of_frame)
+        # print(received_frame.time)
+        # print(received_frame.score)
+        # print(received_frame.reset_reason)
+        # print(received_frame.half_passed)
+        # print(self.end_of_frame)
 
         if (received_frame.reset_reason == Game.GAME_START):
             if not received_frame.half_passed:
