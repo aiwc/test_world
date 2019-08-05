@@ -7,20 +7,21 @@ public:
   Player(std::string host, int port, std::string key, std::string data);
   virtual ~Player();
 
-  void setSpeeds(speeds);
-  bool check_frame(self, frame);
+  void setSpeeds(std::vector speeds);
   void run();
 
-  virtual void init(/*info*/);
+  virtual void init(std::string info);
+  virtual bool check_frame(/*frame*/);
   virtual void update(/*frame*/);
   virtual void finish();
 
 private:
-  void send(std::string message /*, arguments=[]*/);
+  void sendToServer(std::string message, std::string arguments = "");
   void receive();
 
   std::string mKey;
   std::string mData;
+  int mConnFd;
 };
 
 #endif

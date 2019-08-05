@@ -9,7 +9,6 @@ Player::Player(std::string host, int port, std::string key, std::string data) {
   mKey = key;
   mData = data;
 
-  int conn_fd;
   struct sockaddr_in server_addr = {0};
 
   // assign IP, PORT
@@ -18,49 +17,55 @@ Player::Player(std::string host, int port, std::string key, std::string data) {
   server_addr.sin_port = htons(port);
 
   // create the socket
-  conn_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (conn_fd == -1) {
+  mConnFd = socket(AF_INET, SOCK_STREAM, 0);
+  if (mConnFd == -1) {
     printf("socket creation failed...\n");
     exit(0);
   }
 
   // connect the client socket to server socket
-  if (connect(conn_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) != 0) {
+  if (connect(mConnFd, (struct sockaddr*)&server_addr, sizeof(server_addr)) != 0) {
     printf("connection with the server failed...\n");
     exit(0);
   }
 }
 
 Player::~Player() {
-  if (shutdown(conn_fd, SHUT_RDWR) == -1 || close(conn_fd) == -1)
+  if (shutdown(mConnFd, SHUT_RDWR) == -1 || close(mConnFd) == -1)
     printf("Failed to shutdown connection with the server...\n");
 }
 
-void Player::send(std::string message /*, arguments=[]*/) {
-  // message = 'aiwc.' + message + '("%s"' % self.key
-  // for argument in arguments:
-  //     if isinstance(argument, str):  # string
-  //         message += ', "%s"' % argument
-  //     else:  # number
-  //         message += ', %s' % argument
-  // message += ')'
-  // self.socket.sendall(message.encode())
+void Player::sendToServer(std::string message, std::string arguments) {
+  std::string toSend = "aiwc.(\"" + mKey + "\"";
+  if (arguments.size() > 0)
+    toSend += ',' + arguments toSend += ")";
+  send(mConnFd, (void *)toSend.c_str(), sizeof(toSend.c_str()), 0);
 }
 
 void Player::receive() {
-  // data = self.socket.recv(4096)
-  // return data.decode()
+  char *buffer = new char[4096];
+  memset(buffer, '0', sizeof(buffer));
+  int ret = read(mConnFd, (void *)buffer, sizeof(buffer) - 1);
+  if (ret > 0)
+    return buffer;
+  delete buffer;
+  return NULL;
 }
 
-void Player::setSpeeds(speeds) { send("set_speeds", speeds); }
+void Player::setSpeeds(std::vector speeds) {
+  std::string arguments = "";
+  for (unsigned i = 0; i < speeds.size(); i++)
+    arguments += speeds[i] + ",";
+  sendToServer("set_speeds", command);
+}
 
-bool Player::check_frame(self, frame) { // you should override this method
+bool Player::check_frame(/*frame*/) { // you should override this method
   // if "reset_reason" in frame and frame['reset_reason'] == Game.GAME_END:
   //   return false
   return true
 }
 
-void Player::init(/*info*/) { // you should override this method
+void Player::init(std::string info) { // you should override this method
   printf("init() method called...\n")
 }
 
@@ -73,10 +78,10 @@ void Player::finish() { // you should override this method
 }
 
 void Player::run() {
-  send("get_info");
+  sendToServer("get_info");
   info = receive();
-  // init(json.loads(info))
-  send("ready");
+  init(info);
+  sendToServer("ready");
 
   do {
     frame = receive();
