@@ -52,24 +52,24 @@ void Player::receive() {
   return NULL;
 }
 
-void Player::setSpeeds(std::vector speeds) {
+void Player::setSpeeds(std::vector<double> speeds) {
   std::string arguments = "";
   for (unsigned i = 0; i < speeds.size(); i++)
     arguments += speeds[i] + ",";
   sendToServer("set_speeds", command);
 }
 
-bool Player::check_frame(/*frame*/) { // you should override this method
-  // if "reset_reason" in frame and frame['reset_reason'] == Game.GAME_END:
-  //   return false
-  return true
+bool Player::check_frame(json frame) { // you should override this method
+  if (frame.find("reset_reason") != frame.end() &&
+      frame["reset_reason"] == 4) // TODO: 4 = Game.GAME_END
+    return false return true
 }
 
-void Player::init(std::string info) { // you should override this method
+void Player::init(json info) { // you should override this method
   printf("init() method called...\n")
 }
 
-void Player::update(/*frame*/) { // you should override this method
+void Player::update(json frame) { // you should override this method
   printf("update() method called...\n")
 }
 
@@ -79,18 +79,22 @@ void Player::finish() { // you should override this method
 
 void Player::run() {
   sendToServer("get_info");
-  info = receive();
+  json info = json::parse(receive());
   init(info);
   sendToServer("ready");
 
-  do {
-    frame = receive();
-    if (frame &&
-        check_frame(/*json.loads(frame)*/)) // return false if we need to quit
-      update(/*json.loads(frame)*/);
-    else {
-      finish();
-      return;
-    }
+  while (true) {
+    std::string frameString = receive();
+    if (frameString) {
+      json frame = json::parse(receive());
+      if (check_frame(frame)) // return false if we need to quit
+        update(frame);
+      else
+        break;
+    } else
+      break;
   }
+
+  finish();
+  return;
 }

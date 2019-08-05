@@ -1,18 +1,20 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include "json.hpp"
+
 class Player {
 
 public:
   Player(std::string host, int port, std::string key, std::string data);
   virtual ~Player();
 
-  void setSpeeds(std::vector speeds);
+  void setSpeeds(std::vector<double> speeds);
   void run();
 
-  virtual void init(std::string info);
-  virtual bool check_frame(/*frame*/);
-  virtual void update(/*frame*/);
+  virtual void init(json info);
+  virtual bool check_frame(json frame);
+  virtual void update(json frame);
   virtual void finish();
 
 private:
