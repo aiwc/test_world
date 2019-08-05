@@ -17,6 +17,12 @@ from player import Game
 
 import constants
 
+TEAM_RED = 0
+TEAM_BLUE = 1
+COMMENTATOR = 2
+REPORTER = 3
+ROLES = [TEAM_RED, TEAM_BLUE, COMMENTATOR, REPORTER]
+
 
 def random_string(length):
     """Generate a random string with the combination of lowercase and uppercase letters."""
@@ -32,9 +38,27 @@ def get_key(rpc):
 
 def robot_name(color, id):
     name = constants.DEF_ROBOT_PREFIX
-    name += 'R' if color == 0 else 'B'
+    if color == TEAM_RED:
+        name += 'R'
+    elif color == TEAM_BLUE:
+        name += 'B'
+    else:
+        sys.stderr.write("Error: robot_name: Invalid team color.\n")
     name += str(id)
     return name
+
+
+def role_name(role):
+    if role == TEAM_RED:
+        return 'team red'
+    if role == TEAM_BLUE:
+        return 'team blue'
+    if role == COMMENTATOR:
+        return 'commentator'
+    if role == REPORTER:
+        return 'reporter'
+    sys.stderr.write("Error: role_name: Invalid role.\n")
+    return ''
 
 
 class TcpServer:
@@ -58,9 +82,6 @@ class TcpServer:
             client.sendall(message.encode())
         except socket.ConnectionAbortedError:
             self.connections.remove(client)
-
-    def ready(self):  # return true when two players are connected
-        return len(self.connections) == 3  # contains the server and two players
 
     def spin(self, game_supervisor):  # handle asynchronous requests from clients
         def cleanup(s):
@@ -102,6 +123,8 @@ class GameSupervisor (Supervisor):
 
     def __init__(self):
         Supervisor.__init__(self)
+        self.report = None
+
         self.receiver = self.getReceiver(constants.NAME_RECV)
         self.receiver.enable(constants.RECV_PERIOD_MS)
 
@@ -175,11 +198,12 @@ class GameSupervisor (Supervisor):
         for t in range(constants.NUM_COMMENTS): # fill with dummies
             self.comments_.append('')
 
-    def get_team_color(self, rpc):
-        if self.team_info[0]['key'] == get_key(rpc): # ISSUE: commentator and reporter will be able to set wheel speeds of blue team
-            return 0
-        else:
-            return 1
+    def get_role(self, rpc):
+        for role in ROLES:
+            if self.role_info[role]['key'] == get_key(rpc):
+                return role
+        sys.stderr.write("Error: get_role: invalid key.\n")
+        return -1
 
     def set_speeds(self, team, speeds):
         letter = 'R' if team == 0 else 'B'
@@ -187,31 +211,45 @@ class GameSupervisor (Supervisor):
         for id in range(5):
             robot = self.getFromDef(def_robot_prefix + str(id))
             if self.robot[team][id]['active']:
-                robot.getField('customData').setSFString("%f %f" % (speeds[id * 2]/constants.WHEEL_RADIUS[id], speeds[id * 2 + 1]/constants.WHEEL_RADIUS[id]))
+                robot.getField('customData').setSFString(
+                    "%f %f" % (speeds[id * 2] / constants.WHEEL_RADIUS[id], speeds[id * 2 + 1] / constants.WHEEL_RADIUS[id])
+                )
 
     def callback(self, client, message):
         if not message.startswith('aiwc.'):
             print('Error, AIWC RPC messages should start with "aiwc.".')
             return
         message = message[5:]
-        color = self.get_team_color(message)
-        self.team_client[color] = client
+        role = self.get_role(message)
+        self.role_client[role] = client
         if message.startswith('get_info('):
-            print('Server receive aiwc.get_info from team ' + str(color))
-            self.tcp_server.send(client, json.dumps(self.team_info[color]))
+            print('Server receive aiwc.get_info from ' + role_name(role))
+            self.tcp_server.send(client, json.dumps(self.role_info[role]))
         elif message.startswith('ready('):
-            self.ready[color] = True
-            print('Server receive aiwc.ready from team ' + str(color))
+            self.ready[role] = True
+            print('Server receive aiwc.ready from ' + role_name(role))
         elif message.startswith('set_speeds('):
+            if (role > TEAM_BLUE):
+                sys.stderr.write("Error, commentator and reporter cannot change robot speed.\n")
+                return
             start = message.find('",') + 2
             end = message.find(')', start)
             speeds = message[start:end]
             speeds = [float(i) for i in speeds.split(',')]
-            self.set_speeds(color, speeds)
+            self.set_speeds(role, speeds)
         elif message.startswith('commentate('):
+            if role != COMMENTATOR:
+                sys.stderr.write("Error, only commentator can commentate.\n")
+                return
             start = message.find('",') + 2
             comment = '[{:.2f}] {}'.format(self.time / 1000., message[start:-1])
             self.comments_.append(comment)
+        elif message.startswith('report('):
+            if role != REPORTER:
+                sys.stderr.write("Error, only reporter can report.\n")
+                return
+            start = message.find('",') + 2
+            self.report = message[start:-1]
         else:
             print('Server received unknown message', message)
 
@@ -650,7 +688,7 @@ class GameSupervisor (Supervisor):
         # gets other options from 'config.json' (if no option is specified, default option is given)
         # automatic recording of the game (default: false)
         # automatic repetition of the game (default: false)
-        player_team_infos = []
+        player_infos = []
         repeat = False
         record = False
         record_path = ''
@@ -665,11 +703,9 @@ class GameSupervisor (Supervisor):
                 record_path = config['tool']['record_path']
             path_prefix = '../../'
         team_name = {}
-        self.team_info = {}
-        self.team_client = {}
-        self.ready = {}
-        self.ready[0] = False
-        self.ready[1] = False
+        self.role_info = {}
+        self.role_client = {}
+        self.ready = [False] * 4  # TEAM_RED, TEAM_BLUE, COMMENTATOR, REPORTER
         # gets the teams' information from 'config.json'
         for team in [0, 1]:
             if team == 0:
@@ -696,14 +732,21 @@ class GameSupervisor (Supervisor):
             if config[tc_op]:
                 if config[tc_op]['name']:
                     name_op = config[tc_op]['name']
-            player_team_infos.append([name, rating, path_prefix + exe, path_prefix, 'ROLE_PLAYER', team == 0])
+            player_infos.append({
+                'name': name,
+                'rating': rating,
+                'exe': path_prefix + exe,
+                'path_prefix': path_prefix,
+                'role': TEAM_RED if team == 0 else TEAM_BLUE
+            })
+
             if team == 0:
                 print('Team A:\n')
             else:
                 print('Team B:\n')
             print('  team name - ' + name + '\n')
             team_name[team] = name
-            print(' executable - ' + exe + '\n')
+            print('  executable - ' + exe + '\n')
             print('  data path - ' + data + '\n\n')
 
             # create information for aiwc.get_info() in advance
@@ -728,7 +771,7 @@ class GameSupervisor (Supervisor):
             info['game_time'] = self.game_time / 1000
             info['team_info'] = [[['name', name], ['rating', rating]], [['name', name_op], ['rating', rating_op]]]
             info['key'] = random_string(constants.KEY_LENGTH)
-            self.team_info[team] = info
+            self.role_info[team] = info
 
         # gets commentator information from 'config.json' (commentator is optional)
         if config['commentator']:
@@ -736,43 +779,64 @@ class GameSupervisor (Supervisor):
             exe = ''
             data = ''
 
+            info = {}
             if config['commentator']['name']:
                 name = config['commentator']['name']
             if config['commentator']['executable']:
                 exe = config['commentator']['executable']
             if config['commentator']['datapath']:
                 data = config['commentator']['datapath']
-            if exe:  # commentator is treated as red team with rating 0
-                player_team_infos.append([name, 0, path_prefix + exe, path_prefix + data, 'ROLE_COMMENTATOR', True])
+            if exe:
+                player_infos.append({
+                    'name': name,
+                    'rating': 0,
+                    'exe': path_prefix + exe,
+                    'path_prefix': path_prefix + data,
+                    'role': COMMENTATOR
+                })
                 print('Commentator:\n')
                 print('  team name - ' + name + '\n')
-                print(' executable - ' + exe + '\n')
+                print('  executable - ' + exe + '\n')
                 print('  data path - ' + data + '\n\n')
+                info['key'] = random_string(constants.KEY_LENGTH)
             else:
                 print('Commentator "executable" is missing: skipping commentator\n')
+                self.ready[COMMENTATOR] = True
+
+            self.role_info[COMMENTATOR] = info
         else:
             print('"commentator" section of \'config.json\' seems to be missing: skipping commentator\n')
 
         #  gets reporter information from 'config.json' (reporter is optional)
         if config['reporter']:
-            name = ''
             exe = ''
             data = ''
 
+            info = {}
             if config['reporter']['name']:
-                name = config['reporter']['name']
+                info['name'] = config['reporter']['name']
             if config['reporter']['executable']:
                 exe = config['reporter']['executable']
             if config['reporter']['datapath']:
                 data = config['reporter']['datapath']
-            if exe:  # reporter is treated as red team with rating 0
-                player_team_infos.append([name, 0, path_prefix + exe, path_prefix + data, 'ROLE_REPORTER', True])
+            if exe:
+                player_infos.append({
+                    'name': name,
+                    'rating': 0,
+                    'exe': path_prefix + exe,
+                    'path_prefix': path_prefix + data,
+                    'role': REPORTER
+                })
                 print('Reporter:\n')
-                print('  team name - ' + name + '\n')
-                print(' executable - ' + exe + '\n')
+                print('  team name - ' + info['name'] + '\n')
+                print('  executable - ' + exe + '\n')
                 print('  data path - ' + data + '\n\n')
+                info['key'] = random_string(constants.KEY_LENGTH)
             else:
                 print('Reporter "executable" is missing: skipping reporter\n')
+                self.ready[REPORTER] = True
+
+            self.role_info[REPORTER] = info
         else:
             print('"reporter" section of \'config.json\' seems to be missing: skipping reporter\n')
 
@@ -805,9 +869,8 @@ class GameSupervisor (Supervisor):
         self.robot[0][4]['active'] = True
 
         # start participants
-        for player_team_info in player_team_infos:
-            exe = player_team_info[2]
-            color = 0 if player_team_info[5] else 1
+        for player_info in player_infos:
+            exe = player_info['exe']
             if not os.path.exists(exe):
                 print('Participant controller not found: ' + exe)
             else:
@@ -818,8 +881,8 @@ class GameSupervisor (Supervisor):
                 command_line.append(exe)
                 command_line.append(constants.SERVER_IP)
                 command_line.append(str(constants.SERVER_PORT))
-                command_line.append(self.team_info[color]['key'])
-                command_line.append(player_team_info[3])
+                command_line.append(self.role_info[player_info['role']]['key'])
+                command_line.append(player_info['path_prefix'])
                 print(command_line)
                 subprocess.Popen(command_line)
         self.started = False
@@ -829,7 +892,7 @@ class GameSupervisor (Supervisor):
             sys.stdout.flush()
             self.tcp_server.spin(self)
             if not self.started:
-                if self.ready[0] and self.ready[1]:
+                if all(self.ready):
                     print('Starting match.')
                     self.started = True
                 else:
@@ -859,7 +922,7 @@ class GameSupervisor (Supervisor):
                 self.step(constants.WAIT_END_MS)
             for team in range(2):
                 frame = self.generate_frame(team)
-                self.tcp_server.send(self.team_client[team], json.dumps(frame))
+                self.tcp_server.send(self.role_client[team], json.dumps(frame))
             if self.reset_reason == Game.GAME_END:
                 return
             # if any of the robots has touched the ball at this frame, update self.recent_touch
@@ -1215,6 +1278,14 @@ class GameSupervisor (Supervisor):
                 break
             self.time += self.timeStep
 
+    def save_report(self):
+        # Save the report if anything has been written
+        if self.report and self.role_info[REPORTER]:
+            file = open('../../reports/' + self.role_info[REPORTER]['name'] + '.txt', 'w')
+            file.write(self.report)
+            file.close()
+
 
 controller = GameSupervisor()
 controller.run()
+controller.save_report()
