@@ -3,9 +3,7 @@
 class RandomWalkPlayer : public Player {
 
 public:
-  RandomWalkPlayer(std::string host, int port, std::string key,
-                   std::string data)
-      : Player(host, port, key, data) {}
+  RandomWalkPlayer(char **argv) : Player(argv) {}
   virtual ~RandomWalkPlayer() {}
 
   void init(json info) override {
@@ -26,8 +24,7 @@ private:
 };
 
 int main(int argc, char **argv) {
-  RandomWalkPlayer *player = new RandomWalkPlayer(
-      "localhost", 346, "sdgeg2g", "asevg3ev"); // TODO: agrguments
+  RandomWalkPlayer *player = new RandomWalkPlayer(argv);
   player->run();
   delete player;
   return 0;

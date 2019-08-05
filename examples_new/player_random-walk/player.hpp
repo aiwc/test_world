@@ -8,12 +8,13 @@ using namespace nlohmann;
 class Player {
 
 public:
-  Player(std::string host, int port, std::string key, std::string data);
+  Player(char **argv);
   virtual ~Player();
 
   void setSpeeds(std::vector<double> speeds);
   void run();
 
+  // These methods should be overrriden
   virtual void init(json info);
   virtual bool check_frame(json frame);
   virtual void update(json frame);

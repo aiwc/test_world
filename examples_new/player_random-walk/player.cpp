@@ -5,15 +5,16 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-Player::Player(std::string host, int port, std::string key, std::string data) {
-  mKey = key;
-  mData = data;
+Player::Player(char **argv) {
+  int port = std::stoi(argv[2], nullptr);
+  mKey = argv[3];
+  mData = argv[4];
 
   struct sockaddr_in server_addr = {0};
 
   // assign IP, PORT
   server_addr.sin_family = AF_INET;
-  server_addr.sin_addr.s_addr = inet_addr(host.c_str());
+  server_addr.sin_addr.s_addr = inet_addr(argv[1]);
   server_addr.sin_port = htons(port);
 
   // create the socket
@@ -60,24 +61,18 @@ void Player::setSpeeds(std::vector<double> speeds) {
   sendToServer("set_speeds", arguments);
 }
 
-bool Player::check_frame(json frame) { // you should override this method
+bool Player::check_frame(json frame) {
   if (frame.find("reset_reason") != frame.end() &&
       frame["reset_reason"] == 4) // TODO: 4 = Game.GAME_END
     return false;
   return true;
 }
 
-void Player::init(json info) { // you should override this method
-  printf("init() method called...\n");
-}
+void Player::init(json info) { printf("init() method called...\n"); }
 
-void Player::update(json frame) { // you should override this method
-  printf("update() method called...\n");
-}
+void Player::update(json frame) { printf("update() method called...\n"); }
 
-void Player::finish() { // you should override this method
-  printf("finish() method called...\n");
-}
+void Player::finish() { printf("finish() method called...\n"); }
 
 void Player::run() {
   sendToServer("get_info");
