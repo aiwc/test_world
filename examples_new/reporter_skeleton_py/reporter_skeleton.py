@@ -53,6 +53,7 @@ class BasicCommentator(Reporter):
         self.end_of_frame = False
         self.image = ReceivedImage(self.resolution, self.colorChannels)
 
+        self.paragraphs = []
         print("I am the commentator for this game!")
 
     def update(self, frame):
@@ -99,7 +100,7 @@ class BasicCommentator(Reporter):
             self.paragraphs.append("The game ended in a tie with score {} : {}".format(scoreRed, scoreBlue))
 
         self.paragraphs.append("It was really a great match!")
-        self.save_report()
+        self.send_report(self.paragraphs)
 
 
 if __name__ == '__main__':
