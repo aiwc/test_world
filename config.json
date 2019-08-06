@@ -20,7 +20,7 @@
   },
   "reporter": {
     "name": "reporter",
-    "executable": "",
+    "executable": "examples/reporter_skeleton_py/reporter_skeleton.py",
     "datapath": "examples/reporter_data"
   },
   "tool": {

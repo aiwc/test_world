@@ -1728,7 +1728,7 @@ void game::on_bootup(autobahn::wamp_invocation invocation)
 
   if(std::all_of(std::cbegin(player_team_infos_), std::cend(player_team_infos_),
                  [](const auto& kv) { return kv.second.is_bootup == true; })) {
-    std::cout << "Everyone bootup" << std::endl;
+    // std::cout << "Everyone bootup" << std::endl;
     state_.store(STATE_WAITING_READY);
     for(auto& inv : bootup_waiting_list_) {
       inv->empty_result();
