@@ -17,6 +17,7 @@ from player import Game
 
 import constants
 
+
 def random_string(length):
     """Generate a random string with the combination of lowercase and uppercase letters."""
     letters = string.ascii_letters
@@ -200,9 +201,9 @@ class GameSupervisor (Supervisor):
         return -1
 
     def set_speeds(self, team, speeds):
-        letter = 'R' if team == 0 else 'B'
+        letter = 'R' if team == constants.TEAM_RED else 'B'
         def_robot_prefix = constants.DEF_ROBOT_PREFIX + letter
-        for id in range(5):
+        for id in range(constants.NUMBER_OF_ROBOTS):
             robot = self.getFromDef(def_robot_prefix + str(id))
             if self.robot[team][id]['active']:
                 robot.getField('customData').setSFString(
@@ -350,7 +351,7 @@ class GameSupervisor (Supervisor):
         self.flush_touch_ball()
 
     def update_positions(self):
-        for t in range(2):
+        for t in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 node = self.robot[t][id]['node']
                 position = node.getPosition()
@@ -361,7 +362,7 @@ class GameSupervisor (Supervisor):
         self.ball_position = self.ball.getPosition()
 
     def generate_frame(self, team):
-        opponent = 1 if team == 0 else 0
+        opponent = constants.TEAM_BLUE if team == constants.TEAM_RED else constants.TEAM_RED
         frame = {}
         frame['time'] = self.getTime()
         frame['score'] = [self.score[team], self.score[opponent]]
@@ -371,9 +372,9 @@ class GameSupervisor (Supervisor):
         frame['half_passed'] = self.half_passed
         frame['subimages'] = []
         frame['coordinates'] = [None] * 3
-        for t in range(2):
+        for t in constants.TEAMS:
             frame['coordinates'][t] = [None] * constants.NUMBER_OF_ROBOTS
-            c = team if t == 0 else opponent
+            c = team if t == constants.TEAM_RED else opponent
             for id in range(constants.NUMBER_OF_ROBOTS):
                 frame['coordinates'][t][id] = [None] * 5
                 frame['coordinates'][t][id][0] = self.robot[c][id]['x']
@@ -758,7 +759,7 @@ class GameSupervisor (Supervisor):
                 'role': team
             })
 
-            if team == 0:
+            if team == constants.TEAM_RED:
                 print('Team A:\n')
             else:
                 print('Team B:\n')
@@ -866,7 +867,7 @@ class GameSupervisor (Supervisor):
         self.half_passed = False
         self.reset_reason = Game.GAME_START
         self.game_state = Game.STATE_KICKOFF
-        self.ball_ownership = 0  # red
+        self.ball_ownership = constants.TEAM_RED  # red
         self.robot = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
         for t in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
@@ -991,7 +992,7 @@ class GameSupervisor (Supervisor):
             for team in constants.TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     pos = self.get_robot_posture(team, id)
-                    sign = 1 if team == 0 else -1
+                    sign = 1 if team == constants.TEAM_RED else -1
                     x = sign * pos[0]
                     y = sign * pos[1]
                     # if a robot has been in the opponent's penalty area for more than constants.IOPA_TIME_LIMIT_MS seconds,
@@ -1058,7 +1059,7 @@ class GameSupervisor (Supervisor):
                     self.step(constants.WAIT_STABLE_MS)
                     # determine the ownership based on who touched the ball last
                     touch_count = [0, 0]
-                    for team in range(2):
+                    for team in constants.TEAMS:
                         for id in range(constants.NUMBER_OF_ROBOTS):
                             if self.recent_touch[team][id]:
                                 touch_count[team] += 1
