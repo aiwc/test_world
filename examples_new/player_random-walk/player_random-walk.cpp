@@ -8,18 +8,20 @@ public:
 
   void init(json info) override {
     mNumberOfRobots = info["number_of_robots"];
-    mMaxSpeed = info["max_linear_velocity"][0]; // TODO: should be a vector
+    for (int i = 0; i < mNumberOfRobots; ++i)
+      mMaxSpeed.push_back(info["max_linear_velocity"][i]);
   }
 
   void update(json frame) override {
     std::vector<double> speeds;
     for (int i = 0; i < 2 * mNumberOfRobots; ++i)
-      speeds.push_back(2.0 * mMaxSpeed * (0.5 - (double)rand() / RAND_MAX));
+      speeds.push_back(2.0 * mMaxSpeed[i / 2] *
+                       (0.5 - (double)rand() / RAND_MAX));
     setSpeeds(speeds);
   }
 
 private:
-  double mMaxSpeed;
+  std::vector<double> mMaxSpeed;
   int mNumberOfRobots;
 };
 
