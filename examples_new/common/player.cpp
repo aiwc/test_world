@@ -1,5 +1,7 @@
 #include "player.hpp"
 
+#include "game.hpp"
+
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <sys/socket.h>
@@ -63,7 +65,7 @@ void Player::setSpeeds(std::vector<double> speeds) {
 
 bool Player::check_frame(json frame) {
   if (frame.find("reset_reason") != frame.end() &&
-      frame["reset_reason"] == 4) // TODO: 4 = Game.GAME_END
+      frame["reset_reason"] == RESET_GAME_END)
     return false;
   return true;
 }
