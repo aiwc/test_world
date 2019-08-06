@@ -203,7 +203,7 @@ namespace constants {
   constexpr std::size_t CORNERKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr std::size_t PENALTYKICK_TIME_LIMIT_MS = 3 * 1000; // ms
   constexpr std::size_t IOPA_TIME_LIMIT_MS = 1 * 1000; // ms
-  constexpr std::size_t GK_NIPA_TIME_LIMIT_MS = 1 * 1000; // ms
+  constexpr std::size_t GK_NIPA_TIME_LIMIT_MS = 3 * 1000; // ms
 
   constexpr std::size_t NUM_COMMENTS = 3;
 

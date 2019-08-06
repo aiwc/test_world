@@ -1167,16 +1167,16 @@ void game::run_game()
       }
     }
 
-    // check if any of robots are in the opponent's penalty area
+    // check if any of robots are in the opponent's goal area
     {
       constexpr auto is_in_opponent_goal = [](double x, double y) {
         return (x > c::FIELD_LENGTH / 2) && (std::abs(y) < c::GOAL_WIDTH / 2);
       };
-      constexpr auto is_in_opponent_penalty_area = [](double x, double y) {
+      constexpr auto is_in_opponent_goal_area = [](double x, double y) {
         return
         (x <= c::FIELD_LENGTH / 2)
-        && (x > c::FIELD_LENGTH / 2 - c::PENALTY_AREA_DEPTH)
-        && (std::abs(y) < c::PENALTY_AREA_WIDTH / 2);
+        && (x > c::FIELD_LENGTH / 2 - c::GOAL_AREA_DEPTH)
+        && (std::abs(y) < c::GOAL_AREA_WIDTH / 2);
       };
 
       for(const auto& team : {T_RED, T_BLUE}) {
@@ -1187,8 +1187,8 @@ void game::run_game()
           const auto x = sign * std::get<0>(pos);
           const auto y = sign * std::get<1>(pos);
 
-          // if a robot has been in the opponent's penalty area for more than c::IOPA_TIME_LIMIT_MS seconds, the robot is relocated to the initial position
-          if(is_in_opponent_goal(x, y) || is_in_opponent_penalty_area(x,y)) {
+          // if a robot has been in the opponent's goal area for more than c::IOPA_TIME_LIMIT_MS seconds, the robot is relocated to the initial position
+          if(is_in_opponent_goal(x, y) || is_in_opponent_goal_area(x,y)) {
             if (time_ms_ - niopa_time_[team][id] >= c::IOPA_TIME_LIMIT_MS) {
               const auto ix = sign * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][0];
               const auto iy = sign * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1];
@@ -1197,6 +1197,11 @@ void game::run_game()
               if(!any_object_nearby(ix, iy, r)) {
                 sv_.return_to_field(team == T_RED, id);
                 niopa_time_[team][id] = time_ms_;
+
+                // also, as a penalty, the goalkeeper is sent out from the game for c::SENTOUT_DURATION_MS
+                activeness_[team][0] = false;
+                sv_.send_to_foulzone(team == T_RED, 0);
+                sentout_time_[team][0] = time_ms_;
               }
             }
           }
@@ -1220,6 +1225,9 @@ void game::run_game()
       };
 
       for(const auto& team : {T_RED, T_BLUE}) {
+        // if the goalkeeper is currently not active, skip the check
+        if(activeness_[team][0] == false)
+          continue;
         const auto pos = sv_.get_robot_posture(team == T_RED, 0);
         const double sign = team == T_RED ? 1 : -1;
 
