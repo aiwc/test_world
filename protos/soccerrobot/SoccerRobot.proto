@@ -1,4 +1,4 @@
-#VRML_SIM R2018a utf8
+#VRML_SIM R2019a utf8
 #Author(s):         Inbae Jeong, Chansol Hong
 #Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
 # tags: static
@@ -10,9 +10,9 @@ PROTO SoccerRobot [
   field SFVec3f    scale               1 1 1
 
   # fields for left and right wheels
-  field SFVec3f    lwTranslation       -0.035 -0.0075 0
+  field SFVec3f    lwTranslation       -0.07 -0.005 0
   field SFRotation lwRotation          1 0 0 1.570796
-  field SFVec3f    rwTranslation       0.035 -0.0075 0
+  field SFVec3f    rwTranslation       0.07 -0.005 0
   field SFRotation rwRotation          1 0 0 1.570796
 
   # children
@@ -40,24 +40,23 @@ PROTO SoccerRobot [
 
   # fields related to differential wheel robot
   field SFFloat    motorConsumption    0           # [0,inf)
-  # SFFloat    axleLength          0.1         # (0,inf)
-  # SFFloat    wheelRadius         0.01        # (0,inf)
-  field SFFloat    maxSpeed            10          # (0,inf)
-  field SFFloat    maxAcceleration     10
+  field SFFloat    axleLength          0.14
+  field SFFloat    wheelRadius         0.04
+  field SFFloat    maxSpeed            52.5          # (0,inf)
   field SFFloat    slipNoise           0.1         # [0,inf)
-  field SFFloat    maxForce            0.3         # (0,inf)
+  field SFFloat    maxTorque           1.2         # (0,inf)
 
   # fields specific to SoccerRobot
-  field SFFloat  height 0.075
+  field SFFloat  height 0.09
 
   field SFBool   kinematic FALSE # If TRUE, Physics' are ignored
-  field SFFloat  axleLength     0.07
-  field SFFloat  wheelRadius    0.03
+
   field SFFloat  wheelThickness 0.004
   field SFFloat  wheelTireThickness 0.0
 
-  field SFFloat  bodyRadius     0.0575
-  field SFFloat  bodySubdivision 24
+  field SFFloat  bodySize       0.15
+  # field SFFloat  bodyRadius     0.0575
+  field SFFloat  bodySubdivision 4
   field SFFloat  wheelVisibleRatio 0.75
 
   field SFFloat  weightThickness 0.01
@@ -70,16 +69,16 @@ PROTO SoccerRobot [
   field SFFloat  distanceToPatch 0.001
   field SFFloat  distanceToWheel 0.001
   field SFNode   bodyAppearance Black { }
-  field SFNode   tireAppearance White { }
-  field SFNode   wheelAppearance White { }
+  field SFNode   tireAppearance Gray { }
+  field SFNode   wheelAppearance Gray { }
   field SFNode bodyPhysics Physics {
     density -1
-    mass 0.75
-    centerOfMass [0 -0.025 0]
+    mass 2.0
+    centerOfMass [0 -0.03 0]
   }
   field SFNode wheelPhysics Physics {
     density -1
-    mass 0.05
+    mass 0.10
   }
   field SFNode weightPhysics Physics {
     density -1
@@ -94,9 +93,13 @@ PROTO SoccerRobot [
   field SFString wheelContactMaterial "default"
 
   field MFNode patches [
-    SoccerRobotNumberPatch { isTeamTagRed TRUE id 0 name "number_patch" }
+    SoccerRobotNumberPatch { isTeamTagRed TRUE role "GK" name "number_patch" }
     SoccerRobotIDPatch { isTeamTagRed TRUE id 0 name "id_patch_red" }
     SoccerRobotIDPatch { isTeamTagRed FALSE id 0 name "id_patch_blue" }
+  ]
+
+  field MFNode cover [
+    SoccerRobotCover { }
   ]
 ]
 {
@@ -106,15 +109,20 @@ PROTO SoccerRobot [
     local wr = fields.wheelRadius.value
     local wt = fields.wheelThickness.value
     local wtt = fields.wheelTireThickness.value
-    local br = fields.bodyRadius.value
     local bs = fields.bodySubdivision.value
+    local br = 0
+    if bs == 4 then
+      br = fields.bodySize.value / math.sqrt(2)
+    else
+      br = fields.bodyRadius.value
+    end
     local wvr = math.min(math.max(0, fields.wheelVisibleRatio.value), 1)
     local wht = fields.weightThickness.value
     local tc = fields.topCover.value
     local sc = fields.sideCover.value
     local wp = fields.weightPlate.value
     local df = fields.distanceToFloor.value
-    local dp = fields.distanceToPatch.value
+    local dp = 2*fields.distanceToPatch.value
     local dw = fields.distanceToWheel.value
 
     local kinematic = fields.kinematic.value
@@ -135,6 +143,10 @@ PROTO SoccerRobot [
         translation 0 %{=h / 2}% 0
         rotation 0 1 0 %{=math.pi / 2}%
         children IS patches
+      }
+      DEF COVER Transform {
+        rotation 0 1 0 %{=math.pi / 2}%
+        children IS cover
       }
       DEF BODYSHAPE Transform {
         rotation 0 1 0 %{=math.pi / 2}%
@@ -371,10 +383,9 @@ PROTO SoccerRobot [
         device [
           RotationalMotor {
             name "left wheel motor"
-            acceleration IS acceleration
             consumptionFactor IS motorConsumption
             maxVelocity %{=mv*(1 + sn)}%
-            maxTorque IS maxForce
+            maxTorque IS maxTorque
             sound ""
           }
         ]
@@ -429,10 +440,9 @@ PROTO SoccerRobot [
         device [
           RotationalMotor {
             name "right wheel motor"
-            acceleration IS acceleration
             consumptionFactor IS motorConsumption
             maxVelocity %{=mv*(1 + sn)}%
-            maxTorque IS maxForce
+            maxTorque IS maxTorque
             sound ""
           }
         ]
@@ -463,7 +473,7 @@ PROTO SoccerRobot [
         }
       }
       DEF FRONTSUPPORT Solid {
-        translation 0 %{=-h/2 + df}% %{=-(br - 2*df)}%
+        translation 0 %{=-h/2 + df}% %{=-(0.5*math.sqrt(2)*br - 2*df)}%
         children [
           Shape {
             appearance IS bodyAppearance
@@ -482,7 +492,7 @@ PROTO SoccerRobot [
         }
       }
       DEF REARSUPPORT Solid {
-        translation 0 %{=-h/2 + df}% %{=br - 2*df}%
+        translation 0 %{=-h/2 + df}% %{=0.5*math.sqrt(2)*br - 2*df}%
         children [
           Shape {
             appearance IS bodyAppearance
@@ -522,13 +532,11 @@ PROTO SoccerRobot [
     contactMaterial     IS bodyContactMaterial
     immersionProperties IS immersionProperties
     boundingObject Transform {
-      translation 0 %{=df / 2}% 0
-      rotation 0 1 0 %{=math.pi / bs}%
+      translation 0 %{=df/2}% 0
+      rotation 0 1 0 0
       children [
-        Cylinder {
-          height %{=h - df}%
-          radius %{=br}%
-          subdivision %{=bs}%
+        Box {
+          size %{=math.sqrt(2)*br}% %{=h - df}% %{=math.sqrt(2)*br}%
         }
       ]
     }

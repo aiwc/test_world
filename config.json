@@ -1,28 +1,31 @@
 {
   "rule": {
     "game_time": 300,
-    "deadlock": true,
-    "goal_area_foul": true,
-    "penalty_area_foul": true
+    "deadlock": true
   },
   "team_a": {
     "name": "teamA",
-    "executable": "examples/player_rulebased_py/player_rulebased.py",
+    "executable": "examples/player_rulebased-A_py/player_rulebased-A.py",
     "datapath": "examples/team_a_data"
   },
   "team_b": {
     "name": "teamB",
-    "executable": "examples/player_rulebased_py/player_rulebased.py",
+    "executable": "examples/player_rulebased-B_py/player_rulebased-B.py",
     "datapath": "examples/team_b_data"
   },
   "commentator": {
     "name": "commentator",
-    "executable": "",
-    "datapath": "../../examples/commentator_data"
+    "executable": "examples/commentator_skeleton_py/commentator_skeleton.py",
+    "datapath": "examples/commentator_data"
   },
   "reporter": {
     "name": "reporter",
-    "executable": "",
-    "datapath": "../../examples/reporter_data"
+    "executable": "examples/reporter_skeleton_py/reporter_skeleton.py",
+    "datapath": "examples/reporter_data"
+  },
+  "tool": {
+    "repeat": false,
+    "record": false,
+    "record_path": ""
   }
 }

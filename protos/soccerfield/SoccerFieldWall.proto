@@ -1,0 +1,380 @@
+#VRML_SIM R2019a utf8
+#Author(s):         Inbae Jeong, Chansol Hong
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
+
+PROTO SoccerFieldWall [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFVec3f    scale 1 1 1
+
+  field SFString name "soccer_field_wall"
+
+  field SFFloat  length 2.2
+  field SFFloat  width 1.8
+  field SFFloat  height 0.8
+  field SFFloat  cornerLength 0.07
+  field SFFloat  goalWidth 0.4
+  field SFFloat  goalDepth 0.15
+  field SFFloat  wallHeight 0.05
+  field SFFloat  wallThickness 0.025
+  field SFNode   wallAppearance DarkGray { }
+  field SFString wallContactMaterial  "default"
+]
+{
+  %{
+    local l  = fields.length.value
+    local w  = fields.width.value
+    local h  = fields.height.value
+    local c  = fields.cornerLength.value
+    local gw = fields.goalWidth.value
+    local gd = fields.goalDepth.value
+    local wh = fields.wallHeight.value
+    local wt = fields.wallThickness.value
+  }%
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    scale IS scale
+    name IS name
+
+    children [
+      DEF WALLS Group {
+        children [
+          Transform { # top
+            translation 0 %{=wh / 2}% %{=-(w + wt) / 2}%
+            children [
+              DEF TOP_WALL MyBox {
+                size %{=l}% %{=wh}% %{=wt}%
+                topAppearance White { }
+                bottomAppearance IS wallAppearance
+                frontAppearance IS wallAppearance
+                backAppearance IS wallAppearance
+                leftAppearance IS wallAppearance
+                rightAppearance IS wallAppearance
+              }
+            ]
+          }
+          Transform { # bottom
+            translation 0 %{=wh / 2}% %{=(w + wt) / 2}%
+            children [
+              USE TOP_WALL
+            ]
+          }
+          Transform { # left_top
+            translation %{=-(l + wt) / 2}% %{=wh / 2}% %{=-(w + gw + 2 * wt) / 4}%
+            children [
+              DEF LEFT_TOP_WALL MyBox {
+                size %{=wt}% %{=wh}% %{=(w - gw + 2 * wt) / 2}%
+                topAppearance White { }
+                bottomAppearance IS wallAppearance
+                frontAppearance IS wallAppearance
+                backAppearance IS wallAppearance
+                leftAppearance IS wallAppearance
+                rightAppearance IS wallAppearance
+              }
+            ]
+          }
+          Transform { # left_bottom
+            translation %{=-(l + wt) / 2}% %{=wh / 2}% %{=(w + gw + 2 * wt) / 4}%
+            children [
+              USE LEFT_TOP_WALL
+            ]
+          }
+          Transform { # right_top
+            translation %{=(l + wt) / 2}% %{=wh / 2}% %{=-(w + gw + 2 * wt) / 4}%
+            children [
+              USE LEFT_TOP_WALL
+            ]
+          }
+          Transform { # right_bottom
+            translation %{=(l + wt) / 2}% %{=wh / 2}% %{=(w + gw + 2 * wt) / 4}%
+            children [
+              USE LEFT_TOP_WALL
+            ]
+          }
+          Transform { # left_top_corner
+            translation %{=-l / 2}% 0 %{=-w / 2}%
+            children [
+              DEF LEFT_TOP_CORNER Group {
+                children [
+                  Shape {
+                    appearance IS wallAppearance
+                    geometry IndexedFaceSet {
+                      coord Coordinate {
+                        point [
+                          0      0       0,      # 0
+                          %{=c}% 0       0,      # 1
+                          0      0       %{=c}%, # 2
+                          0      %{=wh}% 0,      # 3
+                          %{=c}% %{=wh}% 0,      # 4
+                          0      %{=wh}% %{=c}%, # 5
+                        ]
+                      }
+                      coordIndex [
+                        0 1 2 -1 # floor
+                        0 2 5 3 -1 # left
+                        0 3 4 1 -1 # top
+                        1 4 5 2 -1 # diagonal
+                      ]
+                    }
+                  }
+                  Shape {
+                    appearance White { }
+                    geometry IndexedFaceSet {
+                      coord Coordinate {
+                        point [
+                          0      %{=wh}% 0,      # 0
+                          %{=c}% %{=wh}% 0,      # 1
+                          0      %{=wh}% %{=c}%, # 2
+                        ]
+                      }
+                      coordIndex [
+                        0 2 1 -1
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+          Transform { # left_bottom_corner
+            translation %{=-l / 2}% 0 %{=w / 2}%
+            rotation 0 1 0 %{=math.pi / 2}%
+            children [
+              USE LEFT_TOP_CORNER
+            ]
+          }
+          Transform { # right_top_corner
+            translation %{=l / 2}% 0 %{=-w / 2}%
+            rotation 0 1 0 %{=-math.pi / 2}%
+            children [
+              USE LEFT_TOP_CORNER
+            ]
+          }
+          Transform { # right_bottom_corner
+            translation %{=l / 2}% 0 %{=w / 2}%
+            rotation 0 1 0 %{=math.pi}%
+            children [
+              USE LEFT_TOP_CORNER
+            ]
+          }
+          Transform { # left_goal_top
+            translation %{=-(l + wt + gd) / 2}% %{=wh / 2}% %{=-(gw + wt) / 2}%
+            children [
+              DEF LEFT_GOAL_TOP_WALL MyBox {
+                size %{=gd - wt}% %{=wh}% %{=wt}%
+                topAppearance White { }
+                bottomAppearance IS wallAppearance
+                frontAppearance IS wallAppearance
+                backAppearance IS wallAppearance
+                leftAppearance IS wallAppearance
+                rightAppearance IS wallAppearance
+              }
+            ]
+          }
+          Transform { # left_goal_left
+            translation %{=-(l + 2 * gd + wt) / 2}% %{=wh / 2}% 0
+            children [
+              DEF LEFT_GOAL_LEFT_WALL MyBox {
+                size %{=wt}% %{=wh}% %{=gw + 2 * wt}%
+                topAppearance White { }
+                bottomAppearance IS wallAppearance
+                frontAppearance IS wallAppearance
+                backAppearance IS wallAppearance
+                leftAppearance IS wallAppearance
+                rightAppearance IS wallAppearance
+              }
+            ]
+          }
+          Transform { # left_goal_bottom
+            translation %{=-(l + wt + gd) / 2}% %{=wh / 2}% %{=(gw + wt) / 2}%
+            children [
+              USE LEFT_GOAL_TOP_WALL
+            ]
+          }
+          Transform { # right_goal_top
+            translation %{=(l + wt + gd) / 2}% %{=wh / 2}% %{=-(gw + wt) / 2}%
+            children [
+              USE LEFT_GOAL_TOP_WALL
+            ]
+          }
+          Transform { # right_goal_right
+            translation %{=(l + 2 * gd + wt) / 2}% %{=wh / 2}% 0
+            children [
+              USE LEFT_GOAL_LEFT_WALL
+            ]
+          }
+          Transform { # right_goal_bottom
+            translation %{=(l + wt + gd) / 2}% %{=wh / 2}% %{=(gw + wt) / 2}%
+            children [
+              USE LEFT_GOAL_TOP_WALL
+            ]
+          }
+        ]
+      }
+
+
+      DEF WALL Solid {
+        contactMaterial IS wallContactMaterial
+        boundingObject Group {
+          children [
+            Transform { # top
+              translation 0 %{=h / 2}% %{=-w / 2}%
+              rotation 1 0 0 %{=math.pi / 2}%
+              children [
+                Plane {
+                  size %{=l - 2 * c}% %{=h}%
+                }
+              ]
+            }
+            Transform { # bottom
+              translation 0 %{=h / 2}% %{=w / 2}%
+              rotation 1 0 0 %{=-math.pi / 2}%
+              children [
+                Plane {
+                  size %{=l - 2 * c}% %{=h}%
+                }
+              ]
+            }
+            Transform { # left goal
+              translation %{=-l / 2 - gd}% %{=h / 2}% 0
+              rotation 0 0 1 %{=-math.pi / 2}%
+              children [
+                Plane {
+                  size %{=h}% %{=gw}%
+                }
+              ]
+            }
+            Transform { # right goal
+              translation %{=l / 2 + gd}% %{=h / 2}% 0
+              rotation 0 0 1 %{=math.pi / 2}%
+              children [
+                Plane {
+                  size %{=h}% %{=gw}%
+                }
+              ]
+            }
+            Transform { # left_top_wall
+              translation %{=-l / 2 - wt / 2}% %{=h / 2}% %{=-w / 4 - gw / 4 + c / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=wt}% %{=h}% %{=w / 2 - gw / 2 - c}%
+                }
+              ]
+            }
+            Transform { # left_top__goal_wall
+              translation %{=-l / 2 - gd / 2 - wt / 2}% %{=h / 2}% %{=- gw / 2 - wt / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=gd - wt}% %{=h}% %{=wt}%
+                }
+              ]
+            }
+            Transform { # left_bottom__goal_wall
+              translation %{=-l / 2 - gd / 2 - wt / 2}% %{=h / 2}% %{=gw / 2 + wt / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=gd - wt}% %{=h}% %{=wt}%
+                }
+              ]
+            }
+            Transform { # left_bottom_wall
+              translation %{=-l / 2 - wt / 2}% %{=h / 2}% %{=w / 4 + gw / 4 - c / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=wt}% %{=h}% %{=w / 2 - gw / 2 - c}%
+                }
+              ]
+            }
+            Transform { # right_top_wall
+              translation %{=l / 2 + wt / 2}% %{=h / 2}% %{=-w / 4 - gw / 4 + c / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=wt}% %{=h}% %{=w / 2 - gw / 2 - c}%
+                }
+              ]
+            }
+            Transform { # right_top__goal_wall
+              translation %{=l / 2 + gd / 2 + wt / 2}% %{=h / 2}% %{=- gw / 2 - wt / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=gd - wt}% %{=h}% %{=wt}%
+                }
+              ]
+            }
+            Transform { # right_bottom__goal_wall
+              translation %{=l / 2 + gd / 2 + wt / 2}% %{=h / 2}% %{=gw / 2 + wt / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=gd - wt}% %{=h}% %{=wt}%
+                }
+              ]
+            }
+            Transform { # right_bottom_wall
+              translation %{=l / 2 + wt / 2}% %{=h / 2}% %{=w / 4 + gw / 4 - c / 2}%
+              rotation 1 0 0 0
+              children [
+                Box {
+                  size %{=wt}% %{=h}% %{=w / 2 - gw / 2 - c}%
+                }
+              ]
+            }
+            Shape {
+              geometry IndexedFaceSet {
+                coord Coordinate {
+                  # lower plane
+                  #      3                   7
+                  #   2 /---------------------\ 6
+                  #    |                       |
+                  # 0 -- 1                   5 -- 4
+                  #   |                         |
+                  #12 -- 13                  9 -- 8
+                  #    |                       |
+                  #  14 \---------------------/ 10
+                  #     15                   11
+                  # for upper plane, add 16 to the indices of the lower plane
+                  point [
+                    %{
+                      for _, local_h in ipairs({0, h}) do
+                      for _, sign in ipairs({
+                        {x = 1, z = 1},
+                        {x = -1, z = 1},
+                        {x = -1, z = -1},
+                        {x = 1, z = -1}}) do
+                    }%
+                    %{=sign.x * (-l / 2 - gd)}% %{=local_h}% %{=sign.z * (-gw / 2)   }%, # 0
+                    %{=sign.x * (-l / 2)     }% %{=local_h}% %{=sign.z * (-gw / 2)   }%, # 1
+                    %{=sign.x * (-l / 2)     }% %{=local_h}% %{=sign.z * (-w / 2 + c)}%, # 2
+                    %{=sign.x * (-l / 2 + c) }% %{=local_h}% %{=sign.z * (-w / 2)    }%, # 3
+                    %{
+                      end
+                      end
+                    }%
+                  ]
+                }
+                coordIndex [
+                  # left side
+                  2 3 19 18 -1
+                  14 30 31 15 -1
+
+                  # right side
+                  6 22 23 7 -1
+                  10 11 27 26 -1
+                ]
+              }
+            }
+          ]
+        }
+        name "wall"
+      }
+    ]
+  }
+}

@@ -1,26 +1,48 @@
-#VRML_SIM R2018a utf8
-#Author(s):         Inbae Jeong, Chansol Hong
-#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
-
+#VRML_SIM R2019a utf8
 WorldInfo {
   ERP 0.15
   physics "collision_detector"
   basicTimeStep 10
   FPS 20
-  optimalThreadCount 8
   defaultDamping Damping {
   }
   lineScale 0.01
   contactProperties [
-    DEF floor-robot_body ContactProperties {
+    DEF floor-goalie_body ContactProperties {
       material1 "floor"
-      material2 "body"
+      material2 "goalie_body"
       coulombFriction [
         0
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF floor-defense_body ContactProperties {
+      material1 "floor"
+      material2 "defense_body"
+      coulombFriction [
+        0
+      ]
+      bounce 0
+      softERP 0.15
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF floor-offense_body ContactProperties {
+      material1 "floor"
+      material2 "offense_body"
+      coulombFriction [
+        0
+      ]
+      bounce 0
+      softERP 0.15
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -28,9 +50,12 @@ WorldInfo {
     DEF floor-wheel ContactProperties {
       material1 "floor"
       material2 "wheel"
+      coulombFriction [
+        3
+      ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -43,17 +68,37 @@ WorldInfo {
       ]
       bounce 0
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
     }
-    DEF wall-body ContactProperties {
+    DEF wall-goalie_body ContactProperties {
       material1 "wall"
-      material2 "body"
+      material2 "goalie_body"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF wall-defense_body ContactProperties {
+      material1 "wall"
+      material2 "defense_body"
+      bounce 0
+      softERP 0
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF wall-offense_body ContactProperties {
+      material1 "wall"
+      material2 "offense_body"
+      bounce 0
+      softERP 0
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -63,7 +108,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -71,39 +116,128 @@ WorldInfo {
     DEF wall-ball ContactProperties {
       material1 "wall"
       material2 "ball"
-      bounce 0.5
-      softERP 0.8
-      softCFM 1e-9
+      bounce 0.75
+      softERP 1
+      softCFM 0
       bumpSound ""
       rollSound ""
       slideSound ""
     }
-    DEF body-body ContactProperties {
-      material1 "body"
-      material2 "body"
+    DEF goalie_body-goalie_body ContactProperties {
+      material1 "goalie_body"
+      material2 "goalie_body"
       bounce 0.25
       softERP 0
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
     }
-    DEF body-wheel ContactProperties {
-      material1 "body"
+    DEF defense_body-goalie_body ContactProperties {
+      material1 "defense_body"
+      material2 "goalie_body"
+      bounce 0.25
+      softERP 0
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF defense_body-defense_body ContactProperties {
+      material1 "defense_body"
+      material2 "defense_body"
+      bounce 0.25
+      softERP 0
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF offense_body-defense_body ContactProperties {
+      material1 "offense_body"
+      material2 "defense_body"
+      bounce 0.25
+      softERP 0
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF offense_body-offense_body ContactProperties {
+      material1 "offense_body"
+      material2 "offense_body"
+      bounce 0.25
+      softERP 0
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF goalie_body-offense_body ContactProperties {
+      material1 "goalie_body"
+      material2 "offense_body"
+      bounce 0.25
+      softERP 0
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF goalie_body-wheel ContactProperties {
+      material1 "goalie_body"
       material2 "wheel"
       bounce 0
       softERP 0.3
-      softCFM 1e-7
+      softCFM 1e-07
       bumpSound ""
       rollSound ""
       slideSound ""
     }
-    DEF body-ball ContactProperties {
-      material1 "body"
+    DEF defense_body-wheel ContactProperties {
+      material1 "defense_body"
+      material2 "wheel"
+      bounce 0
+      softERP 0.3
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF offense_body-wheel ContactProperties {
+      material1 "offense_body"
+      material2 "wheel"
+      bounce 0
+      softERP 0.3
+      softCFM 1e-07
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF goalie_body-ball ContactProperties {
+      material1 "goalie_body"
       material2 "ball"
-      bounce 0.5
       softERP 0.15
-      softCFM 1e-5
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF defense_body-ball ContactProperties {
+      material1 "defense_body"
+      material2 "ball"
+      bounce 0.8
+      softERP 0.15
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+    DEF offense_body-ball ContactProperties {
+      material1 "offense_body"
+      material2 "ball"
+      bounce 0.8
+      softERP 0.15
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -113,7 +247,7 @@ WorldInfo {
       material2 "wheel"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -123,7 +257,7 @@ WorldInfo {
       material2 "ball"
       bounce 0
       softERP 0
-      softCFM 1e-5
+      softCFM 1e-05
       bumpSound ""
       rollSound ""
       slideSound ""
@@ -132,19 +266,20 @@ WorldInfo {
 }
 DEF DEF_AUDVIEW Viewpoint {
   orientation -1 0 0 0.8910057735495215
-  position 0 6.839949869285961 5.658156540652288
+  position 0 8.875596883460489 7.30360808821792
 }
 Background {
   skyColor [
-    0.7 0.8 1
+    0.283 0.54 0.665
   ]
 }
 DirectionalLight {
   ambientIntensity 1
   direction 0 -1 0
+  castShadows TRUE
 }
 Referee {
-  translation 0 12.72 0
+  translation 0 25.6 0
   children [
     DEF DEF_RECV Receiver {
       name "recv"
@@ -153,10 +288,12 @@ Referee {
       rotation 1 0 0 4.712389
       children [
         DEF DEF_CAMA Camera {
+          rotation 0 0 1 0
           name "cam_a"
           fieldOfView 0.325
           width 640
           height 480
+          near 20
         }
         DEF DEF_CAMB Camera {
           rotation 0 0 1 3.1415926
@@ -164,6 +301,7 @@ Referee {
           fieldOfView 0.325
           width 640
           height 480
+          near 20
         }
       ]
     }
@@ -171,83 +309,104 @@ Referee {
   controller "supervisor"
 }
 SoccerField5v5 {
-  height 0.2
-  grassSlot DEF DEF_GRASS SoccerFieldGrass {
-  }
-  floorContactMaterial "floor"
-  wallContactMaterial "wall"
-}
-DEF DEF_STADIUM Stadium {
-  scale 1.65 1.65 1.65
-  castShadows FALSE
-  bannerUrl [
-    "textures/cyberbotics.png"
-    "textures/hynix.png"
-    "textures/kaist.png"
-  ]
-  goalPost [
-    DEF DEF_GOALPOST Group {
+  fieldLength 7.8
+  fieldWidth 4.65
+  floorLength 8.8
+  floorWidth 4.8
+  lineThickness 0.02
+  soccerFieldWall [
+    Group {
       children [
-        Goalpost {
-          translation -1.24 0 0
-          scale 0.88 0.88 0.88
-          castShadows IS castShadows
-          name "goalpost_left"
+        DEF DEF_WALL SoccerFieldWall {
+          length 7.8
+          width 4.65
+          cornerLength 0.1
+          goalWidth 1
+          goalDepth 0.45
+          wallHeight 0.075
+          wallAppearance Gray {
+          }
+          wallContactMaterial "wall"
         }
-        Goalpost {
-          translation 1.24 0 0
-          rotation 0 1 0 3.141592635
-          scale 0.88 0.88 0.88
-          castShadows IS castShadows
-          name "goalpost_right"
+        DEF DEF_VISWALL VisualWall {
+          length 7.8
+          width 4.65
+          goalWidth 1
+          gpTranslation 4.081
+          gpScale 2.193
+          bannerBehind TRUE
+          bannerHorizontal 10
+          cornerLength 0.1
         }
       ]
     }
   ]
+  grassSlot DEF DEF_GRASS SoccerFieldGrass {
+    blockSize 0.5
+    length 8.8
+    width 4.8
+  }
+  floorContactMaterial "floor"
 }
 DEF DEF_BALL SoccerBall {
-  translation 0 0.03 0
+  translation 0 0.06 0
   contactMaterial "ball"
-  mass 0.0184
   shapes [
     DEF DEF_BALLSHAPE SoccerBallShape {
-      radius 0.03
+      radius 0.05
     }
     DEF DEF_ORANGESHAPE SoccerBallOrangeShape {
-      radius 0.03
+      radius 0.05
     }
   ]
 }
 DEF DEF_ROBOTR0 SoccerRobot {
-  translation -0.4 0.0375 0.3
-  rotation 0 1 0 -1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
+  translation -3.8 0.045 0
   name "R0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 45
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  maxTorque 0.8
+  bodyAppearance DarkRed { }
+  tireAppearance DarkRed { }
+  wheelAppearance DarkRed { }
+  bodyPhysics Physics {
+    density -1
+    mass 2.5
+    centerOfMass [
+      0 -0.03 0
+    ]
+  }
+  wheelPhysics Physics {
+    density -1
+    mass 0.15
+  }
+  bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
+  cover [
+    DEF DEF_COVERR0 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
+    }
+  ]
 }
 DEF DEF_ROBOTR1 SoccerRobot {
-  translation -0.4 0.0375 -0.3
+  translation -2.25 0.045 -1
   rotation 0 1 0 -1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "R1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  bodyAppearance DarkRed { }
+  tireAppearance DarkRed { }
+  wheelAppearance DarkRed { }
+  bodyContactMaterial "defense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 1
+      role "D1"
     }
     SoccerRobotIDPatch {
       id 31
@@ -257,25 +416,31 @@ DEF DEF_ROBOTR1 SoccerRobot {
       id 31
       isTeamTagRed FALSE
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERR1 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTR2 SoccerRobot {
-  translation -1 0.0375 0.6
+  translation -2.25 0.0375 1
   rotation 0 1 0 -1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "R2"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  bodyAppearance DarkRed { }
+  tireAppearance DarkRed { }
+  wheelAppearance DarkRed { }
+  bodyContactMaterial "defense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 2
+      role "D2"
     }
     SoccerRobotIDPatch {
       id 227
@@ -285,25 +450,40 @@ DEF DEF_ROBOTR2 SoccerRobot {
       id 227
       isTeamTagRed FALSE
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERR2 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTR3 SoccerRobot {
-  translation -1 0.0375 -0.6
+  translation -0.65 0.045 -0.3
   rotation 0 1 0 -1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "R3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 63.75
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  maxTorque 0.4
+  bodyAppearance DarkRed { }
+  tireAppearance DarkRed { }
+  wheelAppearance DarkRed { }
+  bodyPhysics Physics {
+    density -1
+    mass 1.5
+    centerOfMass [
+      0 -0.03 0
+    ]
+  }
+  bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 3
+      role "F1"
     }
     SoccerRobotIDPatch {
       id 364
@@ -313,24 +493,40 @@ DEF DEF_ROBOTR3 SoccerRobot {
       id 364
       isTeamTagRed FALSE
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERR3 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTR4 SoccerRobot {
-  translation -1.8 0.0375 0
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
+  translation -0.65 0.045 0.3
+  rotation 0 1 0 -1.5708
   name "R4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 63.75
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  maxTorque 0.4
+  bodyAppearance DarkRed { }
+  tireAppearance DarkRed { }
+  wheelAppearance DarkRed { }
+  bodyPhysics Physics {
+    density -1
+    mass 1.5
+    centerOfMass [
+      0 -0.03 0
+    ]
+  }
+  bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 4
+      role "F2"
     }
     SoccerRobotIDPatch {
       id 437
@@ -340,21 +536,40 @@ DEF DEF_ROBOTR4 SoccerRobot {
       id 437
       isTeamTagRed FALSE
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERR4 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTB0 SoccerRobot {
-  translation 0.4 0.0375 -0.3
-  rotation 0 1 0 1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
+  translation 3.8 0.045 0
+  rotation 0 1 0 3.1415926
   name "B0"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 45
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  maxTorque 0.8
+  bodyAppearance DarkBlue { }
+  tireAppearance DarkBlue { }
+  wheelAppearance DarkBlue { }
+  bodyPhysics Physics {
+    density -1
+    mass 2.5
+    centerOfMass [
+      0 -0.03 0
+    ]
+  }
+  wheelPhysics Physics {
+    density -1
+    mass 0.15
+  }
+  bodyContactMaterial "goalie_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
@@ -366,25 +581,31 @@ DEF DEF_ROBOTB0 SoccerRobot {
     }
     SoccerRobotIDPatch {
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERB0 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTB1 SoccerRobot {
-  translation 0.4 0.0375 0.3
+  translation 2.25 0.045 1
   rotation 0 1 0 1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "B1"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  bodyAppearance DarkBlue { }
+  tireAppearance DarkBlue { }
+  wheelAppearance DarkBlue { }
+  bodyContactMaterial "defense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 1
+      role "D1"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -395,25 +616,31 @@ DEF DEF_ROBOTB1 SoccerRobot {
     SoccerRobotIDPatch {
       id 31
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERB1 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTB2 SoccerRobot {
-  translation 1 0.0375 -0.6
+  translation 2.25 0.045 -1
   rotation 0 1 0 1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "B2"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  bodyAppearance DarkBlue { }
+  tireAppearance DarkBlue { }
+  wheelAppearance DarkBlue { }
+  bodyContactMaterial "defense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 2
+      role "D2"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -424,25 +651,40 @@ DEF DEF_ROBOTB2 SoccerRobot {
     SoccerRobotIDPatch {
       id 227
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERB2 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }
 DEF DEF_ROBOTB3 SoccerRobot {
-  translation 1 0.0375 0.6
+  translation 0.65 0.045 0.3
   rotation 0 1 0 1.5708
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
   name "B3"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 63.75
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  maxTorque 0.4
+  bodyAppearance DarkBlue { }
+  tireAppearance DarkBlue { }
+  wheelAppearance DarkBlue { }
+  bodyPhysics Physics {
+    density -1
+    mass 1.5
+    centerOfMass [
+      0 -0.03 0
+    ]
+  }
+  bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 3
+      role "F1"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -455,23 +697,38 @@ DEF DEF_ROBOTB3 SoccerRobot {
       name "id_patch_blue"
     }
   ]
+  cover [
+    DEF DEF_COVERB3 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
+    }
+  ]
 }
 DEF DEF_ROBOTB4 SoccerRobot {
-  translation 1.8 0.0375 0
-  rotation 0 1 0 3.14159
-  lwRotation 1 0 0 1.5708
-  rwRotation 1 0 0 1.5708
+  translation 0.65 0.045 -0.3
+  rotation 0 1 0 1.5708
   name "B4"
   customData "0 0"
   controller "soccer_robot"
-  maxSpeed 50
+  maxSpeed 63.75
   slipNoise 0.05
-  maxForce 0.1
-  bodyContactMaterial "body"
+  maxTorque 0.4
+  bodyAppearance DarkBlue { }
+  tireAppearance DarkBlue { }
+  wheelAppearance DarkBlue { }
+  bodyPhysics Physics {
+    density -1
+    mass 1.5
+    centerOfMass [
+      0 -0.03 0
+    ]
+  }
+  bodyContactMaterial "offense_body"
   wheelContactMaterial "wheel"
   patches [
     SoccerRobotNumberPatch {
-      id 4
+      role "F2"
       isTeamTagRed FALSE
     }
     SoccerRobotIDPatch {
@@ -482,6 +739,13 @@ DEF DEF_ROBOTB4 SoccerRobot {
     SoccerRobotIDPatch {
       id 437
       name "id_patch_blue"
+    }
+  ]
+  cover [
+    DEF DEF_COVERB4 SoccerRobotCover {
+      height 0.09
+      bodySize 0.15
+      distanceToPatch 0.001
     }
   ]
 }

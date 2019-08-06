@@ -66,12 +66,13 @@ public:
     return pc_cams_[is_red ? C_CAMA : C_CAMB]->getImage();
   }
 
-  void reset_position()
+  void reset_position(constants::robot_formation red_formation, constants::robot_formation blue_formation)
   {
     namespace c = constants;
 
     const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
-      const double translation[] = {x, y, z};
+      const auto f = half_passed_ ? -1 : 1;
+      const double translation[] = {f * x, y, f * -z};
       const double rotation[] = {0, 1, 0, 0};
       pn->getField("translation")->setSFVec3f(translation);
       pn->getField("rotation")->setSFRotation(rotation);
@@ -79,10 +80,16 @@ public:
     };
 
     const auto reset_robot_node = [&](webots::Node* pn, double x, double y, double z, double th) {
-      const double translation[] = {x, y, z};
-      const double rotation[] = {0, 1, 0, th - c::PI / 2};
-      const double lwTranslation[] = {-c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
-      const double rwTranslation[] = {c::AXLE_LENGTH / 2, (-c::ROBOT_HEIGHT + 2 * c::WHEEL_RADIUS) / 2, 0};
+      const auto f = half_passed_ ? -1 : 1;
+      const double translation[] = {f * x, y, f * -z};
+      const double rotation[] = {0, 1, 0, (half_passed_ ? c::PI : 0.) + th};
+
+      const double al = pn->getField("axleLength")->getSFFloat();
+      const double h = pn->getField("height")->getSFFloat();
+      const double wr = pn->getField("wheelRadius")->getSFFloat();
+
+      const double lwTranslation[] = {-al / 2, (-h + 2 * wr) / 2, 0};
+      const double rwTranslation[] = {al / 2, (-h + 2 * wr) / 2, 0};
       const double wheelRotation[] = {1, 0, 0, c::PI / 2};
 
       pn->getField("translation")->setSFVec3f(translation);
@@ -97,22 +104,69 @@ public:
       pn->resetPhysics();
     };
 
-    reset_ball_node(getFromDef(c::DEF_BALL), 0, c::BALL_RADIUS, 0);
+    switch(red_formation) {
+      case c::FORMATION_DEFAULT:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_DEFAULT][1]);
+        break;
+      case c::FORMATION_KICKOFF:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_DEFAULT][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_DEFAULT][1]);
+        break;
+      case c::FORMATION_GOALKICK_A:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
+        break;
+      case c::FORMATION_GOALKICK_D:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_GOALKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_GOALKICK][1]);
+        break;
+      case c::FORMATION_CAD_AD:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CAD_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CBC_AD:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CBC_DA:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CAD_AA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CAD_DD:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, -c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CBC_AA:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_CBC_DD:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_CORNERKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_CORNERKICK][1]);
+        break;
+      case c::FORMATION_PENALTYKICK_A:
+        reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
+        break;
+      case c::FORMATION_PENALTYKICK_D:
+        reset_ball_node(getFromDef(c::DEF_BALL), -c::BALL_POSTURE[c::BALL_PENALTYKICK][0], 1.5*c::BALL_RADIUS, c::BALL_POSTURE[c::BALL_PENALTYKICK][1]);
+        break;
+      default:
+        break;
+    }
 
     for(const auto& is_red : {true, false}) {
       const auto s = is_red ? 1 : -1;
+      auto formation = is_red ? red_formation : blue_formation;
       for(std::size_t id = 0; id < c::NUMBER_OF_ROBOTS; ++id) {
         reset_robot_node(getFromDef(robot_name(is_red, id)),
-                   c::ROBOT_INIT_POSTURE[id][0] * s,
-                   c::ROBOT_HEIGHT / 2,
-                   c::ROBOT_INIT_POSTURE[id][1] * s,
-                   c::ROBOT_INIT_POSTURE[id][2] + (is_red ? 0. : c::PI));
+                   c::ROBOT_FORMATION[formation][id][0] * s,
+                   c::ROBOT_HEIGHT[id] / 2,
+                   c::ROBOT_FORMATION[formation][id][1] * s,
+                   c::ROBOT_FORMATION[formation][id][2] + (is_red ? 0. : c::PI) - c::PI / 2);
       }
     }
   }
 
   std::array<double, 2> get_ball_position() const
   {
+    const auto f = half_passed_ ? -1 : 1;
     webots::Node* pn_ball = getFromDef(constants::DEF_BALL);
 
     const double* position = pn_ball->getPosition();
@@ -120,7 +174,7 @@ public:
     const double x = position[0];
     const double y = -position[2];
 
-    return {x, y};
+    return {f * x, f * y};
   }
 
   double get_ball_velocity() const
@@ -136,18 +190,28 @@ public:
   }
 
   //         x       y       th
-  std::tuple<double, double, double> get_robot_posture(bool is_red, std::size_t id) const
+  std::tuple<double, double, double, bool> get_robot_posture(bool is_red, std::size_t id) const
   {
+    namespace c = constants;
+
     webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
+    const auto f = half_passed_ ? -1 : 1;
 
     const double* position = pn_robot->getPosition();
     const double* orientation = pn_robot->getOrientation();
 
     const double x = position[0];
     const double y = -position[2];
-    const double th = std::atan2(orientation[2], orientation[8]) + constants::PI / 2;
+    double th = (half_passed_ ? c::PI : 0.) + std::atan2(orientation[2], orientation[8]) + c::PI / 2;
+    // Squeeze the orientation range to [-PI, PI]
+    while (th > c::PI)
+      th -= 2*c::PI;
+    while (th < -c::PI)
+      th += 2*c::PI;
 
-    return std::make_tuple(x, y, th);
+    const bool  stand = orientation[4] > 0.8;
+
+    return std::make_tuple(f * x, f * y, th, stand);
   }
 
   double get_distance_from_ball(bool is_red, std::size_t id) const
@@ -181,22 +245,96 @@ public:
     return {{{rc[0][0], rc[0][1], rc[0][2], rc[0][3], rc[0][4]}, {rc[1][0], rc[1][1], rc[1][2], rc[1][3], rc[1][4]}}};
   }
 
+  void flush_touch_ball() const
+  {
+    while (pr_recv_->getQueueLength() > 0)
+      pr_recv_->nextPacket();
+  }
+
   void send_to_foulzone(bool is_red, std::size_t id)
   {
     namespace c = constants;
 
-    webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
+    webots::Node* pn = getFromDef(robot_name(is_red, id));
 
+    const auto f = half_passed_ ? -1 : 1;
     const auto s = is_red ? 1 : -1;
-    const double translation[] = {c::ROBOT_FOUL_POSTURE[id][0] * s,
-                                  c::ROBOT_HEIGHT / 2,
-                                  c::ROBOT_FOUL_POSTURE[id][1] * s};
+    const double translation[] = {f * c::ROBOT_FOUL_POSTURE[id][0] * s,
+                                  c::ROBOT_HEIGHT[id] / 2,
+                                  f * -c::ROBOT_FOUL_POSTURE[id][1] * s};
     const double rotation[] = { 0, 1, 0,
-                                c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
-    pn_robot->getField("translation")->setSFVec3f(translation);
-    pn_robot->getField("rotation")->setSFRotation(rotation);
-    pn_robot->getField("customData")->setSFString("0 0");
-    pn_robot->resetPhysics();
+                                (half_passed_ ? c::PI : 0.) + c::ROBOT_FOUL_POSTURE[id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
+
+    const double al = pn->getField("axleLength")->getSFFloat();
+    const double h = pn->getField("height")->getSFFloat();
+    const double wr = pn->getField("wheelRadius")->getSFFloat();
+
+    const double lwTranslation[] = {-al / 2, (-h + 2 * wr) / 2, 0};
+    const double rwTranslation[] = {al / 2, (-h + 2 * wr) / 2, 0};
+    const double wheelRotation[] = {1, 0, 0, c::PI / 2};
+
+    pn->getField("translation")->setSFVec3f(translation);
+    pn->getField("rotation")->setSFRotation(rotation);
+    pn->getField("customData")->setSFString("0 0");
+
+    pn->getField("lwTranslation")->setSFVec3f(lwTranslation);
+    pn->getField("lwRotation")->setSFRotation(wheelRotation);
+
+    pn->getField("rwTranslation")->setSFVec3f(rwTranslation);
+    pn->getField("rwRotation")->setSFRotation(wheelRotation);
+
+    pn->resetPhysics();
+  }
+
+  void return_to_field(bool is_red, std::size_t id)
+  {
+    namespace c = constants;
+
+    webots::Node* pn = getFromDef(robot_name(is_red, id));
+
+    const auto f = half_passed_ ? -1 : 1;
+    const auto s = is_red ? 1 : -1;
+    const double translation[] = {f * c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][0] * s,
+                                  c::ROBOT_HEIGHT[id] / 2,
+                                  f * -c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][1] * s};
+    const double rotation[] = { 0, 1, 0,
+                                (half_passed_ ? c::PI : 0.) + c::ROBOT_FORMATION[c::FORMATION_DEFAULT][id][2] + (is_red ? 0. : c::PI) - c::PI / 2 };
+
+    const double al = pn->getField("axleLength")->getSFFloat();
+    const double h = pn->getField("height")->getSFFloat();
+    const double wr = pn->getField("wheelRadius")->getSFFloat();
+
+    const double lwTranslation[] = {-al / 2, (-h + 2 * wr) / 2, 0};
+    const double rwTranslation[] = {al / 2, (-h + 2 * wr) / 2, 0};
+    const double wheelRotation[] = {1, 0, 0, c::PI / 2};
+
+    pn->getField("translation")->setSFVec3f(translation);
+    pn->getField("rotation")->setSFRotation(rotation);
+    pn->getField("customData")->setSFString("0 0");
+
+    pn->getField("lwTranslation")->setSFVec3f(lwTranslation);
+    pn->getField("lwRotation")->setSFRotation(wheelRotation);
+
+    pn->getField("rwTranslation")->setSFVec3f(rwTranslation);
+    pn->getField("rwRotation")->setSFRotation(wheelRotation);
+
+    pn->resetPhysics();
+  }
+
+  void relocate_ball(constants::ball_posture pos)
+  {
+    namespace c = constants;
+
+    const auto reset_ball_node = [&](webots::Node* pn, double x, double y, double z) {
+      const auto f = half_passed_ ? -1 : 1;
+      const double translation[] = {f * x, y, f * -z};
+      const double rotation[] = {0, 1, 0, 0};
+      pn->getField("translation")->setSFVec3f(translation);
+      pn->getField("rotation")->setSFRotation(rotation);
+      pn->resetPhysics();
+    };
+
+    reset_ball_node(getFromDef(c::DEF_BALL), c::BALL_POSTURE[pos][0], 0.2, c::BALL_POSTURE[pos][1]);
   }
 
   void set_linear_wheel_speed(bool is_red, std::size_t id, const std::array<double, 2>& speed)
@@ -205,11 +343,30 @@ public:
 
     webots::Node* pn_robot = getFromDef(robot_name(is_red, id));
 
-    const auto left = std::max(std::min(speed[0], c::MAX_LINEAR_VELOCITY), -c::MAX_LINEAR_VELOCITY);
-    const auto right = std::max(std::min(speed[1], c::MAX_LINEAR_VELOCITY), -c::MAX_LINEAR_VELOCITY);
+    pn_robot->getField("customData")->setSFString(std::to_string(speed[0] / c::WHEEL_RADIUS[id]) + " " +
+                                            std::to_string(speed[1] / c::WHEEL_RADIUS[id]));
+  }
 
-    pn_robot->getField("customData")->setSFString(std::to_string(left / c::WHEEL_RADIUS) + " " +
-                                            std::to_string(right / c::WHEEL_RADIUS));
+  void mark_half_passed()
+  {
+    if (!half_passed_) {
+      half_passed_ = true;
+      const double rotation_a[] = {0, 0, 1, constants::PI};
+      const double rotation_b[] = {0, 0, 1, 0};
+      pn_cams_[1]->getField("rotation")->setSFRotation(rotation_a);
+      pn_cams_[2]->getField("rotation")->setSFRotation(rotation_b);
+    }
+  }
+
+  void mark_episode_restart()
+  {
+    if (half_passed_) {
+      half_passed_ = false;
+      const double rotation_a[] = {0, 0, 1, 0};
+      const double rotation_b[] = {0, 0, 1, constants::PI};
+      pn_cams_[1]->getField("rotation")->setSFRotation(rotation_a);
+      pn_cams_[2]->getField("rotation")->setSFRotation(rotation_b);
+    }
   }
 
 private: // private member functions
@@ -250,6 +407,39 @@ private: // private member functions
       if(pn_stadium) {
         pn_stadium->setVisibility(pn_cams_[N_CAMA], false);
         pn_stadium->setVisibility(pn_cams_[N_CAMB], false);
+      }
+    }
+
+    // Robot's gray cover is visible only to robots
+    {
+      for(const auto& team : {T_RED, T_BLUE}) {
+        for(std::size_t id = 0; id < constants::NUMBER_OF_ROBOTS; ++id) {
+          const auto* pn_robot = getFromDef(robot_name(team == T_RED, id));
+
+          auto* pf_cover = pn_robot->getField("cover");
+
+          assert(pf_cover && (pf_cover->getCount() == 1));
+
+          auto* pn_cover  = pf_cover->getMFNode(0);
+
+          pn_cover->setVisibility(pn_cams_[N_VIEWPOINT], false);
+        }
+      }
+    }
+    // Wall is visible only to robots
+    {
+      auto* pn_wall = getFromDef(DEF_WALL);
+      if (pn_wall) {
+        pn_wall->setVisibility(pn_cams_[N_VIEWPOINT], false);
+      }
+    }
+
+    // VisualWall is visible only to viewpoint, optional
+    {
+      auto* pn_viswall = getFromDef(DEF_VISWALL);
+      if (pn_viswall) {
+        pn_viswall->setVisibility(pn_cams_[N_CAMA], false);
+        pn_viswall->setVisibility(pn_cams_[N_CAMB], false);
       }
     }
 
@@ -306,6 +496,7 @@ private: // private member variables
   std::array<webots::Node*, 3> pn_cams_;
   std::array<webots::Camera*, 2> pc_cams_;
   webots::Receiver* pr_recv_;
+  bool half_passed_ = false;
 };
 
 #endif // H_SUPERVISOR_HPP

@@ -1,0 +1,14 @@
+#VRML_SIM R2019a utf8
+#Author(s):         Chansol Hong
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+
+PROTO DarkBlue [
+]
+{
+  Appearance {
+    material Material {
+      ambientIntensity 1
+      diffuseColor 0.013 0.205 0.24
+    }
+  }
+}

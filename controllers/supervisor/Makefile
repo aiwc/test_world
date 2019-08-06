@@ -25,8 +25,8 @@ include $(WEBOTS_HOME_PATH)/resources/Makefile.include
 # Following lines need os detection
 ifneq ($(OSTYPE),windows)
 # need >=boost-1.64. use bundled boost for systems that has lower version of boost
-CFLAGS += -I ../../extlibs/boost-1.65.1/include
-LFLAGS += -L ../../extlibs/boost-1.65.1/lib/$(OSTYPE)
+INCLUDE += -I ../../extlibs/boost-1.65.1/include
+LIBRARIES += -L ../../extlibs/boost-1.65.1/lib/$(OSTYPE)
 BOOST_POSTFIX =
 else
 # webots for windows contains boost
@@ -36,4 +36,4 @@ BOOST_POSTFIX = -mt
 endif
 
 LIBRARIES += -lboost_system$(BOOST_POSTFIX) -lboost_thread$(BOOST_POSTFIX) -lboost_filesystem$(BOOST_POSTFIX) -lboost_random$(BOOST_POSTFIX)
-LFLAGS += -L ../../extlibs/bonefish/lib/$(OSTYPE)
+LIBRARIES += -L ../../extlibs/bonefish/lib/$(OSTYPE)

@@ -1,0 +1,173 @@
+#VRML_SIM R2019a utf8
+#Author(s):         Seung-Jae Lee, Chansol Hong
+#Maintainer:        Chansol Hong (cshong@rit.kaist.ac.kr)
+# tags: static
+
+PROTO Banner [
+  field SFVec3f    translation 0 0 0
+  field SFRotation rotation 0 1 0 0
+  field SFFloat    length 0.5
+  field SFFloat    height 0.1
+  field SFFloat    bannerThickness 0.025
+  field SFFloat    frameThickness 0.01
+  field SFVec3f    scale 1 1 1
+  field SFNode     frameAppearance LightGray { }
+  field SFBool     castShadows TRUE
+  field SFBool     bannerFront TRUE
+  field SFBool     bannerBehind TRUE
+  field SFString   url "textures/kaist.png"
+  field SFString   name "banner"
+]
+{
+  %{
+    local l  = fields.length.value
+    local h  = fields.height.value
+    local bt = fields.bannerThickness.value
+    if bt <= 0 then
+      bt = 0.01
+    end
+    local ft = fields.frameThickness.value
+    local url = fields.url.value
+    local bf = fields.bannerFront.value
+    local bb = fields.bannerBehind.value
+
+    local bl = math.min(l-ft, l)
+    local blb = l
+    local bh = math.min(h-2*ft, h)
+
+    local fvt = math.min(ft, h/2)
+    local fht = math.min(ft/2, l/2)
+  }%
+  Solid {
+    translation IS translation
+    rotation IS rotation
+    scale IS scale
+    name IS name
+    children [
+      %{if bl > 0 and bh > 0 then}%
+      DEF PANEL Group {
+        children [
+          Transform {
+            rotation 1 0 0 1.57
+            translation %{=bt/2}% %{=h/2}% 0
+            children [
+              Transform {
+                rotation 0 0 1 -1.57
+                children [
+                  Shape {
+                  %{if bf then}%
+                    appearance Appearance {
+                      material Material {
+                        ambientIntensity 1
+                        diffuseColor 1 1 1
+                      }
+                      texture ImageTexture {
+                        url [
+                          "%{=url}%"
+                        ]
+                      }
+                    }
+                  %{else}%
+                    appearance IS frameAppearance
+                  %{end}%
+                    geometry Plane {
+                      size %{=bl}% %{=bh}%
+                    }
+                    castShadows IS castShadows
+                  }
+                ]
+              }
+            ]
+          }
+          Transform {
+            rotation 1 0 0 1.57
+            translation %{=-bt/2}% %{=h/2}% 0
+            children [
+              Transform {
+                rotation 0 0 1 1.57
+                children [
+                  Shape {
+                    %{if bb then}%
+                      appearance Appearance {
+                        material Material {
+                          ambientIntensity 1
+                          diffuseColor 1 1 1
+                          transparency 0.75
+                        }
+                      }
+                    %{else}%
+                      appearance IS frameAppearance
+                    %{end}%
+                    geometry Plane {
+                      size %{=blb}% %{=bh}%
+                    }
+                    castShadows IS castShadows
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+      %{end}%
+      %{if ft > 0 then}%
+      DEF FRAME Group {
+        children [
+          %{if l - ft > 0 then}%
+          Transform {
+            translation 0 %{=fvt/2}% 0
+            children [
+              Shape {
+                appearance IS frameAppearance
+                geometry Box {
+                  size %{=bt}% %{=fvt}% %{=l}%
+  	     }
+                castShadows IS castShadows
+  	   }
+  	 ]
+          }
+          Transform {
+            translation 0 %{=h-fvt/2}% 0
+	 children [
+	   Shape {
+                appearance IS frameAppearance
+	     geometry Box {
+	       size %{=bt}% %{=fvt}% %{=l}%
+	     }
+                castShadows IS castShadows
+	   }
+	 ]
+          }
+          %{end}%
+          Transform {
+            rotation 0 0 1 4.71238
+	 translation %{=bt/2}% %{=h/2}% %{=l/2-fht/2}%
+	 children [
+	   Shape {
+                appearance IS frameAppearance
+	     geometry Plane {
+	       size %{=h-2*ft}% %{=fht}%
+	     }
+                castShadows IS castShadows
+	   }
+	 ]
+          }
+          Transform {
+            rotation 0 0 1 4.71238
+	 translation %{=bt/2}% %{=h/2}% %{=-l/2+fht/2}%
+	 children [
+	   Shape {
+                appearance IS frameAppearance
+	     geometry Plane {
+	       size %{=h-2*ft}% %{=fht}%
+	     }
+                castShadows IS castShadows
+	   }
+	 ]
+          }
+        ]
+      }
+      %{end}%
+    ]
+  }
+}
