@@ -9,6 +9,7 @@ import socket
 import string
 import subprocess
 import sys
+import time
 import collections
 
 from controller import Supervisor
@@ -913,6 +914,16 @@ class GameSupervisor (Supervisor):
             self.tcp_server.spin(self)
             if not self.started:
                 if all(self.ready):
+                    if record:
+                        print('Game recording is enabled.')
+                        time_info = time.localtime()
+                        record_fullpath = '{}/[{:04d}-{:02d}-{:02d}T{:02d}_{:02d}_{:02d}]{}_{}.mp4'.format(
+                            record_path,
+                            # [<year>-<month>-<day>T<hour>_<minute>_<seconds>]
+                            time_info[0], time_info[1], time_info[2], time_info[3], time_info[4], time_info[5],
+                            team_name[constants.TEAM_RED], team_name[constants.TEAM_BLUE]
+                            )
+                        self.movieStartRecording(record_fullpath, 1920, 1080, 0, 100, 1, False)
                     print('Starting match.')
                     self.started = True
                 else:
@@ -1303,6 +1314,13 @@ class GameSupervisor (Supervisor):
             if self.step(self.timeStep) == -1:
                 break
             self.time += self.timeStep
+
+        if record:
+            # Stop game recording
+            print('Saving the recorded game as: {}'.format(record_fullpath))
+            print('Please wait until the message \033[36m\"INFO: Video creation finished.\"\033[0m is shown.')
+            sys.stdout.flush()
+            self.movieStopRecording()
 
     def save_report(self):
         # Save the report if anything has been written
