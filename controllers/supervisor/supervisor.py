@@ -65,6 +65,7 @@ def get_role_name(role):
 class TcpServer:
     def __init__(self, host, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.setblocking(False)
         self.server.bind((host, port))
         self.server.listen(5)
