@@ -70,7 +70,7 @@ class SubImage():
         self.b64 = b64
 
 
-class Commentator():
+class Reporter():
     def __init__(self):
         self.host = sys.argv[1]
         self.port = int(sys.argv[2])

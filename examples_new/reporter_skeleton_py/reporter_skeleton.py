@@ -3,7 +3,7 @@
 # Author(s): Luiz Felipe Vecchietti, Chansol Hong, Inbae Jeong
 # Maintainer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
-from commentator import Commentator, Frame, Game, SubImage, ReceivedImage
+from reporter import Reporter, Frame, SubImage, ReceivedImage
 
 # shortcuts
 MY_TEAM = 0
@@ -16,7 +16,7 @@ ACTIVE = 3
 TOUCH = 4
 
 
-class BasicCommentator(Commentator):
+class BasicCommentator(Reporter):
     def init(self, info):
         # Here you have the information of the game (virtual init() in random_walk.cpp)
         # List: game_time, number_of_robots
