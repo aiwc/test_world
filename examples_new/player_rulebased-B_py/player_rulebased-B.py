@@ -15,7 +15,7 @@ try:
     print(sys.path)
     from participant import Participant, Game, Frame
 except ImportError as err:
-    print('player_random-walk: \'participant\' module cannot be imported:', err)
+    print('player_rulebased-B: \'participant\' module cannot be imported:', err)
     raise
 
 

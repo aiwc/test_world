@@ -10,7 +10,7 @@ try:
     print(sys.path)
     from participant import Participant
 except ImportError as err:
-    print('player_random-walk: \'participant\' module cannot be imported:', err)
+    print('reporter_skeleton: \'participant\' module cannot be imported:', err)
     raise
 
 
