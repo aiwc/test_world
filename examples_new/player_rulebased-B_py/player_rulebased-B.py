@@ -5,18 +5,26 @@
 
 import math
 import numpy as np
+import os
 import sys
 
 import helper
 
-from player import Player, Game, Frame
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../common')
+try:
+    print(sys.path)
+    from participant import Participant, Game, Frame
+except ImportError as err:
+    print('player_rulebased-B: \'participant\' module cannot be imported:', err)
+    raise
 
-# shotcuts
-X = Player.X
-Y = Player.Y
+
+# shortcuts
+X = Frame.X
+Y = Frame.Y
 
 
-class RuleBasedBPlayer(Player):
+class RuleBasedBPlayer(Participant):
     def init(self, info):
         self.game_time = info['game_time']
         self.number_of_robots = info['number_of_robots']
@@ -39,26 +47,7 @@ class RuleBasedBPlayer(Player):
         self.atk_idx = 0
         self.wheels = [0 for _ in range(10)]
 
-    def update(self, f):
-        # initiate empty frame
-        received_frame = Frame()
-
-        if 'time' in f:
-            received_frame.time = f['time']
-        if 'score' in f:
-            received_frame.score = f['score']
-        if 'reset_reason' in f:
-            received_frame.reset_reason = f['reset_reason']
-        if 'game_state' in f:
-            received_frame.game_state = f['game_state']
-        if 'ball_ownership' in f:
-            received_frame.ball_ownership = f['ball_ownership']
-        if 'half_passed' in f:
-            received_frame.half_passed = f['half_passed']
-        if 'coordinates' in f:
-            received_frame.coordinates = f['coordinates']
-        if 'EOF' in f:
-            self.end_of_frame = f['EOF']
+    def update(self, received_frame):
 
         if self.end_of_frame:
             if received_frame.reset_reason != Game.NONE:
@@ -145,13 +134,13 @@ class RuleBasedBPlayer(Player):
             else:
                 self.set_target_position(id, x, self.cur_posture[id][Y] - 0.2, 1.4, 5.0, 0.4, False)
         # if the goalkeeper is outside the penalty area
-        elif (not self.in_penalty_area(self.cur_posture[id], Player.MY_TEAM)):
+        elif (not self.in_penalty_area(self.cur_posture[id], Frame.MY_TEAM)):
             # return to the desired position
             self.set_target_position(id, x, y, 1.4, 5.0, 0.4, True)
         # if the goalkeeper is inside the penalty area
         else:
             # if the ball is inside the penalty area
-            if (self.in_penalty_area(self.cur_ball, Player.MY_TEAM)):
+            if (self.in_penalty_area(self.cur_ball, Frame.MY_TEAM)):
                 # if the ball is behind the goalkeeper
                 if (self.cur_ball[X] < self.cur_posture[id][X]):
                     # if the ball is not blocking the goalkeeper's path
@@ -165,7 +154,7 @@ class RuleBasedBPlayer(Player):
                 # if the ball is ahead of the goalkeeper
                 else:
                     desired_th = self.direction_angle(id, self.cur_ball[X], self.cur_ball[Y])
-                    rad_diff = helper.trim_radian(desired_th - self.cur_posture[id][Player.TH])
+                    rad_diff = helper.trim_radian(desired_th - self.cur_posture[id][Frame.TH])
                     # if the robot direction is too away from the ball direction
                     if (rad_diff > math.pi / 3):
                         # give up kicking the ball and block the goalpost
@@ -349,7 +338,7 @@ class RuleBasedBPlayer(Player):
         sys.stdout.flush()
         # calculate how much the direction is off
         desired_th = (math.pi / 2) if (dx == 0 and dy == 0) else math.atan2(dy, dx)
-        d_th = desired_th - self.cur_posture[id][Player.TH]
+        d_th = desired_th - self.cur_posture[id][Frame.TH]
         while (d_th > math.pi):
             d_th -= 2 * math.pi
         while (d_th < -math.pi):
@@ -407,12 +396,12 @@ class RuleBasedBPlayer(Player):
 
     # copy coordinates from frames to different variables just for convenience
     def get_coord(self, received_frame):
-        self.cur_ball = received_frame.coordinates[Player.BALL]
-        self.cur_posture = received_frame.coordinates[Player.MY_TEAM]
-        self.cur_posture_op = received_frame.coordinates[Player.OP_TEAM]
-        self.prev_ball = self.previous_frame.coordinates[Player.BALL]
-        self.prev_posture = self.previous_frame.coordinates[Player.MY_TEAM]
-        self.prev_posture_op = self.previous_frame.coordinates[Player.OP_TEAM]
+        self.cur_ball = received_frame.coordinates[Frame.BALL]
+        self.cur_posture = received_frame.coordinates[Frame.MY_TEAM]
+        self.cur_posture_op = received_frame.coordinates[Frame.OP_TEAM]
+        self.prev_ball = self.previous_frame.coordinates[Frame.BALL]
+        self.prev_posture = self.previous_frame.coordinates[Frame.MY_TEAM]
+        self.prev_posture_op = self.previous_frame.coordinates[Frame.OP_TEAM]
 
     # find a defender and a forward closest to the ball
     def find_closest_robot(self):
@@ -475,7 +464,7 @@ class RuleBasedBPlayer(Player):
     def angle(self, id, desired_th):
         mult_ang = 0.4
 
-        d_th = desired_th - self.cur_posture[id][Player.TH]
+        d_th = desired_th - self.cur_posture[id][Frame.TH]
         d_th = helper.trim_radian(d_th)
 
         # the robot instead puts the direction rear if the angle difference is large
@@ -491,7 +480,7 @@ class RuleBasedBPlayer(Player):
         if (abs(obj[Y]) > self.penalty_area[Y] / 2):
             return False
 
-        if (team == Player.MY_TEAM):
+        if (team == Frame.MY_TEAM):
             return (obj[X] < -self.field[X] / 2 + self.penalty_area[X])
         else:
             return (obj[X] > self.field[X] / 2 - self.penalty_area[X])

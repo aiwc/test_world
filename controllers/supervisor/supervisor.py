@@ -9,6 +9,7 @@ import socket
 import string
 import subprocess
 import sys
+import time
 import collections
 
 from controller import Supervisor
@@ -30,16 +31,35 @@ def get_key(rpc):
     return rpc[first:rpc.find('"', first)]
 
 
-def robot_name(color, id):
+def get_robot_name(color, id):
     name = constants.DEF_ROBOT_PREFIX
-    name += 'R' if color == 0 else 'B'
+    if color == constants.TEAM_RED:
+        name += 'R'
+    elif color == constants.TEAM_BLUE:
+        name += 'B'
+    else:
+        sys.stderr.write("Error: get_robot_name: Invalid team color.\n")
     name += str(id)
     return name
+
+
+def get_role_name(role):
+    if role == constants.TEAM_RED:
+        return 'team red'
+    if role == constants.TEAM_BLUE:
+        return 'team blue'
+    if role == constants.COMMENTATOR:
+        return 'commentator'
+    if role == constants.REPORTER:
+        return 'reporter'
+    sys.stderr.write("Error: get_role_name: Invalid role.\n")
+    return ''
 
 
 class TcpServer:
     def __init__(self, host, port):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.setblocking(False)
         self.server.bind((host, port))
         self.server.listen(5)
@@ -58,9 +78,6 @@ class TcpServer:
             client.sendall(message.encode())
         except socket.ConnectionAbortedError:
             self.connections.remove(client)
-
-    def ready(self):  # return true when two players are connected
-        return len(self.connections) == 3  # contains the server and two players
 
     def spin(self, game_supervisor):  # handle asynchronous requests from clients
         def cleanup(s):
@@ -102,6 +119,8 @@ class GameSupervisor (Supervisor):
 
     def __init__(self):
         Supervisor.__init__(self)
+        self.report = None
+
         self.receiver = self.getReceiver(constants.NAME_RECV)
         self.receiver.enable(constants.RECV_PERIOD_MS)
 
@@ -130,9 +149,9 @@ class GameSupervisor (Supervisor):
             stadium.setVisibility(self.cameraANode, False)
             stadium.setVisibility(self.cameraBNode, False)
         # Robot's gray cover is visible only to robots
-        for team in range(2):
+        for team in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
-                robot = self.getFromDef(robot_name(team, id))
+                robot = self.getFromDef(get_robot_name(team, id))
                 cover = robot.getField('cover')
                 cover0 = cover.getMFNode(0)
                 cover0.setVisibility(self.viewpointNode, False)
@@ -146,9 +165,9 @@ class GameSupervisor (Supervisor):
             visual_wall.setVisibility(self.cameraANode, False)
             visual_wall.setVisibility(self.cameraBNode, False)
         # patches'
-        for team in range(2):
+        for team in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
-                robot = self.getFromDef(robot_name(team, id))
+                robot = self.getFromDef(get_robot_name(team, id))
                 patches = robot.getField('patches')
                 # number patch for decoration exists
                 if patches.getCount() == 3:
@@ -169,51 +188,71 @@ class GameSupervisor (Supervisor):
                     id_blue.setVisibility(self.viewpointNode, False)
                     id_blue.setVisibility(self.cameraANode, False)
 
-
         # comment buffer
         self.comments_ = collections.deque(maxlen=constants.NUM_COMMENTS)
-        for t in range(constants.NUM_COMMENTS): # fill with dummies
+        for t in range(constants.NUM_COMMENTS):  # fill with dummies
             self.comments_.append('')
 
-    def get_team_color(self, rpc):
-        if self.team_info[0]['key'] == get_key(rpc): # ISSUE: commentator and reporter will be able to set wheel speeds of blue team
-            return 0
-        else:
-            return 1
+    def get_role(self, rpc):
+        key = get_key(rpc)
+        for role in constants.ROLES:
+            if role in self.role_info and 'key' in self.role_info[role] and self.role_info[role]['key'] == key:
+                return role
+        sys.stderr.write("Error: get_role: invalid key.\n")
+        return -1
 
     def set_speeds(self, team, speeds):
-        letter = 'R' if team == 0 else 'B'
+        letter = 'R' if team == constants.TEAM_RED else 'B'
         def_robot_prefix = constants.DEF_ROBOT_PREFIX + letter
-        for id in range(5):
+        for id in range(constants.NUMBER_OF_ROBOTS):
             robot = self.getFromDef(def_robot_prefix + str(id))
             if self.robot[team][id]['active']:
-                robot.getField('customData').setSFString("%f %f" % (speeds[id * 2]/constants.WHEEL_RADIUS[id], speeds[id * 2 + 1]/constants.WHEEL_RADIUS[id]))
+                robot.getField('customData').setSFString(
+                    "%f %f" % (speeds[id * 2] / constants.WHEEL_RADIUS[id], speeds[id * 2 + 1] / constants.WHEEL_RADIUS[id])
+                )
 
     def callback(self, client, message):
         if not message.startswith('aiwc.'):
             print('Error, AIWC RPC messages should start with "aiwc.".')
             return
-        message = message[5:]
-        color = self.get_team_color(message)
-        self.team_client[color] = client
-        if message.startswith('get_info('):
-            print('Server receive aiwc.get_info from team ' + str(color))
-            self.tcp_server.send(client, json.dumps(self.team_info[color]))
-        elif message.startswith('ready('):
-            self.ready[color] = True
-            print('Server receive aiwc.ready from team ' + str(color))
-        elif message.startswith('set_speeds('):
-            start = message.find('",') + 2
-            end = message.find(')', start)
-            speeds = message[start:end]
-            speeds = [float(i) for i in speeds.split(',')]
-            self.set_speeds(color, speeds)
-        elif message.startswith('commentate('):
-            start = message.find('",') + 2
-            comment = '[{:.2f}] {}'.format(self.time / 1000., message[start:-1])
-            self.comments_.append(comment)
-        else:
-            print('Server received unknown message', message)
+
+        # Handle concatenated messages
+        data = message.split('aiwc.')
+        for command in data:
+            if not command:
+                continue
+            role = self.get_role(command)
+            self.role_client[role] = client
+            if command.startswith('get_info('):
+                print('Server receive aiwc.get_info from ' + get_role_name(role))
+                self.tcp_server.send(client, json.dumps(self.role_info[constants.TEAM_RED]))
+            elif command.startswith('ready('):
+                self.ready[role] = True
+                print('Server receive aiwc.ready from ' + get_role_name(role))
+            elif command.startswith('set_speeds('):
+                if (role > constants.TEAM_BLUE):
+                    sys.stderr.write("Error, commentator and reporter cannot change robot speed.\n")
+                    return
+                start = command.find('",') + 2
+                end = command.find(')', start)
+                speeds = command[start:end]
+                speeds = [float(i) for i in speeds.split(',')]
+                self.set_speeds(role, speeds)
+            elif command.startswith('commentate('):
+                if role != constants.COMMENTATOR:
+                    sys.stderr.write("Error, only commentator can commentate.\n")
+                    return
+                start = command.find('",') + 2
+                comment = '[{:.2f}] {}'.format(self.time / 1000., command[start:-1])
+                self.comments_.append(comment)
+            elif command.startswith('report('):
+                if role != constants.REPORTER:
+                    sys.stderr.write("Error, only reporter can report.\n")
+                    return
+                start = command.find('",') + 2
+                self.report = command[start:-1]
+            else:
+                print('Server received unknown message', message)
 
     def reset_ball(self, x, z):
         f = -1.0 if self.half_passed else 1.0
@@ -222,7 +261,7 @@ class GameSupervisor (Supervisor):
         self.ball.resetPhysics()
 
     def reset_robot(self, team, id, x, y, z, th):
-        robot = self.getFromDef(robot_name(team, id))
+        robot = self.getFromDef(get_robot_name(team, id))
         f = -1 if self.half_passed else 1
         translation = [f * x, y, f * -z]
         rotation = [0, 1, 0, th + (constants.PI if self.half_passed else 0)]
@@ -257,34 +296,34 @@ class GameSupervisor (Supervisor):
         if red_formation == constants.FORMATION_DEFAULT or red_formation == constants.FORMATION_KICKOFF:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_DEFAULT][0],
                             constants.BALL_POSTURE[constants.BALL_DEFAULT][1])
-        elif red_formation == constants.GOALKICK_A:
+        elif red_formation == constants.FORMATION_GOALKICK_A:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
                             constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif red_formation == constants.GOALKICK_D:
+        elif red_formation == constants.FORMATION_GOALKICK_D:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_GOALKICK][0],
                             constants.BALL_POSTURE[constants.BALL_GOALKICK][1])
-        elif red_formation == constants.CAD_AD or red_formation == constants.CAD_DA:
+        elif red_formation == constants.FORMATION_CAD_AD or red_formation == constants.FORMATION_CAD_DA:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.CBC_AD or red_formation == constants.CBC_DA:
+        elif red_formation == constants.FORMATION_CBC_AD or red_formation == constants.FORMATION_CBC_DA:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.CAD_AA or red_formation == constants.CAD_DD:
+        elif red_formation == constants.FORMATION_CAD_AA or red_formation == constants.FORMATION_CAD_DD:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             -constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.CBC_AA or red_formation == constants.CBC_DD:
+        elif red_formation == constants.FORMATION_CBC_AA or red_formation == constants.FORMATION_CBC_DD:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_CORNERKICK][0],
                             constants.BALL_POSTURE[constants.BALL_CORNERKICK][1])
-        elif red_formation == constants.PENALTYKICK_A:
+        elif red_formation == constants.FORMATION_PENALTYKICK_A:
             self.reset_ball(constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
-        elif red_formation == constants.PENALTYKICK_D:
+        elif red_formation == constants.FORMATION_PENALTYKICK_D:
             self.reset_ball(-constants.BALL_POSTURE[constants.BALL_PENALTYKICK][0],
                             constants.BALL_POSTURE[constants.BALL_PENALTYKICK][1])
 
         # reset the robots
-        for team in range(2):
-            if team == 0:
+        for team in constants.TEAMS:
+            if team == constants.TEAM_RED:
                 s = 1
                 a = 0
                 formation = red_formation
@@ -299,8 +338,21 @@ class GameSupervisor (Supervisor):
                                  constants.ROBOT_FORMATION[formation][id][1] * s,
                                  constants.ROBOT_FORMATION[formation][id][2] + a - constants.PI / 2)
 
+        # reset touch
+        self.recent_touch = [[False] * constants.NUMBER_OF_ROBOTS, [False] * constants.NUMBER_OF_ROBOTS]
+        # reset activeness, fall time and sentout time
+        for t in constants.TEAMS:
+            for id in range(constants.NUMBER_OF_ROBOTS):
+                self.robot[t][id]['active'] = True
+                self.robot[t][id]['fall_time'] = self.time
+                self.robot[t][id]['sentout_time'] = 0
+        self.stop_robots()
+        self.deadlock_time = self.time
+        # flush touch packet
+        self.flush_touch_ball()
+
     def update_positions(self):
-        for t in range(2):
+        for t in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 node = self.robot[t][id]['node']
                 position = node.getPosition()
@@ -311,7 +363,7 @@ class GameSupervisor (Supervisor):
         self.ball_position = self.ball.getPosition()
 
     def generate_frame(self, team):
-        opponent = 1 if team == 0 else 0
+        opponent = constants.TEAM_BLUE if team == constants.TEAM_RED else constants.TEAM_RED
         frame = {}
         frame['time'] = self.getTime()
         frame['score'] = [self.score[team], self.score[opponent]]
@@ -321,9 +373,9 @@ class GameSupervisor (Supervisor):
         frame['half_passed'] = self.half_passed
         frame['subimages'] = []
         frame['coordinates'] = [None] * 3
-        for t in range(2):
+        for t in constants.TEAMS:
             frame['coordinates'][t] = [None] * constants.NUMBER_OF_ROBOTS
-            c = team if t == 0 else opponent
+            c = team if t == constants.TEAM_RED else opponent
             for id in range(constants.NUMBER_OF_ROBOTS):
                 frame['coordinates'][t][id] = [None] * 5
                 frame['coordinates'][t][id][0] = self.robot[c][id]['x']
@@ -338,12 +390,12 @@ class GameSupervisor (Supervisor):
         return frame
 
     def lock_all_robots(self, locked):
-        for t in range(2):
+        for t in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 self.robot[t][id]['active'] = not locked
 
     def stop_robots(self):
-        for t in range(2):
+        for t in constants.TEAMS:
             self.set_speeds(t, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def update_label(self):
@@ -373,7 +425,7 @@ class GameSupervisor (Supervisor):
         rc = [[False] * constants.NUMBER_OF_ROBOTS, [False] * constants.NUMBER_OF_ROBOTS]
         while self.receiver.getQueueLength() > 0:
             message = self.receiver.getData()
-            for team in range(2):
+            for team in constants.TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     if message[2 * id + team] == '1':
                         rc[team][id] = True
@@ -473,7 +525,7 @@ class GameSupervisor (Supervisor):
         s_x = 1 if ball_x > 0 else -1
         s_y = 1 if ball_y > 0 else -1
         # count the robots and distance from the ball in the corner region of concern
-        for team in range(2):
+        for team in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 if not self.robot[team][id]['active']:
                     continue
@@ -506,7 +558,7 @@ class GameSupervisor (Supervisor):
         robot_distance = [0, 0]
         s_x = 1 if ball_x > 0 else -1
         # count the robots and distance from the ball in the penalty area of concern
-        for team in range(2):
+        for team in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 if not self.robot[team][id]['active']:
                     continue
@@ -542,7 +594,7 @@ class GameSupervisor (Supervisor):
             return False
         s_x = 1 if ball_x > 0 else -1
         # count the robots and distance from the ball in the penalty area of concern
-        for team in range(2):
+        for team in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 if not self.robot[team][id]['active']:
                     continue
@@ -611,6 +663,10 @@ class GameSupervisor (Supervisor):
         y = -position[2]
         return [f * x, f * y]
 
+    def get_ball_velocity(self):
+        v = self.ball.getVelocity()
+        return math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
+
     def any_object_nearby(self, target_x, target_y, target_r):
         # check ball position
         pos = self.get_ball_position()
@@ -621,7 +677,7 @@ class GameSupervisor (Supervisor):
         if dist_sq < target_r * target_r:
             return True
         # check robot positions
-        for team in range(2):
+        for team in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
                 pos = self.get_robot_posture(team, id)
                 x = pos[0]
@@ -650,7 +706,7 @@ class GameSupervisor (Supervisor):
         # gets other options from 'config.json' (if no option is specified, default option is given)
         # automatic recording of the game (default: false)
         # automatic repetition of the game (default: false)
-        player_team_infos = []
+        player_infos = []
         repeat = False
         record = False
         record_path = ''
@@ -663,16 +719,16 @@ class GameSupervisor (Supervisor):
                 record = config['tool']['record']
             if config['tool']['record_path']:
                 record_path = config['tool']['record_path']
-            path_prefix = '../../'
+
+        path_prefix = '../../'
         team_name = {}
-        self.team_info = {}
-        self.team_client = {}
-        self.ready = {}
-        self.ready[0] = False
-        self.ready[1] = False
+        self.role_info = {}
+        self.role_client = {}
+        self.ready = [False] * 4  # TEAM_RED, TEAM_BLUE, COMMENTATOR, REPORTER
+
         # gets the teams' information from 'config.json'
-        for team in [0, 1]:
-            if team == 0:
+        for team in constants.TEAMS:
+            if team == constants.TEAM_RED:
                 tc = 'team_a'
                 tc_op = 'team_b'
             else:
@@ -696,14 +752,21 @@ class GameSupervisor (Supervisor):
             if config[tc_op]:
                 if config[tc_op]['name']:
                     name_op = config[tc_op]['name']
-            player_team_infos.append([name, rating, path_prefix + exe, path_prefix, 'ROLE_PLAYER', team == 0])
-            if team == 0:
+            player_infos.append({
+                'name': name,
+                'rating': rating,
+                'exe': path_prefix + exe,
+                'path_prefix': path_prefix,
+                'role': team
+            })
+
+            if team == constants.TEAM_RED:
                 print('Team A:\n')
             else:
                 print('Team B:\n')
             print('  team name - ' + name + '\n')
             team_name[team] = name
-            print(' executable - ' + exe + '\n')
+            print('  executable - ' + exe + '\n')
             print('  data path - ' + data + '\n\n')
 
             # create information for aiwc.get_info() in advance
@@ -728,7 +791,7 @@ class GameSupervisor (Supervisor):
             info['game_time'] = self.game_time / 1000
             info['team_info'] = [[['name', name], ['rating', rating]], [['name', name_op], ['rating', rating_op]]]
             info['key'] = random_string(constants.KEY_LENGTH)
-            self.team_info[team] = info
+            self.role_info[team] = info
 
         # gets commentator information from 'config.json' (commentator is optional)
         if config['commentator']:
@@ -736,43 +799,64 @@ class GameSupervisor (Supervisor):
             exe = ''
             data = ''
 
+            info = {}
             if config['commentator']['name']:
                 name = config['commentator']['name']
             if config['commentator']['executable']:
                 exe = config['commentator']['executable']
             if config['commentator']['datapath']:
                 data = config['commentator']['datapath']
-            if exe:  # commentator is treated as red team with rating 0
-                player_team_infos.append([name, 0, path_prefix + exe, path_prefix + data, 'ROLE_COMMENTATOR', True])
+            if exe:
+                player_infos.append({
+                    'name': name,
+                    'rating': 0,
+                    'exe': path_prefix + exe,
+                    'path_prefix': path_prefix + data,
+                    'role': constants.COMMENTATOR
+                })
                 print('Commentator:\n')
                 print('  team name - ' + name + '\n')
-                print(' executable - ' + exe + '\n')
+                print('  executable - ' + exe + '\n')
                 print('  data path - ' + data + '\n\n')
+                info['key'] = random_string(constants.KEY_LENGTH)
             else:
                 print('Commentator "executable" is missing: skipping commentator\n')
+                self.ready[constants.COMMENTATOR] = True
+
+            self.role_info[constants.COMMENTATOR] = info
         else:
             print('"commentator" section of \'config.json\' seems to be missing: skipping commentator\n')
 
         #  gets reporter information from 'config.json' (reporter is optional)
         if config['reporter']:
-            name = ''
             exe = ''
             data = ''
 
+            info = {}
             if config['reporter']['name']:
-                name = config['reporter']['name']
+                info['name'] = config['reporter']['name']
             if config['reporter']['executable']:
                 exe = config['reporter']['executable']
             if config['reporter']['datapath']:
                 data = config['reporter']['datapath']
-            if exe:  # reporter is treated as red team with rating 0
-                player_team_infos.append([name, 0, path_prefix + exe, path_prefix + data, 'ROLE_REPORTER', True])
+            if exe:
+                player_infos.append({
+                    'name': name,
+                    'rating': 0,
+                    'exe': path_prefix + exe,
+                    'path_prefix': path_prefix + data,
+                    'role': constants.REPORTER
+                })
                 print('Reporter:\n')
-                print('  team name - ' + name + '\n')
-                print(' executable - ' + exe + '\n')
+                print('  team name - ' + info['name'] + '\n')
+                print('  executable - ' + exe + '\n')
                 print('  data path - ' + data + '\n\n')
+                info['key'] = random_string(constants.KEY_LENGTH)
             else:
                 print('Reporter "executable" is missing: skipping reporter\n')
+                self.ready[constants.REPORTER] = True
+
+            self.role_info[constants.REPORTER] = info
         else:
             print('"reporter" section of \'config.json\' seems to be missing: skipping reporter\n')
 
@@ -784,11 +868,11 @@ class GameSupervisor (Supervisor):
         self.half_passed = False
         self.reset_reason = Game.GAME_START
         self.game_state = Game.STATE_KICKOFF
-        self.ball_ownership = 0  # red
+        self.ball_ownership = constants.TEAM_RED  # red
         self.robot = [[0 for x in range(constants.NUMBER_OF_ROBOTS)] for y in range(2)]
-        for t in range(2):
+        for t in constants.TEAMS:
             for id in range(constants.NUMBER_OF_ROBOTS):
-                node = self.getFromDef(robot_name(t, id))
+                node = self.getFromDef(get_robot_name(t, id))
                 self.robot[t][id] = {}
                 self.robot[t][id]['node'] = node
                 position = node.getPosition()
@@ -802,12 +886,11 @@ class GameSupervisor (Supervisor):
                 self.robot[t][id]['ipa_time'] = self.time  # goalkeeper in_penalty_area time
         self.reset(constants.FORMATION_KICKOFF, constants.FORMATION_DEFAULT)
         self.lock_all_robots(True)
-        self.robot[0][4]['active'] = True
+        self.robot[constants.TEAM_RED][4]['active'] = True
 
         # start participants
-        for player_team_info in player_team_infos:
-            exe = player_team_info[2]
-            color = 0 if player_team_info[5] else 1
+        for player_info in player_infos:
+            exe = player_info['exe']
             if not os.path.exists(exe):
                 print('Participant controller not found: ' + exe)
             else:
@@ -818,24 +901,36 @@ class GameSupervisor (Supervisor):
                 command_line.append(exe)
                 command_line.append(constants.SERVER_IP)
                 command_line.append(str(constants.SERVER_PORT))
-                command_line.append(self.team_info[color]['key'])
-                command_line.append(player_team_info[3])
+                command_line.append(self.role_info[player_info['role']]['key'])
+                command_line.append(player_info['path_prefix'])
                 print(command_line)
                 subprocess.Popen(command_line)
         self.started = False
         print('Waiting for player to be ready...')
+
         while True:
             self.update_label()
             sys.stdout.flush()
             self.tcp_server.spin(self)
             if not self.started:
-                if self.ready[0] and self.ready[1]:
+                if all(self.ready):
+                    if record:
+                        print('Game recording is enabled.')
+                        time_info = time.localtime()
+                        record_fullpath = '{}/[{:04d}-{:02d}-{:02d}T{:02d}_{:02d}_{:02d}]{}_{}.mp4'.format(
+                            record_path,
+                            # [<year>-<month>-<day>T<hour>_<minute>_<seconds>]
+                            time_info[0], time_info[1], time_info[2], time_info[3], time_info[4], time_info[5],
+                            team_name[constants.TEAM_RED], team_name[constants.TEAM_BLUE]
+                            )
+                        self.movieStartRecording(record_fullpath, 1920, 1080, 0, 100, 1, False)
                     print('Starting match.')
                     self.started = True
                 else:
                     if self.step(self.timeStep) == -1:
                         break
                     continue
+
             self.update_positions()
             if self.time > self.game_time:  # half of game over
                 if self.half_passed:  # game over
@@ -847,30 +942,35 @@ class GameSupervisor (Supervisor):
                 else:  # second half starts with a kickoff by the blue team (1)
                     self.reset_reason = Game.HALFTIME
                     self.mark_half_passed()
-                    self.ball_ownership = 1
+                    self.ball_ownership = constants.TEAM_BLUE
                     self.game_state = Game.STATE_KICKOFF
                     self.time = 0
                     self.kickoff_time = self.time
                     self.reset(constants.FORMATION_DEFAULT, constants.FORMATION_KICKOFF)
                     self.lock_all_robots(True)
-                    self.robot[1][4]['active'] = True
+                    self.robot[constants.TEAM_BLUE][4]['active'] = True
                 self.half_passed = not self.half_passed
                 self.stop_robots()
                 self.step(constants.WAIT_END_MS)
-            for team in range(2):
-                frame = self.generate_frame(team)
-                self.tcp_server.send(self.team_client[team], json.dumps(frame))
+
+            frame_team_red = self.generate_frame(constants.TEAM_RED)  # frame also sent to commentator and reporter
+            frame_team_blue = self.generate_frame(constants.TEAM_BLUE)
+            for role in constants.ROLES:
+                if role in self.role_client:
+                    frame = frame_team_blue if role == constants.TEAM_BLUE else frame_team_red
+                    self.tcp_server.send(self.role_client[role], json.dumps(frame))
             if self.reset_reason == Game.GAME_END:
                 return
             # if any of the robots has touched the ball at this frame, update self.recent_touch
             touch = self.get_robot_touch_ball()
-            for team in range(2):
+            for team in constants.TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     if touch[team][id]:
                         self.recent_touch = touch
                         break
+
             # check if any of robots has fallen
-            for team in range(2):
+            for team in constants.TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     # if a robot has fallen and could not recover for constants.FALL_TIME_MS, send the robot to foulzone
                     if self.robot[team][id]['active'] \
@@ -882,7 +982,7 @@ class GameSupervisor (Supervisor):
                         self.robot[team][id]['fall_time'] = self.time
 
             # check if any of robots has been left the field without send_to_foulzone()
-            for team in range(2):
+            for team in constants.TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     # an active robot is not in the field
                     if self.robot[team][id]['active'] and not self.robot_in_field(team, id):
@@ -900,10 +1000,10 @@ class GameSupervisor (Supervisor):
                    and (x > constants.FIELD_LENGTH / 2 - constants.PENALTY_AREA_DEPTH) \
                    and (abs(y) < constants.PENALTY_AREA_WIDTH / 2)
 
-            for team in range(2):
+            for team in constants.TEAMS:
                 for id in range(constants.NUMBER_OF_ROBOTS):
                     pos = self.get_robot_posture(team, id)
-                    sign = 1 if team == 0 else -1
+                    sign = 1 if team == constants.TEAM_RED else -1
                     x = sign * pos[0]
                     y = sign * pos[1]
                     # if a robot has been in the opponent's penalty area for more than constants.IOPA_TIME_LIMIT_MS seconds,
@@ -929,9 +1029,9 @@ class GameSupervisor (Supervisor):
                        (x < -constants.FIELD_LENGTH / 2 + constants.PENALTY_AREA_DEPTH) and \
                        (abs(y) < constants.PENALTY_AREA_WIDTH / 2)
 
-            for team in range(2):
+            for team in constants.TEAMS:
                 pos = self.get_robot_posture(team, 0)
-                sign = 1 if team == 0 else -1
+                sign = 1 if team == constants.TEAM_RED else -1
                 x = sign * pos[0]
                 y = sign * pos[1]
                 # if the goalkeeper has been not in the penalty area for more than constants.GK_NIPA_TIME_LIMIT_MS seconds,
@@ -951,18 +1051,18 @@ class GameSupervisor (Supervisor):
                 ball_x = self.ball_position[0]
                 ball_y = self.ball_position[2]
                 if abs(ball_x) > constants.FIELD_LENGTH / 2 and abs(ball_y) < constants.GOAL_WIDTH / 2:
-                    goaler = 0 if ball_x > 0 else 1
+                    goaler = constants.TEAM_RED if ball_x > 0 else constants.TEAM_BLUE
                     self.score[goaler] += 1
                     self.update_label()
                     self.stop_robots()
                     self.step(constants.WAIT_GOAL_MS)
                     self.game_state = Game.STATE_KICKOFF
-                    self.ball_ownership = 1 if ball_x > 0 else 0
+                    self.ball_ownership = constants.TEAM_BLUE if ball_x > 0 else constants.TEAM_RED
                     self.kickoff_time = self.time
-                    self.reset(constants.FORMATION_KICKOFF if self.ball_ownership == 0 else constants.FORMATION_DEFAULT,
-                               constants.FORMATION_KICKOFF if self.ball_ownership == 1 else constants.FORMATION_DEFAULT)
+                    self.reset(constants.FORMATION_KICKOFF if self.ball_ownership == constants.TEAM_RED else constants.FORMATION_DEFAULT,
+                               constants.FORMATION_KICKOFF if self.ball_ownership == constants.TEAM_BLUE else constants.FORMATION_DEFAULT)
                     self.lock_all_robots(True)
-                    self.robot[0 if self.ball_ownership == 0 else 1][4]['active'] = True
+                    self.robot[self.ball_ownership][4]['active'] = True
                     self.step(constants.WAIT_STABLE_MS)
                     self.reset_reason = constants.SCORE_RED_TEAM if ball_x > 0 else constants.SCORE_BLUE_TEAM
                 elif not self.ball_in_field():
@@ -970,20 +1070,20 @@ class GameSupervisor (Supervisor):
                     self.step(constants.WAIT_STABLE_MS)
                     # determine the ownership based on who touched the ball last
                     touch_count = [0, 0]
-                    for team in range(2):
+                    for team in constants.TEAMS:
                         for id in range(constants.NUMBER_OF_ROBOTS):
-                            if self.robot[team][id]['recent_touch']:
+                            if self.recent_touch[team][id]:
                                 touch_count[team] += 1
                     # if recent_touch_ was red team dominant, blue team gets the ball
-                    if touch_count[0] > touch_count[1]:
-                        self.ball_ownership = 1
-                    elif touch_count[1] > touch_count[1]:  # the other way around
-                        self.ball_ownership = 0
+                    if touch_count[constants.TEAM_RED] > touch_count[constants.TEAM_BLUE]:
+                        self.ball_ownership = constants.TEAM_BLUE
+                    elif touch_count[constants.TEAM_BLUE] > touch_count[constants.TEAM_RED]:  # the other way around
+                        self.ball_ownership = constants.TEAM_RED
                     else:  # otherwise, the attacking team gets an advantage
-                        self.ball_ownership = 1 if ball_x < 0 else 0
+                        self.ball_ownership = constants.TEAM_BLUE if ball_x < 0 else constants.TEAM_RED
                     # happened on the left side
                     if ball_x < 0:  # if the red gets the ball, proceed to goalkick
-                        if self.ball_ownership == 0:
+                        if self.ball_ownership == constants.TEAM_RED:
                             self.game_state = Game.STATE_GOALKICK
                             self.goalkick_time = self.time
                             self.reset(constants.FORMATION_GOALKICK_A, constants.FORMATION_GOALKICK_D)
@@ -1001,7 +1101,7 @@ class GameSupervisor (Supervisor):
                             self.robot[self.ball_ownership][4]['active'] = True
                             self.reset_reason = constants.CORNERKICK
                     else:  # cornerkick happened on the right side
-                        if self.ball_ownership == 1:  # if the blue gets the ball, proceed to goalkick
+                        if self.ball_ownership == constants.TEAM_BLUE:  # if the blue gets the ball, proceed to goalkick
                             self.game_state = Game.STATE_GOALKICK
                             self.goalkick_time = self.time
                             self.reset(constants.FORMATION_GOALKICK_D, constants.FORMATION_GOALKICK_A)
@@ -1021,7 +1121,7 @@ class GameSupervisor (Supervisor):
                     self.step(constants.WAIT_STABLE_MS)
 
                 # check if any of robots should return to the field
-                for team in range(2):
+                for team in constants.TEAMS:
                     for id in range(constants.NUMBER_OF_ROBOTS):
                         # sentout time of 0 is an indicator that the robot is currently on the field
                         if self.robot[team][id]['sentout_time'] == 0:
@@ -1030,7 +1130,7 @@ class GameSupervisor (Supervisor):
                         # return the robot back to the field
                         if self.time - self.robot[team][id]['sentout_time'] >= constants.SENTOUT_DURATION_MS:
                             # if any object is located within 1.5 * robot_size, the return is delayed
-                            s = 1 if team == 0 else -1
+                            s = 1 if team == constants.TEAM_RED else -1
                             x = constants.ROBOT_FORMATION[constants.FORMATION_DEFAULT][id][0] * s
                             y = constants.ROBOT_FORMATION[constants.FORMATION_DEFAULT][id][1] * s
                             r = 1.5 * constants.ROBOT_SIZE[id]
@@ -1043,7 +1143,7 @@ class GameSupervisor (Supervisor):
                     # the ball ownership is already set by check_penalty_area()
                     self.stop_robots()
                     self.step(constants.WAIT_STABLE_MS)
-                    if ball_x < 0 and self.ball_ownership == 0:
+                    if ball_x < 0 and self.ball_ownership == constants.TEAM_RED:
                         # proceed to goal kick by Team Red
                         self.game_state = Game.STATE_GOALKICK
                         self.reset_reason = constants.GOALKICK
@@ -1051,7 +1151,7 @@ class GameSupervisor (Supervisor):
                         self.reset(constants.FORMATION_GOALKICK_A, constants.FORMATION_GOALKICK_D)
                         self.lock_all_robots(True)
                         self.robot[self.ball_ownership][0]['active'] = True
-                    elif ball_x > 0 and self.ball_ownership == 1:
+                    elif ball_x > 0 and self.ball_ownership == constants.TEAM_BLUE:
                         # proceed to goal kick by Team Blue
                         self.game_state = Game.STATE_GOALKICK
                         self.reset_reason = constants.GOALKICK
@@ -1059,7 +1159,7 @@ class GameSupervisor (Supervisor):
                         self.reset(constants.FORMATION_GOALKICK_D, constants.FORMATION_GOALKICK_A)
                         self.lock_all_robots(True)
                         self.robot[self.ball_ownership][0]['active'] = True
-                    elif ball_x < 0 and self.ball_ownership == 1:
+                    elif ball_x < 0 and self.ball_ownership == constants.TEAM_BLUE:
                         # proceed to penalty kick by Team Blue
                         self.game_state = Game.STATE_PENALTYKICK
                         self.reset_reason = constants.PENALTYKICK
@@ -1075,7 +1175,7 @@ class GameSupervisor (Supervisor):
                         self.lock_all_robots(True)
                         self.robot[self.ball_ownership][4]['active'] = True
                     self.step(constants.WAIT_STABLE_MS)
-            if self.reset_reason == constants.NONE and self.deadlock_flag:
+            if self.reset_reason == constants.NONE and deadlock_flag:
                 if self.get_ball_velocity() >= constants.DEADLOCK_THRESHOLD:
                     self.deadlock_time = self.time
                 elif self.time - self.deadlock_time >= constants.DEADLOCK_DURATION_MS:
@@ -1089,21 +1189,21 @@ class GameSupervisor (Supervisor):
                             self.ball_ownership = self.get_pa_ownership()
                             self.stop_robots()
                             self.step(constants.WAIT_STABLE_MS)
-                            if ball_x < 0 and self.ball_ownership == 0:  # proceed to goal kick by Team Red
+                            if ball_x < 0 and self.ball_ownership == constants.TEAM_RED:  # proceed to goal kick by Team Red
                                 self.game_state = Game.STATE_GOALKICK
                                 self.reset_reason = constants.GOALKICK
                                 self.goalkick_time = self.time
                                 self.reset(constants.FORMATION_GOALKICK_A, constants.FORMATION_GOALKICK_D)
                                 self.lock_all_robots(True)
                                 self.robot[self.ball_ownership][0]['active'] = True
-                            elif ball_x > 0 and self.ball_ownership == 1:  # proceed to goal kick by Team Blue
+                            elif ball_x > 0 and self.ball_ownership == constants.TEAM_BLUE:  # proceed to goal kick by Team Blue
                                 self.game_state = Game.STATE_GOALKICK
                                 self.reset_reason = constants.GOALKICK
                                 self.goalkick_time = self.time
                                 self.reset(constants.FORMATION_GOALKICK_D, constants.FORMATION_GOALKICK_A)
                                 self.lock_all_robots(True)
                                 self.robot[self.ball_ownership][0]['active'] = True
-                            elif ball_x < 0 and self.ball_ownership == 1:  # proceed to penalty kick by Team Blue
+                            elif ball_x < 0 and self.ball_ownership == constants.TEAM_BLUE:  # proceed to penalty kick by Team Blue
                                 self.game_state = Game.STATE_PENALTYKICK
                                 self.reset_reason = constants.PENALTYKICK
                                 self.penaltykick_time = self.time
@@ -1129,23 +1229,23 @@ class GameSupervisor (Supervisor):
                             # determine where to place the robots and the ball
                             if ball_x < 0:  # on Team Red's side
                                 if ball_y > 0:  # on upper side
-                                    if self.ball_ownership == 0:  # ball owned by Team Red
+                                    if self.ball_ownership == constants.TEAM_RED:  # ball owned by Team Red
                                         self.reset(constants.FORMATION_CAD_DA, constants.FORMATION_CAD_DD)
                                     else:  # // ball owned by Team Blue
                                         self.reset(constants.FORMATION_CAD_AD, constants.FORMATION_CAD_AA)
                                 else:  # on lower side
-                                    if self.ball_ownership == 0:  # ball owned by Team Red
+                                    if self.ball_ownership == constants.TEAM_RED:  # ball owned by Team Red
                                         self.reset(constants.FORMATION_CBC_DA, constants.FORMATION_CBC_DD)
                                     else:  # ball owned by Team Blue
                                         self.reset(constants.FORMATION_CBC_AD, constants.FORMATION_CBC_AA)
                             else:  # on Team Blue's side
                                 if ball_y > 0:  # on upper side
-                                    if self.ball_ownership == 0:  # ball owned by Team Red
+                                    if self.ball_ownership == constants.TEAM_RED:  # ball owned by Team Red
                                         self.reset(constants.FORMATION_CBC_AA, constants.FORMATION_CBC_AD)
                                     else:  # ball owned by Team Blue
                                         self.reset(constants.FORMATION_CBC_DD, constants.FORMATION_CBC_DA)
                                 else:  # on lower side
-                                    if self.ball_ownership == 0:  # ball owned by Team Red
+                                    if self.ball_ownership == constants.TEAM_RED:  # ball owned by Team Red
                                         self.reset(constants.FORMATION_CAD_AA, constants.FORMATION_CAD_AD)
                                     else:  # ball owned by Team Blue
                                         self.reset(constants.FORMATION_CAD_DD, constants.FORMATION_CAD_DA)
@@ -1215,6 +1315,21 @@ class GameSupervisor (Supervisor):
                 break
             self.time += self.timeStep
 
+        if record:
+            # Stop game recording
+            print('Saving the recorded game as: {}'.format(record_fullpath))
+            print('Please wait until the message \033[36m\"INFO: Video creation finished.\"\033[0m is shown.')
+            sys.stdout.flush()
+            self.movieStopRecording()
+
+    def save_report(self):
+        # Save the report if anything has been written
+        if self.report and self.role_info[constants.REPORTER]:
+            file = open('../../reports/' + self.role_info[constants.REPORTER]['name'] + '.txt', 'w')
+            file.write(self.report)
+            file.close()
+
 
 controller = GameSupervisor()
 controller.run()
+controller.save_report()
