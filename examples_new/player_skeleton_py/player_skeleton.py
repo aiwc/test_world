@@ -3,12 +3,18 @@
 # Author(s): Luiz Felipe Vecchietti, Chansol Hong, Inbae Jeong
 # Maintainer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
-import random
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../common')
+try:
+    print(sys.path)
+    from participant import Participant
+except ImportError as err:
+    print('player_skeleton: \'participant\' module cannot be imported:', err)
+    raise
 
-from player import Player
 
-
-class RandomWalkPlayer(Player):
+class RandomWalkPlayer(Participant):
     def init(self, info):
         self.number_of_robots = info['number_of_robots']
         self.max_linear_velocity = info['max_linear_velocity']

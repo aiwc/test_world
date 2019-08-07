@@ -51,7 +51,7 @@ class Participant():
         self.host = sys.argv[1]
         self.port = int(sys.argv[2])
         self.key = sys.argv[3]
-        self.data = sys.argv[4]
+        self.datapath = sys.argv[4]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
 
@@ -122,7 +122,7 @@ class Participant():
     def update(self, frame):  # you should override this method
         print("update() method called")
 
-    def finish(self):  # you should override this method
+    def finish(self, frame):  # you should override this method
         print("finish() method called")
 
     def run(self):

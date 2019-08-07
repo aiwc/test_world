@@ -95,8 +95,8 @@ class Commentator(Participant):
                 received_frame.score[0], received_frame.score[1]))
 
     def finish(self, frame):
-        scoreRed = received_frame.score[0]
-        scoreBlue = received_frame.score[1]
+        scoreRed = frame.score[0]
+        scoreBlue = frame.score[1]
         if (scoreRed > scoreBlue):
             self.commentate("Team Red won the game with score {} : {}".format(scoreRed, scoreBlue))
         elif (scoreRed < scoreBlue):
