@@ -3,20 +3,18 @@
 # Author(s): Luiz Felipe Vecchietti, Chansol Hong, Inbae Jeong
 # Maintainer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
-from commentator import Commentator, Frame, Game, SubImage, ReceivedImage
-
-# shortcuts
-MY_TEAM = 0
-OP_TEAM = 1
-BALL = 2
-X = 0
-Y = 1
-TH = 2
-ACTIVE = 3
-TOUCH = 4
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../common')
+try:
+    print(sys.path)
+    from participant import Participant, Game, Frame
+except ImportError as err:
+    print('player_random-walk: \'participant\' module cannot be imported:', err)
+    raise
 
 
-class BasicCommentator(Commentator):
+class Commentator(Participant):
     def init(self, info):
         # Here you have the information of the game (virtual init() in random_walk.cpp)
         # List: game_time, number_of_robots
@@ -51,37 +49,14 @@ class BasicCommentator(Commentator):
 
         self.colorChannels = 3
         self.end_of_frame = False
-        self.image = ReceivedImage(self.resolution, self.colorChannels)
+        # TODO self.image = ReceivedImage(self.resolution, self.colorChannels)
 
         print("I am the commentator for this game!")
 
-    def update(self, frame):
-        # initiate empty frame
-        received_frame = Frame()
-        received_subimages = []
-        if 'time' in frame:
-            received_frame.time = frame['time']
-        if 'score' in frame:
-            received_frame.score = frame['score']
-        if 'reset_reason' in frame:
-            received_frame.reset_reason = frame['reset_reason']
-        if 'half_passed' in frame:
-            received_frame.half_passed = frame['half_passed']
-        if 'ball_ownership' in frame:
-            received_frame.ball_ownership = frame['ball_ownership']
-        if 'subimages' in frame:
-            received_frame.subimages = frame['subimages']
-            # Comment the next lines if you don't need to use the image information
-            for s in received_frame.subimages:
-                received_subimages.append(SubImage(s['x'],
-                                                   s['y'],
-                                                   s['w'],
-                                                   s['h'],
-                                                   s['base64'].encode('utf8')))
-            self.image.update_image(received_subimages)
-        if 'coordinates' in frame:
-            received_frame.coordinates = frame['coordinates']
+    def commentate(self, commentary):
+        self.send_comment([commentary])
 
+    def update(self, received_frame):
         # print(received_frame.time)
         # print(received_frame.score)
         # print(received_frame.reset_reason)
@@ -90,44 +65,44 @@ class BasicCommentator(Commentator):
 
         if (received_frame.reset_reason == Game.GAME_START):
             if not received_frame.half_passed:
-                self.set_comment("Game has begun")
+                self.commentate("Game has begun")
             else:
-                self.set_comment("Second half has begun")
+                self.commentate("Second half has begun")
 
         elif received_frame.reset_reason == Game.DEADLOCK:
-            self.set_comment("Position is reset since no one touched the ball")
+            self.commentate("Position is reset since no one touched the ball")
 
         elif received_frame.reset_reason == Game.GOALKICK:
-            self.set_comment("A goal kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
+            self.commentate("A goal kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
 
         elif received_frame.reset_reason == Game.CORNERKICK:
-            self.set_comment("A corner kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
+            self.commentate("A corner kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
 
         elif received_frame.reset_reason == Game.PENALTYKICK:
-            self.set_comment("A penalty kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
+            self.commentate("A penalty kick of Team {}".format("Red" if received_frame.ball_ownership else "Blue"))
         # To get the image at the end of each frame use the variable:
         # self.image.ImageBuffer
 
-        if (received_frame.coordinates[BALL][X] >= (self.field[X] / 2) and
-                abs(received_frame.coordinates[BALL][Y]) <= (self.goal[Y] / 2)):
-            self.set_comment("Team Red scored!!")
-        elif (received_frame.coordinates[BALL][X] <= (-self.field[X] / 2) and
-                abs(received_frame.coordinates[BALL][Y]) <= (self.goal[Y] / 2)):
-            self.set_comment("Team Blue scored!!")
+        if (received_frame.coordinates[Frame.BALL][Frame.X] >= (self.field[Frame.X] / 2) and
+                abs(received_frame.coordinates[Frame.BALL][Frame.Y]) <= (self.goal[Frame.Y] / 2)):
+            self.commentate("Team Red scored!!")
+        elif (received_frame.coordinates[Frame.BALL][Frame.X] <= (-self.field[Frame.X] / 2) and
+                abs(received_frame.coordinates[Frame.BALL][Frame.Y]) <= (self.goal[Frame.Y] / 2)):
+            self.commentate("Team Blue scored!!")
 
         if received_frame.reset_reason == Game.HALFTIME:
-            self.set_comment("The halftime has met. Current score is: {} : {}".format(
+            self.commentate("The halftime has met. Current score is: {} : {}".format(
                 received_frame.score[0], received_frame.score[1]))
 
     def finish(self, frame):
-        scoreRed = frame['score'][0]
-        scoreBlue = frame['score'][1]
+        scoreRed = received_frame.score[0]
+        scoreBlue = received_frame.score[1]
         if (scoreRed > scoreBlue):
-            self.set_comment("Team Red won the game with score {} : {}".format(scoreRed, scoreBlue))
+            self.commentate("Team Red won the game with score {} : {}".format(scoreRed, scoreBlue))
         elif (scoreRed < scoreBlue):
-            self.set_comment("Team Blue won the game with score {} : {}".format(scoreBlue, scoreRed))
+            self.commentate("Team Blue won the game with score {} : {}".format(scoreBlue, scoreRed))
         else:
-            self.set_comment("The game ended in a tie with score {} : {}".format(scoreRed, scoreBlue))
+            self.commentate("The game ended in a tie with score {} : {}".format(scoreRed, scoreBlue))
 
         # save your data
         with open(self.datapath + '/result.txt', 'w') as output:
@@ -136,5 +111,5 @@ class BasicCommentator(Commentator):
 
 
 if __name__ == '__main__':
-    commentator = BasicCommentator()
+    commentator = Commentator()
     commentator.run()

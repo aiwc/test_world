@@ -3,20 +3,18 @@
 # Author(s): Luiz Felipe Vecchietti, Chansol Hong, Inbae Jeong
 # Maintainer: Chansol Hong (cshong@rit.kaist.ac.kr)
 
-from reporter import Reporter, Frame, SubImage, ReceivedImage
-
-# shortcuts
-MY_TEAM = 0
-OP_TEAM = 1
-BALL = 2
-X = 0
-Y = 1
-TH = 2
-ACTIVE = 3
-TOUCH = 4
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + '/../common')
+try:
+    print(sys.path)
+    from participant import Participant
+except ImportError as err:
+    print('player_random-walk: \'participant\' module cannot be imported:', err)
+    raise
 
 
-class BasicCommentator(Reporter):
+class Reporter(Participant):
     def init(self, info):
         # Here you have the information of the game (virtual init() in random_walk.cpp)
         # List: game_time, number_of_robots
@@ -51,47 +49,22 @@ class BasicCommentator(Reporter):
 
         self.colorChannels = 3
         self.end_of_frame = False
-        self.image = ReceivedImage(self.resolution, self.colorChannels)
+        # TODO
+        # self.image = ReceivedImage(self.resolution, self.colorChannels)
 
         self.paragraphs = []
-        print("I am the commentator for this game!")
+        print("I am the reporter for this game!")
 
     def update(self, frame):
-        # initiate empty frame
-        received_frame = Frame()
-        received_subimages = []
-        if 'time' in frame:
-            received_frame.time = frame['time']
-        if 'score' in frame:
-            received_frame.score = frame['score']
-        if 'reset_reason' in frame:
-            received_frame.reset_reason = frame['reset_reason']
-        if 'half_passed' in frame:
-            received_frame.half_passed = frame['half_passed']
-        if 'ball_ownership' in frame:
-            received_frame.ball_ownership = frame['ball_ownership']
-        if 'subimages' in frame:
-            received_frame.subimages = frame['subimages']
-            # Comment the next lines if you don't need to use the image information
-            for s in received_frame.subimages:
-                received_subimages.append(SubImage(s['x'],
-                                                   s['y'],
-                                                   s['w'],
-                                                   s['h'],
-                                                   s['base64'].encode('utf8')))
-            self.image.update_image(received_subimages)
-        if 'coordinates' in frame:
-            received_frame.coordinates = frame['coordinates']
-
-        # self.printConsole(received_frame.time)
-        # self.printConsole(received_frame.score)
-        # self.printConsole(received_frame.reset_reason)
-        # self.printConsole(received_frame.half_passed)
-        # self.printConsole(self.end_of_frame)
+        # self.printConsole(frame.time)
+        # self.printConsole(frame.score)
+        # self.printConsole(frame.reset_reason)
+        # self.printConsole(frame.half_passed)
+        pass
 
     def finish(self, frame):
-        scoreRed = frame['score'][0]
-        scoreBlue = frame['score'][1]
+        scoreRed = frame.score[0]
+        scoreBlue = frame.score[1]
         if (scoreRed > scoreBlue):
             self.paragraphs.append("Team Red won the game with score {} : {}".format(scoreRed, scoreBlue))
         elif (scoreRed < scoreBlue):
@@ -104,5 +77,5 @@ class BasicCommentator(Reporter):
 
 
 if __name__ == '__main__':
-    commentator = BasicCommentator()
+    commentator = Reporter()
     commentator.run()

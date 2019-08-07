@@ -2,9 +2,6 @@ import json
 import socket
 import sys
 
-import base64
-import numpy as np
-
 
 class Frame():
     def __init__(self):
@@ -15,6 +12,16 @@ class Frame():
         self.subimages = None
         self.coordinates = None
         self.half_passed = None
+
+    # coordinates
+    MY_TEAM = 0
+    OP_TEAM = 1
+    BALL = 2
+    X = 0
+    Y = 1
+    TH = 2
+    ACTIVE = 3
+    TOUCH = 4
 
 
 class Game():
@@ -39,43 +46,12 @@ class Game():
     STATE_PENALTYKICK = 4
 
 
-class ReceivedImage(object):
-    def __init__(self, resolution, colorChannels):
-        self.resolution = resolution
-        self.colorChannels = colorChannels
-        # need to initialize the matrix at timestep 0
-        self.ImageBuffer = np.zeros((resolution[1], resolution[0], colorChannels))  # rows, columns, colorchannels
-
-    def update_image(self, received_parts):
-        self.received_parts = received_parts
-        for i in range(0, len(received_parts)):
-            dec_msg = base64.b64decode(self.received_parts[i].b64, '-_')  # decode the base64 message
-            np_msg = np.fromstring(dec_msg, dtype=np.uint8)  # convert byte array to numpy array
-            reshaped_msg = np_msg.reshape((self.received_parts[i].height, self.received_parts[i].width, 3))
-            for j in range(0, self.received_parts[i].height):  # y axis
-                for k in range(0, self.received_parts[i].width):  # x axis
-                    y = j + self.received_parts[i].y
-                    x = k + self.received_parts[i].x
-                    self.ImageBuffer[y, x, 0] = reshaped_msg[j, k, 0]  # blue channel
-                    self.ImageBuffer[y, x, 1] = reshaped_msg[j, k, 1]  # green channel
-                    self.ImageBuffer[y, x, 2] = reshaped_msg[j, k, 2]  # red channel
-
-
-class SubImage():
-    def __init__(self, x, y, width, height, b64):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.b64 = b64
-
-
-class Reporter():
+class Participant():
     def __init__(self):
         self.host = sys.argv[1]
         self.port = int(sys.argv[2])
         self.key = sys.argv[3]
-        self.datapath = sys.argv[4]
+        self.data = sys.argv[4]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
 
@@ -93,11 +69,50 @@ class Reporter():
         data = self.socket.recv(4096)
         return data.decode()
 
-    def send_report(self, commentary):
-        self.send('report', self.paragraphs)
+    def create_frame_object(self, f):
+        # initiate empty frame
+        frame = Frame()
+        if 'time' in f:
+            frame.time = f['time']
+        if 'score' in f:
+            frame.score = f['score']
+        if 'reset_reason' in f:
+            frame.reset_reason = f['reset_reason']
+        if 'game_state' in f:
+            frame.game_state = f['game_state']
+        if 'ball_ownership' in f:
+            frame.ball_ownership = f['ball_ownership']
+        if 'half_passed' in f:
+            frame.half_passed = f['half_passed']
+        if 'subimages' in f:
+            frame.subimages = f['subimages']
+            # TODO
+            # Comment the next lines if you don't need to use the image information
+            # for s in frame.subimages:
+            #    received_subimages.append(SubImage(s['x'],
+            #                                       s['y'],
+            #                                       s['w'],
+            #                                       s['h'],
+            #                                       s['base64'].encode('utf8')))
+            # self.image.update_image(received_subimages)
+        if 'coordinates' in f:
+            frame.coordinates = f['coordinates']
+        if 'EOF' in f:
+            frame.end_of_frame = f['EOF']
+
+        return frame
+
+    def set_speeds(self, speeds):
+        self.send('set_speeds', speeds)
+
+    def send_comment(self, commentary):
+        self.send('commentate', commentary)
+
+    def send_report(self, report):
+        self.send('report', report)
 
     def check_frame(self, frame):  # you should override this method
-        if 'reset_reason' in frame and frame['reset_reason'] == Game.GAME_END:
+        if frame.reset_reason == Game.GAME_END:
             return False
         return True
 
@@ -107,7 +122,7 @@ class Reporter():
     def update(self, frame):  # you should override this method
         print("update() method called")
 
-    def finish(self, frame):  # you should override this method
+    def finish(self):  # you should override this method
         print("finish() method called")
 
     def run(self):
@@ -117,7 +132,6 @@ class Reporter():
         self.init(json.loads(info))
 
         self.send('ready')
-
         while True:
             data = self.receive()
             if data:
@@ -126,14 +140,15 @@ class Reporter():
                     frames = json.loads("[{}]".format(data.replace('}{', '},{')))
                     finished = False
                     for frame in frames:
-                        if frame and self.check_frame(frame):  # return False if we need to quit
-                            self.update(frame)
+                        frameObject = self.create_frame_object(frame)
+                        if frame and self.check_frame(frameObject):  # return False if we need to quit
+                            self.update(frameObject)
                         else:
-                            self.finish(frame)
+                            self.finish(frameObject)
                             finished = True
                             break
 
                     if finished:
                         break
                 except ValueError:
-                    sys.stderr.write("Error: commentator.py: Invalid JSON object.\n")
+                    sys.stderr.write("Error: participant.py: Invalid JSON object.\n")
