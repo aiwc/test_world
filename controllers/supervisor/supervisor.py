@@ -756,7 +756,7 @@ class GameSupervisor (Supervisor):
                 'name': name,
                 'rating': rating,
                 'exe': path_prefix + exe,
-                'path_prefix': path_prefix,
+                'path_prefix': path_prefix + data,
                 'role': team
             })
 
